@@ -1,0 +1,4 @@
+torch>=2.0
+transformer_lens>=1.0
+einops
+numpy

@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glassbox"
+version = "2.0.0"
+description = "Glassbox 2.0 — Open-source mechanistic interpretability for transformer models"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "torch>=2.0",
+    "transformer_lens>=1.0",
+    "einops",
+    "numpy",
+]
+
+[project.scripts]
+glassbox = "glassbox.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["glassbox*"]

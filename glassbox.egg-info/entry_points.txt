@@ -1,0 +1,2 @@
+[console_scripts]
+glassbox = glassbox.cli:main
