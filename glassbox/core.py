@@ -1,3 +1,8 @@
+import torch
+import numpy as np
+import einops
+from transformer_lens import HookedTransformer
+
 # ═══════════════════════════════════════════════════════════════════════════
 # GLASSBOX 2.0 — CELL 2: GlassboxV2 Core Engine
 #
