@@ -2,7 +2,7 @@ import argparse, sys, textwrap
 
 BANNER = """
   ╔═══════════════════════════════════╗
-  ║   ⬡  G L A S S B O X  2 . 0  ⬡  ║
+  ║   ⬡  G L A S S B O X  2 . 0  ⬡    ║
   ║  Mechanistic Interpretability CLI ║
   ╚═══════════════════════════════════╝
 """

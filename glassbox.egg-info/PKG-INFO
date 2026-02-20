@@ -4,10 +4,12 @@ Version: 2.0.0
 Summary: Glassbox 2.0 — Open-source mechanistic interpretability for transformer models
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Requires-Dist: torch>=2.0
 Requires-Dist: transformer_lens>=1.0
 Requires-Dist: einops
 Requires-Dist: numpy
+Dynamic: license-file
 
     # Glassbox 2.0
 

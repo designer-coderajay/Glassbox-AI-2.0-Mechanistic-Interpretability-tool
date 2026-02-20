@@ -1,3 +1,4 @@
+LICENSE
 README.md
 pyproject.toml
 glassbox/__init__.py
