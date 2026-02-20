@@ -11,3 +11,4 @@ glassbox.egg-info/dependency_links.txt
 glassbox.egg-info/entry_points.txt
 glassbox.egg-info/requires.txt
 glassbox.egg-info/top_level.txt
+tests/test_engine.py
