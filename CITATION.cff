@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use Glassbox in your research, please cite it as below."
+type: software
+title: "Glassbox 2.0: Mechanistic Interpretability via Attribution Patching"
+version: 2.0.0
+date-released: "2026-02-21"
+license: MIT
+repository-code: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+authors:
+  - family-names: Mahale
+    given-names: Ajay
+    email: mahale.ajay01@gmail.com
+abstract: >
+  Glassbox 2.0 is a free, open-source mechanistic interpretability toolkit
+  for transformer language models. It implements attribution patching in
+  O(3) forward passes, auto-discovers minimum faithful circuits (MFC),
+  computes bootstrap 95% confidence intervals, and measures cross-model
+  circuit alignment via the Functional Circuit Alignment Score (FCAS).
+keywords:
+  - mechanistic-interpretability
+  - attribution-patching
+  - transformer
+  - circuits
+  - explainability
+  - deep-learning
+preferred-citation:
+  type: software
+  title: "Glassbox 2.0: Mechanistic Interpretability via Attribution Patching"
+  authors:
+    - family-names: Mahale
+      given-names: Ajay
+  year: 2026
+  url: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
