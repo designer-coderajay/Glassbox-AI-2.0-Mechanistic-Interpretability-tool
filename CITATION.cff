@@ -22,7 +22,6 @@ keywords:
   - transformer
   - circuits
   - explainability
-  - gpt2
   - deep-learning
 preferred-citation:
   type: software
