@@ -3,11 +3,22 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "glassbox"
+name = "glassbox-mech-interp"
 version = "2.0.0"
 description = "Glassbox 2.0 — Open-source mechanistic interpretability for transformer models"
 readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.8"
+authors = [
+    { name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }
+]
+keywords = ["mechanistic interpretability", "transformers", "circuits", "attribution patching", "explainability"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "torch>=2.0",
     "transformer_lens>=1.0",
@@ -15,8 +26,13 @@ dependencies = [
     "numpy",
 ]
 
+[project.urls]
+Homepage = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+"Bug Tracker" = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues"
+"HuggingFace Space" = "https://huggingface.co/spaces/designer-coderajay/Glassbox-ai"
+
 [project.scripts]
-glassbox = "glassbox.cli:main"
+glassbox-ai = "glassbox.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
