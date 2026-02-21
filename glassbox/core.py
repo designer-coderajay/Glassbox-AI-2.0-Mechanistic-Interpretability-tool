@@ -1,6 +1,10 @@
 import torch
 import numpy as np
 import einops
+
+# Reproducibility (seed=42 matches thesis)
+torch.manual_seed(42)
+np.random.seed(42)
 from transformer_lens import HookedTransformer
 
 # ═══════════════════════════════════════════════════════════════════════════
