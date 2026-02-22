@@ -1,4 +1,4 @@
-README = '''<div align="center">
+<div align="center">
 
 # 🔬 Glassbox 2.0
 
