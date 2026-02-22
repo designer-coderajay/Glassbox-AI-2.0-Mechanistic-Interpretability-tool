@@ -9,7 +9,7 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
 
-[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Paper**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Docs**](https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/)
+[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)  · [**Docs**](https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/)
 
 </div>
 
