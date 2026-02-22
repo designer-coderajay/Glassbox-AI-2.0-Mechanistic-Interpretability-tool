@@ -183,21 +183,6 @@ MIT. See [LICENSE](LICENSE).
 ---
 
 <div align="center">
-Built by <a href="mailto:mahale.ajay01@gmail.com">Ajay Pravin Mahale</a> · MSc thesis, Hochschule Trier
+Built by <a href="mailto:mahale.ajay01@gmail.com">Ajay Pravin Mahale</a> · Made in Germany · Glassbox AI
 </div>
-'''
 
-import subprocess
-
-with open(f"{PKG_DIR}/README.md", "w") as f:
-    f.write(README)
-print("✅ README.md written")
-
-def run(cmd):
-    r = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=PKG_DIR)
-    print(r.stdout or r.stderr)
-
-run("git add README.md")
-run('git commit -m "docs: professional README with benchmarks, API ref, badges"')
-run("git push origin main")
-print("✅ README pushed to GitHub")
