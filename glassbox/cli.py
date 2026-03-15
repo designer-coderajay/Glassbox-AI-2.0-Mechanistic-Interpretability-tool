@@ -19,8 +19,8 @@ def _run_analyze(args):
     circuit = result["circuit"]
     faith   = result["faithfulness"]
 
-    print(f"  Sufficiency      : {faith['suff']:.1%}")
-    print(f"  Comprehensiveness: {faith['comp']:.1%}")
+    print(f"  Sufficiency      : {faith['sufficiency']:.1%}")
+    print(f"  Comprehensiveness: {faith['comprehensiveness']:.1%}")
     print(f"  F1-score         : {faith['f1']:.1%}")
     print(f"  Category         : {faith['category']}\n")
 
