@@ -173,7 +173,7 @@ class GlassboxV2:
         clean_cache: Dict[str, torch.Tensor] = {}
 
         def _save_clean(key: str):
-            def hook(act, hook):
+            def hook(act, _hook):
                 clean_cache[key] = act.detach().clone()
             return hook
 
@@ -190,7 +190,7 @@ class GlassboxV2:
         corr_cache: Dict[str, torch.Tensor] = {}
 
         def _save_corr(key: str):
-            def hook(act, hook):
+            def hook(act, _hook):
                 corr_cache[key] = act.detach().clone()
             return hook
 
@@ -215,7 +215,7 @@ class GlassboxV2:
         }
 
         def _patch(key: str):
-            def hook(act, hook):
+            def hook(act, _hook):
                 # MUST return — otherwise gradient doesn't flow through
                 return grad_inputs[key].to(act.dtype)
             return hook
@@ -296,7 +296,7 @@ class GlassboxV2:
         corr_cache: Dict[str, torch.Tensor] = {}
 
         def _save(key: str):
-            def hook(act, hook):
+            def hook(act, _hook):
                 corr_cache[key] = act.detach().clone()
             return hook
 
@@ -312,7 +312,7 @@ class GlassboxV2:
         # Pass 2: patched forward — replace circuit heads with corrupted z
         def _patch_corr(layer: int, head: int):
             key = f"blocks.{layer}.attn.hook_z"
-            def hook(act, hook):
+            def hook(act, _hook):
                 result = act.clone()
                 if key in corr_cache:
                     corr = corr_cache[key]
@@ -676,10 +676,21 @@ class GlassboxV2:
         f1    = 2.0 * suff * comp / (suff + comp) if (suff + comp) > 0.0 else 0.0
 
         # Category thresholds (documented, not theoretically derived)
+        #
+        # BUG FIX: original order had 'weak' before 'incomplete'.
+        # Because weak checks (suff < 0.6 AND comp < 0.5), it is a superset of
+        # the typical incomplete case (suff < 0.5 AND comp < 0.5).  That made
+        # 'incomplete' unreachable for the majority of low-suff, low-comp inputs.
+        # Example: suff=0.40, comp=0.30 → old code returned "weak", correct is "incomplete".
+        #
+        # FIX: check 'incomplete' (suff < 0.5, any comp) before 'weak'
+        # (suff 0.5–0.6, low comp).  'incomplete' still fires when suff >= 0.5
+        # and comp >= 0.5 isn't covered by earlier branches, but the main
+        # practical fix is suff < 0.5 now always yields "incomplete".
         if   suff > 0.9 and comp < 0.4:   category = "backup_mechanisms"
         elif suff > 0.7 and comp > 0.5:   category = "faithful"
-        elif suff < 0.6 and comp < 0.5:   category = "weak"
         elif suff < 0.5:                   category = "incomplete"
+        elif suff < 0.6 and comp < 0.5:   category = "weak"
         else:                               category = "moderate"
 
         return {
