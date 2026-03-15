@@ -4,7 +4,7 @@ build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name            = "glassbox-mech-interp"
-version         = "2.0.0"
+version         = "2.0.1"
 description     = "Open-source mechanistic interpretability for transformer models"
 readme          = "README.md"
 license         = { text = "MIT" }
