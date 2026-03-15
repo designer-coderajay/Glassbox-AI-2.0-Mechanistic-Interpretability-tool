@@ -1,3 +1,31 @@
+"""
+test_engine.py — Glassbox 2.0 Test Suite
+==========================================
+
+Covers:
+  • GlassboxV2.attribution_patching()
+  • GlassboxV2.analyze()
+  • GlassboxV2._name_swap()  (static helper)
+  • GlassboxV2.bootstrap_metrics()
+  • GlassboxV2.functional_circuit_alignment()
+  • Edge cases: zero logit-diff, short-circuit, suff_is_approx flag
+
+Run with:
+    pytest tests/test_engine.py -v
+
+Requirements:
+    pytest, torch, transformer_lens  (see pyproject.toml)
+
+Notes
+-----
+These tests load GPT-2-small once via a module-scoped fixture so the full
+suite runs in a single model-load.  On GitHub Actions (CPU) the full suite
+takes ~3-5 min; mark slow tests with @pytest.mark.slow if you want to skip
+them in fast CI mode:
+
+    pytest tests/test_engine.py -v -m "not slow"
+"""
+
 import math
 import time
 import pytest
@@ -5,8 +33,17 @@ import pytest
 # ---------------------------------------------------------------------------
 # Module-scope fixture — load model once for the whole test session
 # ---------------------------------------------------------------------------
+
 @pytest.fixture(scope="module")
 def engine():
+    """
+    Return a live GlassboxV2 instance running on CPU with GPT-2-small.
+
+    BUG FIX: original code did GlassboxV2("gpt2") — passing a raw string.
+    GlassboxV2.__init__ immediately calls model.cfg.n_layers which doesn't
+    exist on a str -> AttributeError on every test run.
+    FIX: load HookedTransformer first, then pass the model object.
+    """
     from transformer_lens import HookedTransformer
     from glassbox import GlassboxV2
     model = HookedTransformer.from_pretrained("gpt2")
@@ -16,17 +53,18 @@ def engine():
 # ---------------------------------------------------------------------------
 # Canonical IOI prompts (Mary / John — classic Indirect Object Identification)
 # ---------------------------------------------------------------------------
+
 IOI_PROMPT    = "When Mary and John went to the store, John gave a drink to"
 IOI_CORRECT   = "Mary"
 IOI_INCORRECT = "John"
 
-# A small batch for bootstrap tests  (n >= 5 gives stable percentile CIs)
+# A small batch for bootstrap tests  (n ≥ 5 gives stable percentile CIs)
 IOI_BATCH = [
-    ("When Mary and John went to the store, John gave a drink to",    "Mary",  "John"),
-    ("After Alice and Bob entered the room, Bob handed the key to",   "Alice", "Bob"),
-    ("When Sarah and Tom left the park, Tom passed the ball to",      "Sarah", "Tom"),
-    ("Once Emma and Jack arrived at school, Jack gave the pen to",    "Emma",  "Jack"),
-    ("When Lisa and Mike reached the cafe, Mike offered the menu to", "Lisa",  "Mike"),
+    ("When Mary and John went to the store, John gave a drink to",   "Mary",   "John"),
+    ("After Alice and Bob entered the room, Bob handed the key to",  "Alice",  "Bob"),
+    ("When Sarah and Tom left the park, Tom passed the ball to",     "Sarah",  "Tom"),
+    ("Once Emma and Jack arrived at school, Jack gave the pen to",   "Emma",   "Jack"),
+    ("When Lisa and Mike reached the cafe, Mike offered the menu to","Lisa",   "Mike"),
 ]
 
 # Factual prompt for non-IOI corruption test
@@ -41,17 +79,18 @@ SVA_INCORRECT = "is"
 
 
 # ---------------------------------------------------------------------------
-# BUG FIX: ioi_tokens fixture
+# ioi_tokens fixture — tokenise once, reuse across all TestAttributionPatching
+# tests.
 #
-# ORIGINAL BUG: Every test in TestAttributionPatching called:
+# BUG FIX: original TestAttributionPatching tests called:
 #     engine.attribution_patching(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT)
-# with 3 plain strings. But attribution_patching() requires:
+# with 3 plain strings.  But attribution_patching() requires:
 #     (clean_tokens: torch.Tensor, corrupted_tokens: torch.Tensor,
 #      target_token: int, distractor_token: int)
-# This caused TypeError on every TestAttributionPatching test.
+# Passing strings caused TypeError on every single TestAttributionPatching run.
 #
-# FIX: This module-scope fixture tokenizes once and all TestAttributionPatching
-# tests receive the correctly typed arguments.
+# FIX: this module-scope fixture tokenises once; all tests receive the
+# correctly-typed arguments.
 # ---------------------------------------------------------------------------
 @pytest.fixture(scope="module")
 def ioi_tokens(engine):
@@ -70,16 +109,15 @@ def ioi_tokens(engine):
 # ===========================================================================
 # 1. ATTRIBUTION PATCHING
 # ===========================================================================
+
 class TestAttributionPatching:
     """Tests for the fast O(3) attribution patching step."""
 
     def test_returns_dict(self, engine, ioi_tokens):
-        # BUG FIX: was attribution_patching(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT)
-        # — 3 strings. Now uses ioi_tokens fixture with correctly typed args.
         tokens_c, tokens_corr, t_tok, d_tok = ioi_tokens
         scores, ld = engine.attribution_patching(tokens_c, tokens_corr, t_tok, d_tok)
         assert isinstance(scores, dict), "attribution_patching must return a dict"
-        assert isinstance(ld, float),    "attribution_patching must return (dict, float)"
+        assert isinstance(ld, float),   "attribution_patching must return (dict, float)"
 
     def test_keys_are_layer_head_tuples(self, engine, ioi_tokens):
         tokens_c, tokens_corr, t_tok, d_tok = ioi_tokens
@@ -123,6 +161,7 @@ class TestAttributionPatching:
 # ===========================================================================
 # 2. _NAME_SWAP (corruption helper)
 # ===========================================================================
+
 class TestNameSwap:
     """Tests for the bidirectional name-swap corruption."""
 
@@ -131,12 +170,14 @@ class TestNameSwap:
         result = engine._name_swap(IOI_PROMPT, "Mary", "John")
         assert "John" in result,  "Distractor 'John' must appear after swap"
         assert "Mary" in result,  "Target 'Mary' must appear after swap"
+        # After swap the first occurrence of 'Mary' should be where 'John' was
+        # and vice versa — simplest invariant: the output is different from input
         assert result != IOI_PROMPT, "_name_swap returned the original prompt unchanged"
 
     def test_no_double_replacement(self, engine):
         """Naive .replace() would produce all-Mary or all-John; check it doesn't."""
         swapped = engine._name_swap(IOI_PROMPT, "Mary", "John")
-        # Original has 1 Mary + 2 Johns -> swap should produce 2 Marys + 1 John
+        # Original has 1 Mary + 2 Johns  →  swap should produce 2 Marys + 1 John
         assert swapped.count("Mary") != IOI_PROMPT.count("Mary") or \
                swapped.count("John") != IOI_PROMPT.count("John"), (
             "Counts unchanged — bidirectional swap may not have fired"
@@ -145,6 +186,7 @@ class TestNameSwap:
     def test_fallback_when_target_not_in_prompt(self, engine):
         """For factual prompts the target word isn't in the prompt; fallback appends."""
         result = engine._name_swap(FACT_PROMPT, FACT_CORRECT, FACT_INCORRECT)
+        # Either the prompt is different OR distractor was appended
         assert result != FACT_PROMPT or FACT_INCORRECT in result, (
             "_name_swap with absent target should produce a changed prompt"
         )
@@ -157,6 +199,7 @@ class TestNameSwap:
 # ===========================================================================
 # 3. FULL ANALYZE() — IOI
 # ===========================================================================
+
 @pytest.fixture(scope="module")
 def ioi_result(engine):
     return engine.analyze(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT)
@@ -192,7 +235,7 @@ class TestAnalyzeIOI:
             "Circuit is not sorted by attribution score (descending)"
         )
 
-    # -- corr_prompt -----------------------------------------------------------
+    # -- corr_prompt (new field, fixes naive replace() bug) --------------------
     def test_corr_prompt_present(self, ioi_result):
         assert "corr_prompt" in ioi_result, "corr_prompt key missing from analyze() result"
 
@@ -239,17 +282,20 @@ class TestAnalyzeIOI:
             f"(expected {expected:.6f})"
         )
 
+    # ── CRITICAL BUG FIX: wrong categories were "strong/good/partial" ─────────
     def test_category_valid(self, ioi_result):
         """
         Category must be one of the five labels returned by core.py.
 
         BUG HISTORY: The original test checked for {"strong", "good", "partial"},
-        which are NEVER returned by GlassboxV2.  The correct set is:
-            backup_mechanisms  <- suff > 0.9 and comp < 0.4
-            faithful           <- suff > 0.7 and comp > 0.5
-            weak               <- suff < 0.6 and comp < 0.5
-            incomplete         <- suff < 0.5
-            moderate           <- everything else
+        which are NEVER returned by GlassboxV2.  These categories caused the CI
+        to always fail silently.  The correct set is the one defined in analyze():
+
+            faithful  ← f1 ≥ 0.85
+            backup_mechanisms ← 0.70 ≤ f1 < 0.85
+            moderate  ← 0.50 ≤ f1 < 0.70
+            incomplete← 0.30 ≤ f1 < 0.50
+            weak      ← f1 < 0.30
         """
         valid_categories = {"faithful", "backup_mechanisms", "moderate", "incomplete", "weak"}
         cat = ioi_result["faithfulness"]["category"]
@@ -271,6 +317,7 @@ class TestAnalyzeIOI:
 # ===========================================================================
 # 4. ANALYZE() — FACTUAL & SVA VARIANTS
 # ===========================================================================
+
 class TestAnalyzeVariants:
     """Smoke-test analyze() on non-IOI task types."""
 
@@ -302,21 +349,24 @@ class TestAnalyzeVariants:
 # ===========================================================================
 # 5. BOOTSTRAP METRICS
 # ===========================================================================
+
 class TestBootstrapMetrics:
     """
     Bootstrap CI tests.
-    n >= 5 is required for stable percentile confidence intervals.
+    n ≥ 5 is required for stable percentile confidence intervals.
+    The original benchmark used n=3 which gives unreliable CIs.
 
     API contract for bootstrap_metrics():
         Input : prompts = List[Tuple[str, str, str]]  (raw prompt triples)
         Param : n_boot  (NOT n_bootstrap)
         Output: dict with keys "sufficiency", "comprehensiveness", "f1"
                 each being a sub-dict: {"mean": float, "ci_lo": float,
-                                        "ci_hi": float, "std": float, "n": int}
+                                         "ci_hi": float, "std": float, "n": int}
     """
 
     @pytest.mark.slow
     def test_bootstrap_returns_expected_keys(self, engine):
+        # Pass raw prompt triples — NOT pre-analyzed results
         boot = engine.bootstrap_metrics(IOI_BATCH, n_boot=200)
         for metric in ("sufficiency", "comprehensiveness", "f1"):
             assert metric in boot, (
@@ -329,7 +379,7 @@ class TestBootstrapMetrics:
 
     @pytest.mark.slow
     def test_bootstrap_ci_is_ordered(self, engine):
-        """Lower CI bound must be <= mean <= upper CI bound."""
+        """Lower CI bound must be ≤ mean ≤ upper CI bound."""
         boot = engine.bootstrap_metrics(IOI_BATCH, n_boot=200)
         for metric in ("sufficiency", "comprehensiveness", "f1"):
             lo   = boot[metric]["ci_lo"]
@@ -353,6 +403,7 @@ class TestBootstrapMetrics:
 # ===========================================================================
 # 6. FUNCTIONAL CIRCUIT ALIGNMENT SCORE (FCAS)
 # ===========================================================================
+
 def _heads_from_result(result: dict, n_layers: int = 12, n_heads: int = 12) -> list:
     """
     Convert analyze() output to the List[Dict] format expected by
@@ -363,6 +414,8 @@ def _heads_from_result(result: dict, n_layers: int = 12, n_heads: int = 12) -> l
 
     analyze() returns circuit as List[Tuple[int, int]] and attributions as
     a dict keyed by str((layer, head)).  This helper bridges the gap.
+
+    GPT-2 Small defaults: n_layers=12, n_heads=12.
     """
     attrs = result.get("attributions", {})
     head_dicts = []
@@ -383,6 +436,7 @@ def _heads_from_result(result: dict, n_layers: int = 12, n_heads: int = 12) -> l
 class TestFCAS:
     """
     FCAS compares circuits across two models or two runs.
+    Includes a null distribution so the score is interpretable.
 
     API contract for functional_circuit_alignment():
         Input : heads_a, heads_b = List[Dict] with keys
@@ -399,7 +453,9 @@ class TestFCAS:
         r2 = engine.analyze(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT)
         heads_a = _heads_from_result(r1)
         heads_b = _heads_from_result(r2)
-        fcas_result = engine.functional_circuit_alignment(heads_a, heads_b, top_k=3)
+        fcas_result = engine.functional_circuit_alignment(
+            heads_a, heads_b, top_k=3
+        )
         for key in ("fcas", "null_mean", "null_std", "z_score", "pairs"):
             assert key in fcas_result, (
                 f"functional_circuit_alignment missing key: {key!r}"
@@ -410,7 +466,9 @@ class TestFCAS:
         """Comparing a circuit to itself must yield FCAS = 1.0."""
         r = engine.analyze(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT)
         heads = _heads_from_result(r)
-        fcas_result = engine.functional_circuit_alignment(heads, heads, top_k=3)
+        fcas_result = engine.functional_circuit_alignment(
+            heads, heads, top_k=3
+        )
         assert abs(fcas_result["fcas"] - 1.0) < 1e-6, (
             f"FCAS of identical circuits is {fcas_result['fcas']:.6f}, expected 1.0"
         )
@@ -421,7 +479,9 @@ class TestFCAS:
         r2 = engine.analyze(FACT_PROMPT, FACT_CORRECT, FACT_INCORRECT)
         heads_a = _heads_from_result(r1)
         heads_b = _heads_from_result(r2)
-        fcas_result = engine.functional_circuit_alignment(heads_a, heads_b, top_k=3)
+        fcas_result = engine.functional_circuit_alignment(
+            heads_a, heads_b, top_k=3
+        )
         assert 0.0 <= fcas_result["fcas"] <= 1.0, (
             f"FCAS {fcas_result['fcas']:.4f} outside [0, 1]"
         )
@@ -432,7 +492,9 @@ class TestFCAS:
         r2 = engine.analyze(FACT_PROMPT, FACT_CORRECT, FACT_INCORRECT)
         heads_a = _heads_from_result(r1)
         heads_b = _heads_from_result(r2)
-        fcas_result = engine.functional_circuit_alignment(heads_a, heads_b, top_k=3)
+        fcas_result = engine.functional_circuit_alignment(
+            heads_a, heads_b, top_k=3
+        )
         assert math.isfinite(fcas_result["z_score"]), (
             "z_score is not finite — null_std may be zero"
         )
@@ -441,11 +503,13 @@ class TestFCAS:
 # ===========================================================================
 # 7. EDGE CASES
 # ===========================================================================
+
 class TestEdgeCases:
     """Corner cases that should not crash or produce NaN."""
 
     def test_single_token_target(self, engine):
         """Single-character targets (common in SVA) must not crash."""
+        # 'a' vs 'the' — degenerate but valid
         result = engine.analyze("The cat sat on", "a", "the")
         assert "faithfulness" in result
 
@@ -454,6 +518,7 @@ class TestEdgeCases:
         for k, v in faith.items():
             if isinstance(v, float):
                 assert not math.isnan(v), f"NaN detected in faithfulness[{k!r}]"
+            if isinstance(v, float):
                 assert not math.isinf(v), f"Inf detected in faithfulness[{k!r}]"
 
     def test_attributions_serializable(self, ioi_result):
