@@ -36,9 +36,10 @@ import pytest
 
 @pytest.fixture(scope="module")
 def engine():
-    """Return a live GlassboxV2 instance running on CPU with GPT-2-small."""
+    from transformer_lens import HookedTransformer
     from glassbox import GlassboxV2
-    return GlassboxV2("gpt2")
+    model = HookedTransformer.from_pretrained("gpt2")
+    return GlassboxV2(model)
 
 
 # ---------------------------------------------------------------------------
