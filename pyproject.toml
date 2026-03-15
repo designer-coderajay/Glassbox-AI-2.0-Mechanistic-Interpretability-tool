@@ -1,23 +1,22 @@
 [build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
 
 [project]
-name = "glassbox-mech-interp"
-version = "2.0.0"
-description = "Glassbox 2.0 — Open-source mechanistic interpretability for transformer models"
-readme = "README.md"
-license = { text = "MIT" }
+name            = "glassbox-mech-interp"
+version         = "2.0.0"
+description     = "Open-source mechanistic interpretability for transformer models"
+readme          = "README.md"
+license         = { text = "MIT" }
+authors         = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]
 requires-python = ">=3.8"
-authors = [
-    { name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }
-]
-keywords = ["mechanistic interpretability", "transformers", "circuits", "attribution patching", "explainability"]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+keywords        = [
+    "mechanistic-interpretability",
+    "transformers",
+    "circuits",
+    "attribution-patching",
+    "explainability",
+    "XAI",
 ]
 dependencies = [
     "torch>=2.0",
@@ -27,13 +26,27 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+Homepage      = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+Documentation = "https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/"
 "Bug Tracker" = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues"
-"HuggingFace Space" = "https://huggingface.co/spaces/designer-coderajay/Glassbox-ai"
+"HuggingFace" = "https://huggingface.co/spaces/designer-coderajay/Glassbox-ai"
 
 [project.scripts]
 glassbox-ai = "glassbox.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["glassbox*"]
+
+# ---------------------------------------------------------------------------
+# BUG FIX: pytest markers were not registered.
+# Without this section, every test tagged @pytest.mark.slow generates an
+# "Unknown mark" warning.  With --strict-marks in CI this becomes an ERROR
+# that silently prevents any slow tests from running.
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow — skips them in fast CI runs (deselect with '-m \"not slow\"')",
+]
+# To run only fast tests:   pytest -m "not slow"
+# To run everything:        pytest
+# To run only slow tests:   pytest -m slow
