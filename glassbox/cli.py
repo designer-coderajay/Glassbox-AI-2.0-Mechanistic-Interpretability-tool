@@ -14,7 +14,9 @@ def _run_analyze(args):
     print(f"  Prompt : {args.prompt!r}")
     print(f"  Correct: {args.correct!r}   Incorrect: {args.incorrect!r}\n")
 
-    gb     = GlassboxV2(args.model)
+    from transformer_lens import HookedTransformer
+    model = HookedTransformer.from_pretrained(args.model)
+    gb = GlassboxV2(model)
     result = gb.analyze(args.prompt, args.correct, args.incorrect)
     circuit = result["circuit"]
     faith   = result["faithfulness"]
@@ -26,8 +28,10 @@ def _run_analyze(args):
 
     print(f"  {'Head':<12} {'Attribution':>12}")
     print(f"  {'-'*12} {'-'*12}")
-    for (layer, head), score in sorted(circuit.items(), key=lambda x: -x[1]):
-        print(f"  L{layer:02d}H{head:02d}      {score:>12.4f}")
+    attrs = result["attributions"]
+    for (layer, head) in result["circuit"]:
+    score = attrs.get(str((layer, head)), 0.0)
+    print(f"  L{layer:02d}H{head:02d}      {score:>12.4f}")
 
 
 def main():
