@@ -20,7 +20,7 @@ def main():
     gb = GlassboxV2(model)
     results = []
     for prompt, target, distractor in IOI_PROMPTS:
-        r = gb.analyze([prompt], [prompt.replace(target, "X")], target, distractor)
+        r = gb.analyze(prompt, target, distractor)
         f = r["faithfulness"]
         print(f"  suff={f['sufficiency']:.3f}  comp={f['comprehensiveness']:.3f}  f1={f['f1']:.3f}")
         results.append(f)
