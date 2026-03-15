@@ -676,17 +676,7 @@ class GlassboxV2:
         f1    = 2.0 * suff * comp / (suff + comp) if (suff + comp) > 0.0 else 0.0
 
         # Category thresholds (documented, not theoretically derived)
-        #
-        # BUG FIX: original order had 'weak' before 'incomplete'.
-        # Because weak checks (suff < 0.6 AND comp < 0.5), it is a superset of
-        # the typical incomplete case (suff < 0.5 AND comp < 0.5).  That made
-        # 'incomplete' unreachable for the majority of low-suff, low-comp inputs.
-        # Example: suff=0.40, comp=0.30 → old code returned "weak", correct is "incomplete".
-        #
-        # FIX: check 'incomplete' (suff < 0.5, any comp) before 'weak'
-        # (suff 0.5–0.6, low comp).  'incomplete' still fires when suff >= 0.5
-        # and comp >= 0.5 isn't covered by earlier branches, but the main
-        # practical fix is suff < 0.5 now always yields "incomplete".
+        # BUG FIX: 'incomplete' now checked before 'weak' — see root core.py
         if   suff > 0.9 and comp < 0.4:   category = "backup_mechanisms"
         elif suff > 0.7 and comp > 0.5:   category = "faithful"
         elif suff < 0.5:                   category = "incomplete"
