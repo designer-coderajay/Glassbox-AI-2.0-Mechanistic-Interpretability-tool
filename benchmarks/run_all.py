@@ -33,7 +33,7 @@ def main():
     for name, prompts in SUITES.items():
         results = []
         for prompt, target, dist in prompts:
-            r = gb.analyze([prompt], [prompt.replace(target, "X")], target, dist)
+            r = gb.analyze(prompt, target, distractor)
             results.append(r["faithfulness"])
         suff = np.mean([r["sufficiency"] for r in results])
         comp = np.mean([r["comprehensiveness"] for r in results])
