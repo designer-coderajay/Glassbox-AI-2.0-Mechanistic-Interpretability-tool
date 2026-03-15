@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name            = "glassbox-mech-interp"
@@ -25,6 +25,11 @@ dependencies = [
     "numpy",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
 [project.urls]
 Homepage      = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
 Documentation = "https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/"
@@ -38,15 +43,11 @@ glassbox-ai = "glassbox.cli:main"
 where = ["."]
 
 # ---------------------------------------------------------------------------
-# BUG FIX: pytest markers were not registered.
-# Without this section, every test tagged @pytest.mark.slow generates an
-# "Unknown mark" warning.  With --strict-marks in CI this becomes an ERROR
-# that silently prevents any slow tests from running.
+# BUG FIX: pytest markers were not registered — Bug 6.
+# Without this, @pytest.mark.slow generates warnings on every run.
+# With --strict-marks in CI it becomes an ERROR.
 # ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
 markers = [
-    "slow: marks tests as slow — skips them in fast CI runs (deselect with '-m \"not slow\"')",
+    "slow: marks tests as slow — skip in fast CI with '-m \"not slow\"'",
 ]
-# To run only fast tests:   pytest -m "not slow"
-# To run everything:        pytest
-# To run only slow tests:   pytest -m slow
