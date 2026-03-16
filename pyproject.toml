@@ -1,23 +1,51 @@
 [build-system]
-requires = ["setuptools>=61", "wheel"]
+requires      = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name            = "glassbox-mech-interp"
-version         = "2.2.0"
-description     = "Open-source mechanistic interpretability for transformer models"
-readme          = "README.md"
-license         = { text = "MIT" }
-authors         = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]
+name        = "glassbox-mech-interp"
+version     = "2.3.0"
+description = "The most complete open-source mechanistic interpretability toolkit — circuits, SAE features, composition scores, token attribution, and more."
+readme      = "README.md"
+license     = { text = "MIT" }
+authors     = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]
 requires-python = ">=3.8"
-keywords        = [
+
+keywords = [
     "mechanistic-interpretability",
     "transformers",
     "circuits",
     "attribution-patching",
+    "edge-attribution-patching",
+    "logit-lens",
+    "sparse-autoencoders",
+    "sae",
+    "composition-scores",
+    "attention-heads",
     "explainability",
     "XAI",
+    "LLM",
+    "GPT-2",
+    "circuit-discovery",
+    "alignment",
 ]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
 dependencies = [
     "torch>=2.0",
     "transformer_lens>=1.0",
@@ -26,8 +54,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+sae = [
+    "sae-lens>=3.0",
+]
 dev = [
     "pytest>=7.0",
+    "sae-lens>=3.0",
 ]
 
 [project.urls]
@@ -35,6 +67,8 @@ Homepage      = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanist
 Documentation = "https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/"
 "Bug Tracker" = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues"
 "HuggingFace" = "https://huggingface.co/spaces/designer-coderajay/Glassbox-ai"
+"arXiv Paper" = "https://arxiv.org/abs/2603.09988"
+Changelog     = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/CHANGELOG.md"
 
 [project.scripts]
 glassbox-ai = "glassbox.cli:main"
@@ -43,11 +77,28 @@ glassbox-ai = "glassbox.cli:main"
 where = ["."]
 
 # ---------------------------------------------------------------------------
-# BUG FIX: pytest markers were not registered — Bug 6.
-# Without this, @pytest.mark.slow generates warnings on every run.
-# With --strict-marks in CI it becomes an ERROR.
+# pytest configuration
 # ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
 markers = [
     "slow: marks tests as slow — skip in fast CI with '-m \"not slow\"'",
 ]
+
+# ---------------------------------------------------------------------------
+# mypy — type checking
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version         = "3.8"
+warn_return_any        = true
+warn_unused_configs    = true
+disallow_untyped_defs  = false
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# ruff — linting
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length    = 100
+target-version = "py38"
+select         = ["E", "F", "I", "N", "UP"]
+ignore         = ["E501"]

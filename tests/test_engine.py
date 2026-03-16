@@ -463,3 +463,397 @@ class TestEdgeCases:
             json.dumps(ioi_result["attributions"])
         except (TypeError, ValueError) as exc:
             pytest.fail(f"attributions dict is not JSON-serializable: {exc}")
+
+
+# ===========================================================================
+# 8. LOGIT LENS  (v2.2.0)
+# ===========================================================================
+@pytest.fixture(scope="module")
+def logit_lens_result(engine, ioi_tokens):
+    tokens_c, _, _, _ = ioi_tokens
+    return engine.logit_lens(tokens_c, " Mary", " John")
+
+
+class TestLogitLens:
+    """Tests for logit_lens() — nostalgebraist 2020 extended with direct effects."""
+
+    def test_returns_dict(self, logit_lens_result):
+        assert isinstance(logit_lens_result, dict)
+
+    def test_required_keys(self, logit_lens_result):
+        for key in ("logit_diffs", "logit_shifts", "head_direct_effects",
+                    "mlp_direct_effects", "target_token", "distractor_token"):
+            assert key in logit_lens_result, f"logit_lens missing key: {key!r}"
+
+    def test_logit_diffs_length(self, engine, logit_lens_result):
+        """logit_diffs must have n_layers + 1 entries (embedding + after each block)."""
+        expected = engine.n_layers + 1
+        actual   = len(logit_lens_result["logit_diffs"])
+        assert actual == expected, (
+            f"logit_diffs length {actual} != expected {expected} (n_layers+1)"
+        )
+
+    def test_logit_shifts_length(self, engine, logit_lens_result):
+        """logit_shifts must have exactly n_layers entries."""
+        expected = engine.n_layers
+        actual   = len(logit_lens_result["logit_shifts"])
+        assert actual == expected, (
+            f"logit_shifts length {actual} != expected {expected} (n_layers)"
+        )
+
+    def test_shift_equals_diff_delta(self, logit_lens_result):
+        """Each logit_shift must equal logit_diffs[i+1] - logit_diffs[i]."""
+        diffs  = logit_lens_result["logit_diffs"]
+        shifts = logit_lens_result["logit_shifts"]
+        for i, shift in enumerate(shifts):
+            expected = diffs[i + 1] - diffs[i]
+            assert abs(shift - expected) < 1e-4, (
+                f"shift[{i}]={shift:.6f} != diffs[{i+1}]-diffs[{i}]={expected:.6f}"
+            )
+
+    def test_head_direct_effects_coverage(self, engine, logit_lens_result):
+        """head_direct_effects must have an entry for every layer."""
+        hde = logit_lens_result["head_direct_effects"]
+        assert len(hde) == engine.n_layers, (
+            f"head_direct_effects has {len(hde)} layers, expected {engine.n_layers}"
+        )
+
+    def test_head_direct_effects_per_head_count(self, engine, logit_lens_result):
+        """Each layer in head_direct_effects must have n_heads values."""
+        hde = logit_lens_result["head_direct_effects"]
+        for l, effects in hde.items():
+            assert len(effects) == engine.n_heads, (
+                f"Layer {l}: {len(effects)} effects, expected {engine.n_heads} heads"
+            )
+
+    def test_mlp_effects_coverage(self, engine, logit_lens_result):
+        """mlp_direct_effects must have an entry for every layer."""
+        mde = logit_lens_result["mlp_direct_effects"]
+        assert len(mde) == engine.n_layers
+
+    def test_no_nan_or_inf(self, logit_lens_result):
+        """All numeric outputs must be finite."""
+        for val in logit_lens_result["logit_diffs"] + logit_lens_result["logit_shifts"]:
+            assert math.isfinite(val), f"Non-finite value in logit_diffs/shifts: {val}"
+        for l, effects in logit_lens_result["head_direct_effects"].items():
+            for e in effects:
+                assert math.isfinite(e), f"Non-finite head_direct_effect at layer {l}: {e}"
+
+    def test_final_ld_positive(self, logit_lens_result):
+        """For IOI on GPT-2, the final logit diff should be positive (Mary > John)."""
+        final_ld = logit_lens_result["logit_diffs"][-1]
+        assert final_ld > 0.0, (
+            f"Final logit diff {final_ld:.4f} is not positive for IOI prompt"
+        )
+
+    def test_analyze_include_logit_lens(self, engine):
+        """analyze(include_logit_lens=True) must include 'logit_lens' key."""
+        result = engine.analyze(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT,
+                                include_logit_lens=True)
+        assert "logit_lens" in result, (
+            "analyze(include_logit_lens=True) missing 'logit_lens' key"
+        )
+        assert "logit_diffs" in result["logit_lens"]
+
+
+# ===========================================================================
+# 9. EDGE ATTRIBUTION PATCHING  (v2.2.0, Syed et al. 2024)
+# ===========================================================================
+@pytest.fixture(scope="module")
+def eap_result(engine, ioi_tokens):
+    tokens_c, tokens_corr, t_tok, d_tok = ioi_tokens
+    return engine.edge_attribution_patching(tokens_c, tokens_corr, t_tok, d_tok, top_k=20)
+
+
+class TestEdgeAttributionPatching:
+    """Tests for edge_attribution_patching() — EAP (Syed et al. 2024)."""
+
+    def test_returns_dict(self, eap_result):
+        assert isinstance(eap_result, dict)
+
+    def test_required_keys(self, eap_result):
+        for key in ("edge_scores", "top_edges", "n_edges", "clean_ld"):
+            assert key in eap_result, f"EAP result missing key: {key!r}"
+
+    def test_edge_scores_nonempty(self, eap_result):
+        assert len(eap_result["edge_scores"]) > 0, "edge_scores is empty"
+
+    def test_top_edges_length(self, eap_result):
+        """top_edges must have at most top_k entries."""
+        assert len(eap_result["top_edges"]) <= 20
+
+    def test_top_edges_have_required_fields(self, eap_result):
+        """Every edge record must have sender, receiver, score fields."""
+        for edge in eap_result["top_edges"]:
+            for field in ("sender", "receiver", "score"):
+                assert field in edge, f"Edge missing field {field!r}: {edge}"
+
+    def test_n_edges_consistent(self, eap_result):
+        """n_edges must match the total number of scored edges."""
+        assert eap_result["n_edges"] == len(eap_result["edge_scores"]), (
+            "n_edges inconsistent with edge_scores length"
+        )
+
+    def test_clean_ld_positive(self, eap_result):
+        """Clean logit diff must be positive for IOI prompt."""
+        assert eap_result["clean_ld"] > 0.0, (
+            f"clean_ld {eap_result['clean_ld']:.4f} should be positive for IOI"
+        )
+
+    def test_scores_are_finite(self, eap_result):
+        """All edge scores must be finite."""
+        for edge in eap_result["top_edges"]:
+            assert math.isfinite(edge["score"]), (
+                f"Non-finite score in edge: {edge}"
+            )
+
+    def test_scores_have_nonzero_spread(self, eap_result):
+        """Edge scores must not all be identical — variation implies gradient flow."""
+        scores = [e["score"] for e in eap_result["top_edges"]]
+        if len(scores) > 1:
+            assert max(scores) != min(scores), "All edge scores are identical"
+
+
+# ===========================================================================
+# 10. ATTRIBUTION STABILITY  (v2.2.0, novel metric)
+# ===========================================================================
+class TestAttributionStability:
+    """Tests for attribution_stability() — novel Glassbox metric."""
+
+    @pytest.fixture(scope="class")
+    def stab_result(self, engine, ioi_tokens):
+        tokens_c, _, t_tok, d_tok = ioi_tokens
+        return engine.attribution_stability(
+            tokens_c, t_tok, d_tok,
+            n_corruptions=5,    # small n for CI speed
+            replace_fraction=0.25,
+            seed=42,
+        )
+
+    def test_returns_dict(self, stab_result):
+        assert isinstance(stab_result, dict)
+
+    def test_required_keys(self, stab_result):
+        for key in ("mean_attributions", "std_attributions", "stability_scores",
+                    "rank_consistency", "top_stable_heads", "n_corruptions"):
+            assert key in stab_result, f"attribution_stability missing key: {key!r}"
+
+    def test_stability_scores_in_range(self, stab_result):
+        """Stability scores S = 1 - std/(|mean|+ε) can be negative but bounded above by 1."""
+        for s in stab_result["stability_scores"]:
+            assert s <= 1.0 + 1e-6, f"Stability score {s:.4f} exceeds 1.0"
+
+    def test_rank_consistency_in_range(self, stab_result):
+        """Kendall τ-b rank consistency must be in [-1, 1]."""
+        tau = stab_result["rank_consistency"]
+        assert -1.0 - 1e-6 <= tau <= 1.0 + 1e-6, (
+            f"rank_consistency {tau:.4f} outside [-1, 1]"
+        )
+
+    def test_n_corruptions_matches_request(self, stab_result):
+        assert stab_result["n_corruptions"] == 5
+
+    def test_top_stable_heads_format(self, stab_result):
+        """top_stable_heads must be a list of dicts with layer and head keys."""
+        for h in stab_result["top_stable_heads"]:
+            assert "layer"     in h, f"Missing 'layer' in top_stable_heads entry: {h}"
+            assert "head"      in h, f"Missing 'head' in top_stable_heads entry: {h}"
+            assert "stability" in h, f"Missing 'stability' in top_stable_heads entry: {h}"
+
+    def test_no_nan_in_mean_attributions(self, stab_result):
+        for v in stab_result["mean_attributions"]:
+            assert math.isfinite(v), f"NaN/Inf in mean_attributions: {v}"
+
+
+# ===========================================================================
+# 11. TOKEN ATTRIBUTION  (v2.3.0, Simonyan et al. 2014)
+# ===========================================================================
+class TestTokenAttribution:
+    """Tests for token_attribution() — gradient × embedding saliency."""
+
+    @pytest.fixture(scope="class")
+    def tok_attr_result(self, engine, ioi_tokens):
+        tokens_c, _, t_tok, d_tok = ioi_tokens
+        return engine.token_attribution(tokens_c, t_tok, d_tok)
+
+    def test_returns_dict(self, tok_attr_result):
+        assert isinstance(tok_attr_result, dict)
+
+    def test_required_keys(self, tok_attr_result):
+        for key in ("token_ids", "token_strs", "attributions",
+                    "abs_attributions", "top_tokens"):
+            assert key in tok_attr_result, f"token_attribution missing key: {key!r}"
+
+    def test_length_consistent_with_tokens(self, tok_attr_result):
+        """All per-token lists must have the same length."""
+        n = len(tok_attr_result["token_ids"])
+        assert len(tok_attr_result["token_strs"])      == n
+        assert len(tok_attr_result["attributions"])    == n
+        assert len(tok_attr_result["abs_attributions"]) == n
+
+    def test_abs_equals_abs_of_attr(self, tok_attr_result):
+        """abs_attributions must equal |attributions|."""
+        for a, aa in zip(tok_attr_result["attributions"],
+                         tok_attr_result["abs_attributions"]):
+            assert abs(abs(a) - aa) < 1e-6, (
+                f"abs_attributions mismatch: |{a:.6f}| != {aa:.6f}"
+            )
+
+    def test_scores_are_finite(self, tok_attr_result):
+        for v in tok_attr_result["attributions"]:
+            assert math.isfinite(v), f"Non-finite token attribution: {v}"
+
+    def test_top_tokens_length(self, tok_attr_result):
+        """top_tokens must return at most 5 entries."""
+        assert len(tok_attr_result["top_tokens"]) <= 5
+
+    def test_top_tokens_have_required_fields(self, tok_attr_result):
+        for t in tok_attr_result["top_tokens"]:
+            for field in ("rank", "token_str", "attribution", "position"):
+                assert field in t, f"top_tokens entry missing field {field!r}: {t}"
+
+    def test_top_tokens_sorted_by_abs(self, tok_attr_result):
+        """top_tokens must be sorted descending by |attribution|."""
+        abs_scores = [abs(t["attribution"]) for t in tok_attr_result["top_tokens"]]
+        assert abs_scores == sorted(abs_scores, reverse=True), (
+            "top_tokens not sorted by |attribution| descending"
+        )
+
+
+# ===========================================================================
+# 12. ATTENTION PATTERNS  (v2.3.0, Elhage et al. 2021 / Olsson et al. 2022)
+# ===========================================================================
+class TestAttentionPatterns:
+    """Tests for attention_patterns() — attention matrices + entropy + head typing."""
+
+    VALID_HEAD_TYPES = {"induction_candidate", "previous_token", "focused",
+                        "uniform", "self_attn", "mixed"}
+
+    @pytest.fixture(scope="class")
+    def attn_result(self, engine, ioi_tokens):
+        tokens_c, _, _, _ = ioi_tokens
+        # Explicitly request known IOI heads
+        return engine.attention_patterns(tokens_c, heads=[(9, 9), (10, 0), (5, 5)])
+
+    def test_returns_dict(self, attn_result):
+        assert isinstance(attn_result, dict)
+
+    def test_required_keys(self, attn_result):
+        for key in ("heads", "patterns", "entropy", "last_tok_attn",
+                    "head_types", "token_strs"):
+            assert key in attn_result, f"attention_patterns missing key: {key!r}"
+
+    def test_heads_count(self, attn_result):
+        """Requesting 3 heads must return 3 entries."""
+        assert len(attn_result["heads"]) == 3
+
+    def test_patterns_are_square(self, attn_result):
+        """Each attention matrix must be [seq, seq]."""
+        for label, A in attn_result["patterns"].items():
+            assert A.ndim == 2, f"Pattern for {label} is not 2D"
+            assert A.shape[0] == A.shape[1], (
+                f"Pattern for {label} is not square: {A.shape}"
+            )
+
+    def test_attention_rows_sum_to_one(self, attn_result):
+        """Attention weights must sum to 1 along the source axis."""
+        import numpy as np
+        for label, A in attn_result["patterns"].items():
+            row_sums = A.sum(axis=-1)
+            assert np.allclose(row_sums, 1.0, atol=1e-4), (
+                f"Attention rows for {label} don't sum to 1: {row_sums}"
+            )
+
+    def test_entropy_non_negative(self, attn_result):
+        """Entropy must be non-negative."""
+        for label, ent in attn_result["entropy"].items():
+            assert ent >= 0.0, f"Negative entropy for {label}: {ent}"
+
+    def test_head_types_valid(self, attn_result):
+        """All head types must be from the valid set."""
+        for label, htype in attn_result["head_types"].items():
+            assert htype in self.VALID_HEAD_TYPES, (
+                f"Head {label}: invalid type {htype!r}. "
+                f"Valid: {self.VALID_HEAD_TYPES}"
+            )
+
+    def test_auto_select_returns_top_k(self, engine, ioi_tokens):
+        """attention_patterns(heads=None) must auto-select and return top_k heads."""
+        tokens_c, _, _, _ = ioi_tokens
+        result = engine.attention_patterns(tokens_c, heads=None, top_k=5)
+        assert len(result["heads"]) <= 5
+
+
+# ===========================================================================
+# 13. HEAD COMPOSITION ANALYSIS  (v2.3.0, Elhage et al. 2021)
+# ===========================================================================
+class TestHeadCompositionAnalyzer:
+    """Tests for HeadCompositionAnalyzer — QK / OV virtual-weight composition scores."""
+
+    @pytest.fixture(scope="class")
+    def comp(self, engine):
+        from glassbox.composition import HeadCompositionAnalyzer
+        return HeadCompositionAnalyzer(engine.model)
+
+    # Individual score methods
+    def test_q_composition_causally_invalid_returns_zero(self, comp):
+        """Receiver at an earlier layer than sender must return 0.0."""
+        score = comp.q_composition_score(9, 9, 5, 5)  # receiver layer 5 < sender 9
+        assert score == 0.0, f"Expected 0.0 for causally invalid pair, got {score}"
+
+    def test_k_composition_causally_invalid_returns_zero(self, comp):
+        score = comp.k_composition_score(9, 9, 5, 5)
+        assert score == 0.0
+
+    def test_v_composition_causally_invalid_returns_zero(self, comp):
+        score = comp.v_composition_score(9, 9, 5, 5)
+        assert score == 0.0
+
+    def test_q_composition_valid_pair_nonnegative(self, comp):
+        score = comp.q_composition_score(5, 5, 9, 9)
+        assert score >= 0.0, f"Q-composition score must be non-negative, got {score}"
+
+    def test_k_composition_valid_pair_nonnegative(self, comp):
+        score = comp.k_composition_score(5, 5, 9, 9)
+        assert score >= 0.0
+
+    def test_v_composition_valid_pair_nonnegative(self, comp):
+        score = comp.v_composition_score(5, 5, 9, 9)
+        assert score >= 0.0
+
+    def test_scores_are_finite(self, comp):
+        for score_fn in (comp.q_composition_score,
+                         comp.k_composition_score,
+                         comp.v_composition_score):
+            s = score_fn(5, 5, 9, 9)
+            assert math.isfinite(s), f"Non-finite composition score: {s}"
+
+    # Composition matrix
+    def test_composition_matrix_shape(self, comp):
+        circuit = [(5, 5), (9, 9)]
+        result  = comp.composition_matrix(circuit, circuit, kind="q")
+        mat     = result["matrix"]
+        assert mat.shape == (2, 2), f"Unexpected matrix shape: {mat.shape}"
+
+    def test_composition_matrix_labels(self, comp):
+        circuit = [(5, 5), (9, 9)]
+        result  = comp.composition_matrix(circuit, circuit, kind="q")
+        assert result["senders"]   == ["L05H05", "L09H09"]
+        assert result["receivers"] == ["L05H05", "L09H09"]
+
+    def test_composition_matrix_kind_validation(self, comp):
+        with pytest.raises(ValueError, match="kind must be"):
+            comp.composition_matrix([(5, 5)], [(9, 9)], kind="xyz")
+
+    def test_full_circuit_composition_returns_significant_edges(self, comp):
+        circuit = [(5, 5), (7, 3), (9, 9), (9, 6)]
+        result  = comp.full_circuit_composition(circuit, kind="q", min_score=0.0)
+        assert "significant_edges" in result
+        assert "matrix"            in result
+        assert "head_labels"       in result
+
+    def test_all_composition_scores_has_three_kinds(self, comp):
+        circuit = [(5, 5), (9, 9)]
+        result  = comp.all_composition_scores(circuit, min_score=0.0)
+        for key in ("q", "k", "v", "combined_edges", "head_labels"):
+            assert key in result, f"all_composition_scores missing key: {key!r}"
