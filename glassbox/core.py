@@ -771,12 +771,12 @@ class GlassboxV2:
         corr_mlp:  Dict[int, torch.Tensor] = {}   # layer → [d_model]
 
         def _sv_corr_attn(l: int):
-            def hook(act, h=None):
+            def hook(act, hook=None):
                 corr_attn[l] = act[0, -1].detach().clone().float()
             return hook
 
         def _sv_corr_mlp(l: int):
-            def hook(act, h=None):
+            def hook(act, hook=None):
                 corr_mlp[l] = act[0, -1].detach().clone().float()
             return hook
 
@@ -801,17 +801,17 @@ class GlassboxV2:
         resid_grads: Dict[int, torch.Tensor] = {}  # l → [d_model]
 
         def _sv_clean_attn(l: int):
-            def hook(act, h=None):
+            def hook(act, hook=None):
                 clean_attn[l] = act[0, -1].detach().clone().float()
             return hook
 
         def _sv_clean_mlp(l: int):
-            def hook(act, h=None):
+            def hook(act, hook=None):
                 clean_mlp[l] = act[0, -1].detach().clone().float()
             return hook
 
         def _grad_hook(l: int):
-            def hook(act, h=None):
+            def hook(act, hook=None):
                 # Register a backward hook to capture ∂metric/∂resid_pre[l]
                 # at the last sequence position.  Only fires if act is in graph.
                 if act.requires_grad:
@@ -872,7 +872,22 @@ class GlassboxV2:
                 score = float((resid_grads[recv_l] * Δmlp).sum().item())
                 eap_scores[((sender_l, "mlp", None), recv_l)] = score
 
-        top_edges = sorted(eap_scores.items(), key=lambda x: abs(x[1]), reverse=True)[:top_k]
+        # Convert raw dict items to human-readable dicts with sender/receiver/score
+        def _edge_label(key) -> str:
+            (sl, kind, sh), rl = key
+            if kind == "attn":
+                return f"attn_L{sl:02d}H{sh:02d}"
+            return f"mlp_L{sl:02d}"
+
+        top_edges = [
+            {
+                "sender":   _edge_label(k),
+                "receiver": f"resid_pre_L{k[1]:02d}",
+                "score":    float(v),
+                "raw_key":  k,
+            }
+            for k, v in sorted(eap_scores.items(), key=lambda x: abs(x[1]), reverse=True)[:top_k]
+        ]
 
         logger.debug(
             "edge_attribution_patching done: n_edges=%d  clean_ld=%.4f  "
@@ -1003,12 +1018,17 @@ class GlassboxV2:
         n_layers = self.n_layers
         n_heads  = self.n_heads
 
-        try:
-            target_id     = model.to_single_token(target_token)
-            distractor_id = model.to_single_token(distractor_token)
-        except Exception:
-            target_id     = int(model.to_tokens(target_token)[0, -1].item())
-            distractor_id = int(model.to_tokens(distractor_token)[0, -1].item())
+        # Accept either a token string ("Mary") or an already-resolved int ID
+        if isinstance(target_token, int):
+            target_id     = target_token
+            distractor_id = distractor_token
+        else:
+            try:
+                target_id     = model.to_single_token(target_token)
+                distractor_id = model.to_single_token(distractor_token)
+            except Exception:
+                target_id     = int(model.to_tokens(target_token)[0, -1].item())
+                distractor_id = int(model.to_tokens(distractor_token)[0, -1].item())
 
         rng        = np.random.default_rng(seed)
         vocab_size = model.cfg.d_vocab
@@ -1050,9 +1070,15 @@ class GlassboxV2:
         eps        = 1e-8
         stability  = 1.0 - std_attrs / (np.abs(mean_attrs) + eps)
 
-        mean_attributions = {head: float(mean_attrs[i]) for i, head in enumerate(heads)}
-        std_attributions  = {head: float(std_attrs[i])  for i, head in enumerate(heads)}
-        stability_scores  = {head: float(stability[i])  for i, head in enumerate(heads)}
+        # Return as flat lists (index-aligned with heads) so callers can iterate
+        # directly over float values.  The full dict mapping is kept under the
+        # _by_head suffixed keys for look-up by (layer, head) tuple.
+        mean_attributions      = [float(mean_attrs[i]) for i in range(len(heads))]
+        std_attributions       = [float(std_attrs[i])  for i in range(len(heads))]
+        stability_scores       = [float(stability[i])  for i in range(len(heads))]
+        mean_attributions_dict = {head: float(mean_attrs[i]) for i, head in enumerate(heads)}
+        std_attributions_dict  = {head: float(std_attrs[i])  for i, head in enumerate(heads)}
+        stability_scores_dict  = {head: float(stability[i])  for i, head in enumerate(heads)}
 
         # ── Global rank consistency: mean Kendall τ across all run pairs ───
         K = len(all_attr_runs)
@@ -1682,8 +1708,9 @@ class GlassboxV2:
             # Gradient × Input: dot product over d_model dimension
             attrs = (grad * emb).sum(dim=-1).tolist()          # [seq_len]
 
-        # Decode token strings
-        token_strs = [model.to_str_tokens(tokens)[0][i] for i in range(n_tok)]
+        # Decode token strings — to_str_tokens(tokens[0]) on 1-D tensor
+        # returns a flat list of strings, one per token position.
+        token_strs = list(model.to_str_tokens(tokens[0]))
 
         # Top tokens by absolute attribution
         ranked = sorted(
