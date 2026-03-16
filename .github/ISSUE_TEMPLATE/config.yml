@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions (questions & ideas)
+    url: https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/discussions
+    about: Ask questions, share findings, discuss interpretability research
+  - name: Security vulnerability
+    url: https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/security/advisories/new
+    about: Please report security vulnerabilities privately

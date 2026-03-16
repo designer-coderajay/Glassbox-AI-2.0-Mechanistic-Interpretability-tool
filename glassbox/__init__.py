@@ -71,10 +71,22 @@ from glassbox.core import GlassboxV2          # primary analysis class
 try:
     from glassbox.sae_attribution import SAEFeatureAttributor
     _SAE_AVAILABLE = True
-except Exception:
-    # sae-lens not installed — SAEFeatureAttributor not importable
-    # The class still exists in the module but will raise ImportError on use
-    from glassbox.sae_attribution import SAEFeatureAttributor  # type: ignore
+except ImportError:
+    # sae-lens not installed.  Expose a stub so `from glassbox import
+    # SAEFeatureAttributor` succeeds silently; the class raises a clear
+    # ImportError only when the user tries to *instantiate* it.
+    class SAEFeatureAttributor:  # type: ignore[no-redef]
+        """Stub raised when sae-lens is not installed.
+
+        Install the optional dependency::
+
+            pip install 'glassbox-mech-interp[sae]'
+        """
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "SAEFeatureAttributor requires sae-lens. "
+                "Install it with:  pip install 'glassbox-mech-interp[sae]'"
+            )
     _SAE_AVAILABLE = False
 
 # ---------------------------------------------------------------------------

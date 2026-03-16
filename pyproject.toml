@@ -76,12 +76,30 @@ glassbox-ai = "glassbox.cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 
+[tool.setuptools.package-data]
+glassbox = ["py.typed"]
+
 # ---------------------------------------------------------------------------
 # pytest configuration
 # ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
 markers = [
     "slow: marks tests as slow — skip in fast CI with '-m \"not slow\"'",
+]
+addopts = "--tb=short -q"
+
+[tool.coverage.run]
+source  = ["glassbox"]
+omit    = ["glassbox/alignment.py", "glassbox/cli.py"]
+
+[tool.coverage.report]
+show_missing   = true
+skip_covered   = false
+fail_under     = 80
+exclude_lines  = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
 ]
 
 # ---------------------------------------------------------------------------

@@ -1,2 +1,14 @@
-glassbox.egg-info/
 *.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+dist/
+build/
+*.egg
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+*.so
+.DS_Store

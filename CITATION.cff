@@ -1,33 +1,74 @@
 cff-version: 1.2.0
 message: "If you use Glassbox in your research, please cite it as below."
 type: software
-title: "Glassbox 2.0: Mechanistic Interpretability via Attribution Patching"
-version: 2.0.0
-date-released: "2026-02-21"
+title: "Glassbox 2.3: Mechanistic Interpretability via Attribution Patching, SAE Feature Attribution, and Head Composition Analysis"
+version: 2.3.0
+date-released: "2026-03-16"
 license: MIT
 repository-code: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+url: "https://pypi.org/project/glassbox-mech-interp/"
 authors:
   - family-names: Mahale
     given-names: Ajay
     email: mahale.ajay01@gmail.com
 abstract: >
-  Glassbox 2.0 is a free, open-source mechanistic interpretability toolkit
-  for transformer language models. It implements attribution patching in
-  O(3) forward passes, auto-discovers minimum faithful circuits (MFC),
-  computes bootstrap 95% confidence intervals, and measures cross-model
-  circuit alignment via the Functional Circuit Alignment Score (FCAS).
+  Glassbox 2.3 is a free, open-source mechanistic interpretability toolkit
+  for transformer language models built on TransformerLens.
+  It implements attribution patching in O(3) forward passes,
+  auto-discovers minimum faithful circuits (MFC),
+  computes bootstrap 95% confidence intervals on faithfulness metrics,
+  measures cross-model circuit alignment via the Functional Circuit Alignment Score (FCAS),
+  projects the residual stream via a logit lens,
+  scores directed computation-graph edges via Edge Attribution Patching (EAP),
+  decomposes circuit components into SAE features via sae-lens,
+  computes Q/K/V head-composition scores (Elhage et al. 2021),
+  and maps token-level gradient-times-embedding saliency.
 keywords:
   - mechanistic-interpretability
   - attribution-patching
-  - transformer
-  - circuits
+  - sparse-autoencoder
+  - head-composition
+  - transformer-circuits
   - explainability
   - deep-learning
+  - TransformerLens
+  - GPT-2
+  - circuit-discovery
+references:
+  - type: article
+    title: "Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small"
+    authors:
+      - family-names: Wang
+        given-names: Kevin R.
+    year: 2022
+    url: "https://arxiv.org/abs/2211.00593"
+  - type: article
+    title: "Attribution Patching Outperforms Automated Circuit Discovery"
+    authors:
+      - family-names: Syed
+        given-names: Aaquib
+    year: 2024
+    url: "https://arxiv.org/abs/2310.10348"
+  - type: article
+    title: "A Mathematical Framework for Transformer Circuits"
+    authors:
+      - family-names: Elhage
+        given-names: Nelson
+    year: 2021
+    url: "https://transformer-circuits.pub/2021/framework/index.html"
+  - type: article
+    title: "Scaling and evaluating sparse autoencoders"
+    authors:
+      - family-names: Gao
+        given-names: Leo
+    year: 2024
+    url: "https://arxiv.org/abs/2406.04093"
 preferred-citation:
   type: software
-  title: "Glassbox 2.0: Mechanistic Interpretability via Attribution Patching"
+  title: "Glassbox 2.3: Mechanistic Interpretability via Attribution Patching"
   authors:
     - family-names: Mahale
       given-names: Ajay
   year: 2026
+  version: 2.3.0
   url: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"

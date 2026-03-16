@@ -71,6 +71,8 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import torch
 
+__all__ = ["SAEFeatureAttributor"]
+
 logger = logging.getLogger(__name__)
 
 _SAELENS_AVAILABLE: Optional[bool] = None

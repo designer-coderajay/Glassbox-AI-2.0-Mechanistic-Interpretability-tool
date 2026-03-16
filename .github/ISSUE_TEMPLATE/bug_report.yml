@@ -1,0 +1,76 @@
+name: Bug Report
+description: Something is broken or behaving incorrectly
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill in as much detail as possible so we can reproduce and fix it quickly.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: "When I call gb.analyze(...), it raises a KeyError on 'faithfulness'."
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproducible example
+      description: The shortest code snippet that reproduces the issue.
+      render: python
+      placeholder: |
+        from transformer_lens import HookedTransformer
+        from glassbox import GlassboxV2
+        model = HookedTransformer.from_pretrained("gpt2")
+        gb = GlassboxV2(model)
+        result = gb.analyze(...)  # <-- error here
+    validations:
+      required: true
+
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Full traceback
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: glassbox-version
+    attributes:
+      label: Glassbox version
+      placeholder: "2.3.0  (run: python -c 'import glassbox; print(glassbox.__version__)')"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.10.12"
+    validations:
+      required: true
+
+  - type: input
+    id: torch-version
+    attributes:
+      label: PyTorch version
+      placeholder: "2.2.0"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true

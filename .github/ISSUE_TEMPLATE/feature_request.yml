@@ -1,0 +1,57 @@
+name: Feature Request
+description: Propose a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement to Glassbox!
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that Glassbox currently can't do well?
+      placeholder: "I want to analyse attention patterns across multiple prompts simultaneously..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What API / behaviour would you want? Code sketches welcome.
+      render: python
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have considered
+      description: What workarounds have you tried?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      multiple: true
+      options:
+        - Circuit discovery (attribution patching)
+        - Logit lens
+        - Edge attribution patching (EAP)
+        - SAE feature attribution
+        - Head composition analysis
+        - Token attribution / saliency
+        - Attention patterns
+        - Attribution stability
+        - Multi-model / FCAS
+        - CLI
+        - Dashboard / Streamlit UI
+        - Documentation
+        - Performance / speed
+        - Other
+    validations:
+      required: true

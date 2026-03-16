@@ -1686,8 +1686,15 @@ class GlassboxV2:
             # we use run_with_hooks to inject the gradient-tracked embedding.
             grad_store = {}
             def _embed_hook(value, hook):
-                grad_store["embed"] = value.requires_grad_(True)
-                return grad_store["embed"]
+                # Create a fresh *leaf* tensor so .grad is populated after backward().
+                # If we call .requires_grad_(True) on the value that TransformerLens
+                # passes in, it's a non-leaf (result of an op), so PyTorch skips
+                # populating .grad and emits a UserWarning.  Detach + clone gives us
+                # a proper leaf that participates in autograd from this point onward.
+                leaf = value.detach().clone().requires_grad_(True)
+                leaf.retain_grad()          # keep grad even though it's inside a hook
+                grad_store["embed"] = leaf
+                return leaf
 
             logits = model.run_with_hooks(
                 tokens,
