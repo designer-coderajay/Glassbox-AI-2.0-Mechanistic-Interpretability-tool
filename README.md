@@ -26,6 +26,8 @@ Built on attribution patching with O(3) complexity. Benchmarked against ACDC. Gr
 
 - **O(3) attribution patching** — identifies circuits in a single forward-backward pass, not exhaustive edge enumeration
 - **37x faster than ACDC** on GPT-2 small (1.2s vs 43.2s)
+- **MLP attribution** — per-layer MLP contribution via `hook_mlp_out`, completing the circuit picture beyond attention heads (v2.1.0)
+- **Integrated gradients** — exact path-integral attribution (Sundararajan et al. 2017), use `method="integrated_gradients"` (v2.1.0)
 - **Bootstrap 95% CI** — every faithfulness score from `bootstrap_metrics()` ships with confidence intervals, not point estimates
 - **FCAS cross-model alignment** — quantifies how similar circuits are across model sizes (GPT-2 family: 0.783-0.835)
 - **Interactive dashboard** — Streamlit UI on HuggingFace Spaces, no setup required
@@ -183,8 +185,10 @@ gb    = GlassboxV2(model)
 
 | Method | Description |
 |--------|-------------|
-| `gb.analyze(prompt, correct, incorrect)` | Full circuit analysis. Returns dict with `circuit`, `attributions`, `faithfulness`, `corr_prompt`. |
-| `gb.attribution_patching(clean_tokens, corr_tokens, target_id, distractor_id)` | Raw per-head attribution scores. Expects tokenized tensors and integer token IDs. |
+| `gb.analyze(prompt, correct, incorrect, method="taylor", n_steps=10)` | Full circuit analysis. Returns `circuit`, `attributions`, `mlp_attributions`, `top_heads`, `faithfulness`, `corr_prompt`. |
+| `gb.attribution_patching(clean_tokens, corr_tokens, target_id, distractor_id, method, n_steps)` | Per-head attribution. method="taylor" (fast) or "integrated_gradients" (accurate). |
+| `gb.mlp_attribution(clean_tokens, corr_tokens, target_id, distractor_id)` | Per-layer MLP attribution scores. Completes circuit picture beyond attention heads. |
+| `gb.get_top_heads(attributions, top_k=10)` | Ranked heads with layer, head, attr, rel_depth. Required input for `functional_circuit_alignment()`. |
 | `gb.bootstrap_metrics(prompts, n_boot, alpha)` | Bootstrap 95% CI on Suff/Comp/F1. Pass list of (prompt, correct, incorrect) tuples. |
 | `gb.functional_circuit_alignment(heads_a, heads_b, top_k, n_null)` | Cross-model FCAS score with null distribution and z-score. |
 
@@ -203,7 +207,7 @@ gb    = GlassboxV2(model)
         "f1":                float,
         "category":          str,                  # one of: faithful, backup_mechanisms,
                                                    #   moderate, incomplete, weak
-        "suff_is_approx":    True,
+        "suff_is_approx":    True,   // False when method="integrated_gradients"
     }
 }
 ```
