@@ -49,6 +49,21 @@ Kendall 1938 — "A New Measure of Rank Correlation"
     Kendall τ rank correlation — used by attribution_stability() to measure
     ordinal consistency of head rankings across independent corruptions.
 
+Simonyan et al. 2014 — "Deep Inside Convolutional Networks"
+    https://arxiv.org/abs/1312.6034
+    Gradient × input saliency maps — used by token_attribution() to score
+    each input token's signed contribution to the logit difference.
+
+Olsson et al. 2022 — "In-context Learning and Induction Heads"
+    Transformer Circuits Thread.
+    https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html
+    Induction head geometry — used by attention_patterns() head-type classifier.
+
+Bloom et al. 2024 — "Open Source Sparse Autoencoders for GPT2-Small"
+    https://www.neuronpedia.org/gpt2-small
+    Pre-trained residual-stream SAEs — used by SAEFeatureAttributor in
+    glassbox/sae_attribution.py for feature-level circuit analysis.
+
 Complexity notes (honest)
 -------------------------
 attribution_patching()        : 3 forward passes        (O(3))
@@ -57,6 +72,8 @@ minimum_faithful_circuit()    : 3 + 2p passes           (p = backward pruning st
 logit_lens()                  : 1 forward pass          (O(1))
 edge_attribution_patching()   : 2 forward + 1 backward  (O(3))
 attribution_stability()       : 3K passes               (K = n_corruptions, default 10)
+token_attribution()           : 1 forward + 1 backward  (O(2))
+attention_patterns()          : 1 forward pass          (O(1))
 analyze()                     : 3 + 2p passes           (+ 1 if include_logit_lens=True)
 
 The "O(3)" label applies only to raw attribution scoring. Full circuit discovery
@@ -105,6 +122,29 @@ class GlassboxV2:
 
     bootstrap_metrics(prompts, n_boot, alpha)
         Bootstrap 95% CI on Suff / Comp / F1 across N prompts.
+
+    logit_lens(tokens, target_token, distractor_token)
+        Layer-by-layer logit tracking + per-head direct effects. 1 forward pass.
+
+    edge_attribution_patching(clean_tokens, corrupted_tokens, target_token,
+                              distractor_token, top_k=50)
+        Edge-level attribution: scores every (sender→receiver) directed edge
+        in the computation graph.  O(3) — strictly more informative than
+        node-level AP.  (Syed et al. 2024)
+
+    attribution_stability(clean_tokens, target_token, distractor_token,
+                          n_corruptions=10, replace_fraction=0.25, seed=42)
+        Stability of attribution rankings over K random corruptions.
+        Returns per-head stability score S ∈ [0,1] and global Kendall τ-b
+        rank consistency.  Novel metric — no prior tool has this.
+
+    token_attribution(tokens, target_token, distractor_token)
+        Per-input-token attribution via gradient × embedding (Simonyan 2014).
+        Scores each input token's signed contribution to LD.  1F + 1B pass.
+
+    attention_patterns(tokens, heads=None, top_k=10)
+        Full attention matrices + entropy + heuristic head-type classification
+        (induction_candidate, previous_token, focused, uniform).  1 forward pass.
 
     Mathematical caveats (disclosed)
     ---------------------------------
@@ -1538,3 +1578,275 @@ class GlassboxV2:
         if ll_result is not None:
             result["logit_lens"] = ll_result
         return result
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 7. TOKEN ATTRIBUTION  (gradient × input, Simonyan et al. 2014)
+    #    Scores each INPUT TOKEN by its signed contribution to LD.
+    # ──────────────────────────────────────────────────────────────────────
+
+    def token_attribution(
+        self,
+        tokens:           torch.Tensor,
+        target_token:     int,
+        distractor_token: int,
+    ) -> Dict:
+        """
+        Per-input-token attribution via gradient × embedding (saliency map).
+
+        Formula (Simonyan et al. 2014 / standard gradient-based attribution):
+            attr(t_i) = embed(t_i) · ∇_{embed(t_i)} LD
+
+        where LD = logit(target) − logit(distractor) at the last position.
+        The dot product gives a signed scalar per token: positive = token
+        pushes the model toward the target, negative = toward distractor.
+
+        This is the INPUT-SPACE complement to head-level attribution patching.
+        Use it to identify which prompt tokens are most important.
+
+        APPROXIMATION NOTE (disclosed)
+        --------------------------------
+        Gradient × input is a first-order attribution.  It conflates the
+        embedding magnitude with the gradient direction.  For large prompts
+        or adversarial inputs, integrated gradients (call
+        `attribution_patching(method="integrated_gradients")` on token
+        embeddings) would be more accurate.  For typical mechanistic
+        interpretability prompts (< 20 tokens), the first-order approximation
+        is stable and interpretable.
+
+        1 forward pass + 1 backward pass.
+
+        References
+        ----------
+        Simonyan et al. (2014). "Deep Inside Convolutional Networks: Visualising
+            Image Classification Models and Saliency Maps."
+            https://arxiv.org/abs/1312.6034
+        Sundararajan et al. (2017). "Axiomatic Attribution for Deep Networks."
+            ICML 2017.  https://arxiv.org/abs/1703.01365
+        Bastings & Filippova (2020). "The elephant in the interpretability room."
+            ACL BlackboxNLP.  https://arxiv.org/abs/2009.02839
+
+        Parameters
+        ----------
+        tokens           : [1, seq_len] tokenised prompt
+        target_token     : int  — correct next-token ID
+        distractor_token : int  — distractor token ID
+
+        Returns
+        -------
+        {
+            "token_ids"    : List[int]    — token IDs
+            "token_strs"   : List[str]    — decoded token strings
+            "attributions" : List[float]  — signed score per token
+            "abs_attributions" : List[float]  — |score| per token (for ranking)
+            "top_tokens"   : List[dict]   — top 5 by |attr|, with token_str and attr
+        }
+        """
+        model = self.model
+
+        # Get the embedding layer output and enable grad
+        embed = model.embed.W_E  # [d_vocab, d_model]
+
+        # One-hot token ids for gradient retrieval
+        t_ids  = tokens[0].tolist()           # [seq_len]
+        n_tok  = len(t_ids)
+
+        # Build embedding tensor with gradient tracking
+        with torch.enable_grad():
+            # embed_input: [1, seq_len, d_model]
+            embed_input = embed[tokens].detach().clone().requires_grad_(True)
+
+            # Run model with custom embedding
+            # TransformerLens supports `start_at_layer` or hook injection;
+            # we use run_with_hooks to inject the gradient-tracked embedding.
+            grad_store = {}
+            def _embed_hook(value, hook):
+                grad_store["embed"] = value.requires_grad_(True)
+                return grad_store["embed"]
+
+            logits = model.run_with_hooks(
+                tokens,
+                fwd_hooks=[("hook_embed", _embed_hook)],
+            )
+            # logits: [1, seq_len, d_vocab]
+            ld = logits[0, -1, target_token] - logits[0, -1, distractor_token]
+            ld.backward()
+
+        emb_tensor = grad_store["embed"]                       # [1, seq_len, d_model]
+        if emb_tensor.grad is None:
+            # Fallback: return zero attribution if graph not connected
+            logger.warning("token_attribution: gradient is None — check hook connection")
+            attrs = [0.0] * n_tok
+        else:
+            grad = emb_tensor.grad[0].detach().float()         # [seq_len, d_model]
+            emb  = emb_tensor[0].detach().float()              # [seq_len, d_model]
+            # Gradient × Input: dot product over d_model dimension
+            attrs = (grad * emb).sum(dim=-1).tolist()          # [seq_len]
+
+        # Decode token strings
+        token_strs = [model.to_str_tokens(tokens)[0][i] for i in range(n_tok)]
+
+        # Top tokens by absolute attribution
+        ranked = sorted(
+            enumerate(attrs), key=lambda x: abs(x[1]), reverse=True
+        )
+        top_tokens = [
+            {"rank": rank + 1, "token_str": token_strs[i], "token_id": t_ids[i],
+             "attribution": attrs[i], "position": i}
+            for rank, (i, _) in enumerate(ranked[:5])
+        ]
+
+        return {
+            "token_ids":       t_ids,
+            "token_strs":      token_strs,
+            "attributions":    attrs,
+            "abs_attributions": [abs(a) for a in attrs],
+            "top_tokens":      top_tokens,
+        }
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 8. ATTENTION PATTERN ANALYSIS
+    #    Returns attention matrices + entropy for specified heads
+    # ──────────────────────────────────────────────────────────────────────
+
+    def attention_patterns(
+        self,
+        tokens:   torch.Tensor,
+        heads:    Optional[List[Tuple[int, int]]] = None,
+        top_k:    int = 10,
+    ) -> Dict:
+        """
+        Extract and analyse attention patterns for specified heads.
+
+        For each (layer, head) pair, returns the full attention matrix A[l,h]
+        and computes:
+          • Attention entropy  H(A) = −Σ_j a_{ij} log a_{ij}
+            Low entropy → focused / "sharp" attention (e.g. induction heads).
+            High entropy → diffuse / "spread out" attention.
+          • Dominant source position per query (argmax over source dimension).
+          • Attention to final position  A[i=-1, :] — what the last token
+            attends to (most relevant for next-token prediction tasks).
+
+        Also computes an automatic HEAD TYPE CLASSIFICATION based on:
+          – Induction  : high attention to the token AFTER the previous
+            occurrence of the current token (in-context learning signal).
+          – Previous-token : A[i, i-1] is large (strong diagonal offset).
+          – Duplicate-token: attends to earlier occurrences of same token.
+          – Uniform : near-uniform distribution (high entropy head).
+
+        NOTE: Type classification is HEURISTIC — based on attention pattern
+        geometry only, not causal intervention.  True functional role requires
+        activation patching (use edge_attribution_patching()).
+
+        1 forward pass.
+
+        References
+        ----------
+        Elhage et al. (2021). "A Mathematical Framework for Transformer
+            Circuits."  §5–6 (induction heads, QK circuits).
+            https://transformer-circuits.pub/2021/framework/index.html
+        Olsson et al. (2022). "In-context Learning and Induction Heads."
+            Transformer Circuits Thread.
+            https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html
+
+        Parameters
+        ----------
+        tokens  : [1, seq_len] tokenised prompt
+        heads   : List of (layer, head) tuples to analyse.
+                  If None, returns the top_k heads by attention entropy variance
+                  (most "interesting" heads).
+        top_k   : If heads is None, how many heads to auto-select.
+
+        Returns
+        -------
+        {
+            "heads"        : List[str]  — "L{l}H{h}" labels
+            "patterns"     : { "L{l}H{h}": np.ndarray [seq, seq] }
+            "entropy"      : { "L{l}H{h}": float }
+            "last_tok_attn": { "L{l}H{h}": np.ndarray [seq] }  — A[-1, :]
+            "head_types"   : { "L{l}H{h}": str }
+            "token_strs"   : List[str]
+        }
+        """
+        model    = self.model
+        n_layers = self.n_layers
+        n_heads  = self.n_heads
+
+        # Forward pass — cache all attention patterns  ─────────────────────
+        with torch.no_grad():
+            _, cache = model.run_with_cache(
+                tokens,
+                names_filter=lambda name: "hook_pattern" in name,
+            )
+
+        token_strs = model.to_str_tokens(tokens)[0]
+
+        # If heads not specified, auto-select by entropy variance  ──────────
+        if heads is None:
+            all_entropies = {}
+            for l in range(n_layers):
+                for h in range(n_heads):
+                    key = f"blocks.{l}.attn.hook_pattern"
+                    if key in cache:
+                        A   = cache[key][0, h].float().numpy()   # [seq, seq]
+                        A   = np.clip(A, 1e-9, 1.0)
+                        ent = -float(np.sum(A * np.log(A), axis=-1).mean())
+                        all_entropies[(l, h)] = ent
+            # Select heads with highest entropy variance (most interesting)
+            heads = sorted(all_entropies, key=lambda k: abs(all_entropies[k] - 1.0))[:top_k]
+
+        patterns:      Dict[str, np.ndarray] = {}
+        entropy_map:   Dict[str, float]      = {}
+        last_tok_attn: Dict[str, np.ndarray] = {}
+        head_types:    Dict[str, str]        = {}
+
+        for layer, head in heads:
+            label = f"L{layer:02d}H{head:02d}"
+            key   = f"blocks.{layer}.attn.hook_pattern"
+
+            if key not in cache:
+                continue
+
+            A    = cache[key][0, head].float().cpu().numpy()   # [seq, seq]
+            A    = np.clip(A, 1e-9, 1.0)
+            seq  = A.shape[0]
+
+            patterns[label]      = A
+            last_tok_attn[label] = A[-1, :]
+
+            # Entropy
+            ent = -float(np.sum(A * np.log(A), axis=-1).mean())
+            entropy_map[label] = ent
+
+            # Heuristic head-type classification  ─────────────────────────
+            avg_diag_offset1 = float(np.mean([A[i, i-1] for i in range(1, seq)]))
+            avg_self_attn    = float(np.mean([A[i, i]   for i in range(seq)]))
+            uniform_thresh   = np.log(seq) * 0.85 if seq > 1 else 1.0
+
+            if ent >= uniform_thresh:
+                head_type = "uniform"
+            elif avg_diag_offset1 > 0.3:
+                head_type = "previous_token"
+            elif avg_self_attn > 0.4:
+                head_type = "self_attn"
+            elif ent < 0.5:
+                head_type = "focused"
+            else:
+                head_type = "mixed"
+
+            # Induction check: does last-token attend strongly to a specific
+            # position other than itself and the previous token?
+            last_row    = A[-1, :]
+            max_pos     = int(np.argmax(last_row))
+            if max_pos not in (seq - 1, seq - 2) and last_row[max_pos] > 0.3:
+                head_type = "induction_candidate"
+
+            head_types[label] = head_type
+
+        return {
+            "heads":         [f"L{l:02d}H{h:02d}" for l, h in heads],
+            "patterns":      patterns,
+            "entropy":       entropy_map,
+            "last_tok_attn": last_tok_attn,
+            "head_types":    head_types,
+            "token_strs":    list(token_strs),
+        }

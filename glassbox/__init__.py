@@ -16,35 +16,81 @@ Quick start
         incorrect = " John",
     )
     print(result["faithfulness"])
-    # {'sufficiency': 1.0, 'comprehensiveness': 0.47, 'f1': 0.64,
+    # {'sufficiency': 0.80, 'comprehensiveness': 0.37, 'f1': 0.49,
     #  'category': 'backup_mechanisms', 'suff_is_approx': True}
+
+    # Token-level saliency map
+    tokens = model.to_tokens("When Mary and John went to the store, John gave a drink to")
+    tok_attr = gb.token_attribution(tokens, model.to_single_token(" Mary"),
+                                            model.to_single_token(" John"))
+    print(tok_attr["top_tokens"])
+
+    # SAE feature attribution (requires: pip install sae-lens)
+    from glassbox import SAEFeatureAttributor
+    sfa    = SAEFeatureAttributor(model)
+    feats  = sfa.attribute(tokens, " Mary", " John", layers=[9, 10, 11])
+    print(feats["top_features"][:5])
+
+    # Head composition scores (Elhage et al. 2021)
+    from glassbox import HeadCompositionAnalyzer
+    comp   = HeadCompositionAnalyzer(model)
+    scores = comp.all_composition_scores(result["circuit"])
+    print(scores["combined_edges"][:5])
 
 Package layout
 --------------
 glassbox/
-  __init__.py       ← you are here — re-exports the public API
-  core.py           ← GlassboxV2 class (attribution patching, MFC, FCAS, bootstrap)
-  cli.py            ← glassbox-ai CLI entry point
-  alignment.py      ← DEPRECATED: thin shim kept for back-compat
+  __init__.py           ← you are here — re-exports the public API
+  core.py               ← GlassboxV2 class: attribution patching, MFC, FCAS,
+                          bootstrap, logit lens, EAP, attribution stability,
+                          token attribution, attention patterns
+  sae_attribution.py    ← SAEFeatureAttributor: sparse feature decomposition
+                          of circuit components via sae-lens SAEs
+  composition.py        ← HeadCompositionAnalyzer: Q/K/V composition scores
+                          between attention heads (Elhage et al. 2021)
+  cli.py                ← glassbox-ai CLI entry point
+  alignment.py          ← DEPRECATED: thin shim kept for back-compat
+  utils.py              ← shared utilities
 """
 
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "2.2.0"
+__version__ = "2.3.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
 # ---------------------------------------------------------------------------
-# Public API — everything a user needs is importable from `glassbox` directly
+# Core engine — always available
 # ---------------------------------------------------------------------------
-from glassbox.core import GlassboxV2          # primary class
+from glassbox.core import GlassboxV2          # primary analysis class
 
-# Back-compat alias for any code that used the old name
-GlassboxEngine = GlassboxV2
+# ---------------------------------------------------------------------------
+# SAE Feature Attribution — requires sae-lens (optional)
+# ---------------------------------------------------------------------------
+try:
+    from glassbox.sae_attribution import SAEFeatureAttributor
+    _SAE_AVAILABLE = True
+except Exception:
+    # sae-lens not installed — SAEFeatureAttributor not importable
+    # The class still exists in the module but will raise ImportError on use
+    from glassbox.sae_attribution import SAEFeatureAttributor  # type: ignore
+    _SAE_AVAILABLE = False
+
+# ---------------------------------------------------------------------------
+# Head Composition Analysis — always available (no extra deps)
+# ---------------------------------------------------------------------------
+from glassbox.composition import HeadCompositionAnalyzer
+
+# ---------------------------------------------------------------------------
+# Back-compat alias
+# ---------------------------------------------------------------------------
+GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
 
 __all__ = [
     "GlassboxV2",
-    "GlassboxEngine",    # deprecated alias — use GlassboxV2
+    "GlassboxEngine",          # deprecated alias
+    "SAEFeatureAttributor",    # requires sae-lens
+    "HeadCompositionAnalyzer",
     "__version__",
 ]
