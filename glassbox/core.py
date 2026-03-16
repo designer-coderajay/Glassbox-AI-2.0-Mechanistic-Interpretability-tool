@@ -47,6 +47,7 @@ costs O(3 + 2p) where p is typically 0-4 on IOI prompts.
 """
 
 import logging
+import re
 import torch
 import numpy as np
 import einops                               # noqa: F401 — imported for TransformerLens compat
@@ -118,13 +119,15 @@ class GlassboxV2:
         "When Mary and John … John gave … to"
         → "When John and Mary … Mary gave … to"
         """
+        # Use word-boundary regex to avoid partial matches inside words
+        # (e.g. "a" must not match inside "cat" or "sat").
         placeholder = "<<<GLASSBOX_SWAP>>>"
-        swapped = prompt.replace(target, placeholder)
-        swapped = swapped.replace(distractor, target)
+        swapped = re.sub(r'\b' + re.escape(target) + r'\b', placeholder, prompt)
+        swapped = re.sub(r'\b' + re.escape(distractor) + r'\b', target, swapped)
         swapped = swapped.replace(placeholder, distractor)
         if swapped == prompt:
-            # Fallback for factual prompts where target isn't in the prompt:
-            # append distractor as a simple worst-case corruption
+            # Fallback for prompts where neither name appears as a whole word:
+            # append distractor as worst-case corruption.
             swapped = prompt + " " + distractor
         return swapped
 
@@ -241,11 +244,19 @@ class GlassboxV2:
                 for h in range(n_heads):
                     attributions[(l, h)] = 0.0
                 continue
-            delta = (clean_cache[key] - corr_cache[key]).float()
+            # Extract last-position slice from each cache independently.
+            # This handles clean and corrupted sequences of different lengths
+            # (e.g. when _name_swap fallback appends a token).  The formula
+            # attr = grad · Δz only uses the last-position activations anyway,
+            # so slicing before subtraction is semantically identical for
+            # equal-length sequences and correct for unequal ones.
+            c_last = clean_cache[key][0, -1].float()    # [n_heads, d_head]
+            r_last = corr_cache[key][0, -1].float()     # [n_heads, d_head]
+            delta_last = c_last - r_last                # [n_heads, d_head]
             for h in range(n_heads):
                 # dot product at the last sequence position over d_head
                 attributions[(l, h)] = (
-                    g[0, -1, h, :] * delta[0, -1, h, :]
+                    g[0, -1, h, :] * delta_last[h, :]
                 ).sum().item()
 
         logger.debug(
