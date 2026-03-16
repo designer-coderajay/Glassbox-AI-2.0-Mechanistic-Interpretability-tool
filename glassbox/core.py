@@ -173,7 +173,7 @@ class GlassboxV2:
         clean_cache: Dict[str, torch.Tensor] = {}
 
         def _save_clean(key: str):
-            def hook(act, _hook):
+            def hook(act, hook=None):
                 clean_cache[key] = act.detach().clone()
             return hook
 
@@ -190,7 +190,7 @@ class GlassboxV2:
         corr_cache: Dict[str, torch.Tensor] = {}
 
         def _save_corr(key: str):
-            def hook(act, _hook):
+            def hook(act, hook=None):
                 corr_cache[key] = act.detach().clone()
             return hook
 
@@ -215,7 +215,7 @@ class GlassboxV2:
         }
 
         def _patch(key: str):
-            def hook(act, _hook):
+            def hook(act, hook=None):
                 # MUST return — otherwise gradient doesn't flow through
                 return grad_inputs[key].to(act.dtype)
             return hook
@@ -296,7 +296,7 @@ class GlassboxV2:
         corr_cache: Dict[str, torch.Tensor] = {}
 
         def _save(key: str):
-            def hook(act, _hook):
+            def hook(act, hook=None):
                 corr_cache[key] = act.detach().clone()
             return hook
 
@@ -312,7 +312,7 @@ class GlassboxV2:
         # Pass 2: patched forward — replace circuit heads with corrupted z
         def _patch_corr(layer: int, head: int):
             key = f"blocks.{layer}.attn.hook_z"
-            def hook(act, _hook):
+            def hook(act, hook=None):
                 result = act.clone()
                 if key in corr_cache:
                     corr = corr_cache[key]
