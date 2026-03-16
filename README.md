@@ -4,7 +4,7 @@
 **Open-source mechanistic interpretability for transformer models.**
 
 [![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI)](https://pypi.org/project/glassbox-mech-interp/)
-[![PyPI Downloads](https://static.pepy.tech/personalized-badge/glassbox-mech-interp?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/glassbox-mech-interp)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/glassbox-mech-interp?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GRAY&left_text=downloads)](https://pepy.tech/projects/glassbox-mech-interp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
