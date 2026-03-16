@@ -26,19 +26,27 @@ jobs:
           key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: pip-${{ runner.os }}-
 
+      # Cache HuggingFace model weights — GPT-2 is ~500 MB and needed even
+      # for fast tests because the module-scope engine fixture loads it once
+      # for the whole test session.  Without this cache every push re-downloads
+      # GPT-2 and the job fails or times out on the free Actions tier.
+      - name: Cache HuggingFace models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-gpt2-${{ runner.os }}
+          restore-keys: hf-gpt2-
+
       - name: Install package + dev deps
         run: pip install -e ".[dev]" --quiet
 
-      # BUG FIX: original workflow ran `pytest tests/ -v --tb=short` with no
-      # -m filter.  This caused CI to download GPT-2 (~500 MB) and run all slow
-      # tests on every push.  On the free GitHub Actions tier the job either
-      # timed out or took 10–15 min.  Fast tests (no model load) take ~5 s.
-      #
-      # FIX: run only tests NOT marked @pytest.mark.slow in this job.
-      # Slow tests run in the separate `slow-tests` job below, gated behind
-      # a manual workflow_dispatch trigger so they don't block every push.
+      # Run only tests NOT marked @pytest.mark.slow.
+      # GPT-2 is loaded once via the module-scope engine fixture (~30 s on
+      # first run, instant on cache hit).  The actual fast tests complete in
+      # a few seconds after that.
       - name: Run fast tests
         run: pytest tests/ -v --tb=short -m "not slow"
+        timeout-minutes: 15
 
   slow-tests:
     name: Slow tests (GPU optional, full model suite)
