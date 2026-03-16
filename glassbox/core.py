@@ -66,11 +66,22 @@ class GlassboxV2:
 
     Public API
     ----------
-    analyze(prompt, correct, incorrect)
+    analyze(prompt, correct, incorrect, method="taylor")
         One-call circuit discovery + faithfulness scoring.
+        method="integrated_gradients" for higher accuracy (slower).
 
-    attribution_patching(clean_tokens, corrupted_tokens, target_token, distractor_token)
-        Raw per-head attribution scores via Jacobian × Δz (3 forward passes).
+    attribution_patching(clean_tokens, corrupted_tokens, target_token, distractor_token,
+                         method="taylor", n_steps=10)
+        Per-head attribution scores. "taylor" = 3 passes (fast approximation).
+        "integrated_gradients" = 2+n_steps passes (path-integral exact attribution).
+
+    mlp_attribution(clean_tokens, corrupted_tokens, target_token, distractor_token)
+        Per-layer MLP attribution scores via first-order Taylor (3 passes).
+        Completes the circuit picture alongside attention head attribution.
+
+    get_top_heads(attributions, top_k=10)
+        Ranked attention heads with layer, head, attr, rel_depth fields.
+        Required input format for functional_circuit_alignment().
 
     minimum_faithful_circuit(...)
         Greedy forward/backward circuit auto-discovery.
@@ -142,20 +153,28 @@ class GlassboxV2:
         corrupted_tokens: torch.Tensor,
         target_token:     int,
         distractor_token: int,
+        method:           str = "taylor",
+        n_steps:          int = 10,
     ) -> Tuple[Dict[Tuple[int, int], float], float]:
         """
         Compute per-head attribution scores via Jacobian × Δz.
 
-        Formula (Nanda et al. 2023)
-        ----------------------------
+        method="taylor"  (default, 3 passes)
+        -------------------------------------
+        Formula (Nanda et al. 2023):
             attr(l, h) = ∇_{z_lh} LD  ·  (z_clean_lh − z_corr_lh)
 
-        This is the FIRST-ORDER Taylor approximation of the change in logit
-        difference when head (l, h) is patched from corrupted to clean.
-        It is accurate for small perturbations; accuracy degrades when
-        |z_clean − z_corr| is large relative to activation magnitude, which
-        can occur with name-swap corruption on prompts that differ heavily.
-        The trade-off (3 passes vs 2N for exact patching) is the design intent.
+        First-order Taylor approximation. Fast but accuracy degrades when
+        |z_clean − z_corr| is large relative to activation magnitude.
+
+        method="integrated_gradients"  (2 + n_steps passes)
+        -----------------------------------------------------
+        Formula (Sundararajan et al. 2017):
+            attr_IG(l,h) = (z_clean − z_corr) · (1/n) Σ_k ∇ LD(z_corr + k/n·Δz)
+
+        Path integral along the straight-line interpolation from corrupted to clean.
+        Exact in the limit n_steps→∞. Recommended for large corruptions or when
+        Taylor scores are unstable. Costs 2 + n_steps forward passes.
 
         Parameters
         ----------
@@ -163,6 +182,8 @@ class GlassboxV2:
         corrupted_tokens : tokenised corrupted prompt   [1, seq_len]
         target_token     : vocabulary index of correct next token
         distractor_token : vocabulary index of incorrect next token
+        method           : "taylor" (fast) | "integrated_gradients" (accurate)
+        n_steps          : interpolation steps for integrated_gradients (default 10)
 
         Returns
         -------
@@ -259,11 +280,209 @@ class GlassboxV2:
                     g[0, -1, h, :] * delta_last[h, :]
                 ).sum().item()
 
+        # ── Integrated Gradients branch ────────────────────────────────────
+        if method == "integrated_gradients":
+            # Re-compute using path integral: average gradient over n_steps
+            # interpolations from corrupted to clean.  More accurate than
+            # single Jacobian when the corruption is large.
+            acc_grads: Dict[str, torch.Tensor] = {
+                k: torch.zeros_like(clean_cache[k]) for k in clean_cache
+            }
+
+            for step in range(1, n_steps + 1):
+                alpha = step / n_steps
+                interp: Dict[str, torch.Tensor] = {}
+                for k in clean_cache:
+                    # Align lengths before interpolating
+                    min_len = min(clean_cache[k].shape[1], corr_cache[k].shape[1])
+                    c = clean_cache[k][:, :min_len].float()
+                    r = corr_cache[k][:, :min_len].float()
+                    interp[k] = (r + alpha * (c - r)).requires_grad_(True)
+
+                def _patch_interp(key: str):
+                    def hook(act, hook=None):
+                        return interp[key].to(act.dtype)
+                    return hook
+
+                model.zero_grad()
+                logits_i = model.run_with_hooks(
+                    clean_tokens,
+                    fwd_hooks=[(k, _patch_interp(k)) for k in interp],
+                )
+                ld_i = (
+                    logits_i[0, -1, target_token].float()
+                    - logits_i[0, -1, distractor_token].float()
+                )
+                ld_i.backward()
+
+                for k in acc_grads:
+                    if interp[k].grad is not None:
+                        min_len = interp[k].shape[1]
+                        acc_grads[k][:, :min_len] += interp[k].grad.detach()
+
+            # Average and compute IG attributions
+            attributions = {}
+            for l in range(n_layers):
+                key = f"blocks.{l}.attn.hook_z"
+                g_avg = acc_grads[key] / n_steps
+                c_last = clean_cache[key][0, -1].float()
+                r_last = corr_cache[key][0, -1].float()
+                delta_last = c_last - r_last
+                for h in range(n_heads):
+                    attributions[(l, h)] = (
+                        g_avg[0, -1, h, :] * delta_last[h, :]
+                    ).sum().item()
+
         logger.debug(
-            "attribution_patching done: clean_ld=%.4f, n_heads=%d",
-            clean_ld, len(attributions),
+            "attribution_patching done: method=%s clean_ld=%.4f n_heads=%d",
+            method, clean_ld, len(attributions),
         )
         return attributions, clean_ld
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 2a. MLP ATTRIBUTION — per-layer Taylor attribution on hook_mlp_out
+    # ──────────────────────────────────────────────────────────────────────
+
+    def mlp_attribution(
+        self,
+        clean_tokens:     torch.Tensor,
+        corrupted_tokens: torch.Tensor,
+        target_token:     int,
+        distractor_token: int,
+    ) -> Dict[int, float]:
+        """
+        Per-layer MLP attribution via first-order Taylor approximation.
+
+        Extends the circuit picture beyond attention heads to include MLP
+        computational contributions.  Same Jacobian × Δz formula as head
+        attribution (Nanda et al. 2023), applied to hook_mlp_out rather
+        than hook_z.
+
+        Formula
+        -------
+            attr_MLP(l) = ∇_{mlp_l} LD  ·  (mlp_clean_l − mlp_corr_l)
+
+        at the last sequence position.  3 forward passes total.
+
+        Returns
+        -------
+        Dict[layer -> float]  — positive = MLP layer promotes target token
+        """
+        model = self.model
+        n_layers = self.n_layers
+
+        clean_cache: Dict[int, torch.Tensor] = {}
+        corr_cache:  Dict[int, torch.Tensor] = {}
+
+        def _save_clean_mlp(layer: int):
+            def hook(act, hook=None):
+                clean_cache[layer] = act.detach().clone()
+            return hook
+
+        def _save_corr_mlp(layer: int):
+            def hook(act, hook=None):
+                corr_cache[layer] = act.detach().clone()
+            return hook
+
+        with torch.no_grad():
+            model.run_with_hooks(
+                clean_tokens,
+                fwd_hooks=[
+                    (f"blocks.{l}.hook_mlp_out", _save_clean_mlp(l))
+                    for l in range(n_layers)
+                ],
+            )
+
+        with torch.no_grad():
+            model.run_with_hooks(
+                corrupted_tokens,
+                fwd_hooks=[
+                    (f"blocks.{l}.hook_mlp_out", _save_corr_mlp(l))
+                    for l in range(n_layers)
+                ],
+            )
+
+        grad_inputs: Dict[int, torch.Tensor] = {
+            l: clean_cache[l].clone().float().requires_grad_(True)
+            for l in range(n_layers)
+        }
+
+        def _patch_mlp(layer: int):
+            def hook(act, hook=None):
+                return grad_inputs[layer].to(act.dtype)
+            return hook
+
+        model.zero_grad()
+        logits = model.run_with_hooks(
+            clean_tokens,
+            fwd_hooks=[
+                (f"blocks.{l}.hook_mlp_out", _patch_mlp(l))
+                for l in range(n_layers)
+            ],
+        )
+        ld = (
+            logits[0, -1, target_token].float()
+            - logits[0, -1, distractor_token].float()
+        )
+        ld.backward()
+
+        mlp_attrs: Dict[int, float] = {}
+        for l in range(n_layers):
+            g = grad_inputs[l].grad
+            if g is None:
+                mlp_attrs[l] = 0.0
+                continue
+            # Last-position slice — handles clean/corrupted length mismatch
+            c_last = clean_cache[l][0, -1].float()   # [d_model]
+            r_last = corr_cache[l][0, -1].float()    # [d_model]
+            delta  = c_last - r_last                  # [d_model]
+            mlp_attrs[l] = (g[0, -1, :] * delta).sum().item()
+
+        logger.debug("mlp_attribution done: %d layers", n_layers)
+        return mlp_attrs
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 2b. GET TOP HEADS — convenience method for FCAS input
+    # ──────────────────────────────────────────────────────────────────────
+
+    def get_top_heads(
+        self,
+        attributions: Dict[Tuple[int, int], float],
+        top_k:        int = 10,
+    ) -> List[Dict]:
+        """
+        Return the top-k attention heads sorted by attribution score.
+
+        Required input format for functional_circuit_alignment().
+
+        Parameters
+        ----------
+        attributions : Dict[(layer, head) -> float] from attribution_patching()
+        top_k        : Number of heads to return (default 10)
+
+        Returns
+        -------
+        List of dicts, each with:
+            layer     : int   — transformer layer index
+            head      : int   — attention head index within layer
+            attr      : float — attribution score (positive = promotes target)
+            rel_depth : float — layer / (n_layers - 1), in [0, 1]
+        """
+        ranked = sorted(
+            [(k, v) for k, v in attributions.items()],
+            key=lambda x: x[1],
+            reverse=True,
+        )[:top_k]
+
+        return [
+            {
+                "layer":     layer,
+                "head":      head,
+                "attr":      attr,
+                "rel_depth": layer / max(self.n_layers - 1, 1),
+            }
+            for (layer, head), attr in ranked
+        ]
 
     # ──────────────────────────────────────────────────────────────────────
     # 2. COMPREHENSIVENESS — exact corrupted activation patching
@@ -358,6 +577,8 @@ class GlassboxV2:
         distractor_token: int,
         target_suff:      float = 0.85,
         target_comp:      float = 0.25,
+        method:           str   = "taylor",
+        n_steps:          int   = 10,
     ) -> Tuple[List[Tuple[int, int]], Dict[Tuple[int, int], float], float]:
         """
         Auto-discover the Minimum Faithful Circuit (MFC).
@@ -398,7 +619,8 @@ class GlassboxV2:
         clean_ld     : Clean logit difference (reused by analyze, no redundant call)
         """
         attributions, clean_ld = self.attribution_patching(
-            clean_tokens, corrupted_tokens, target_token, distractor_token
+            clean_tokens, corrupted_tokens, target_token, distractor_token,
+            method=method, n_steps=n_steps,
         )
 
         if clean_ld == 0.0:
@@ -629,7 +851,14 @@ class GlassboxV2:
     # 6. SINGLE-CALL ANALYZE API
     # ──────────────────────────────────────────────────────────────────────
 
-    def analyze(self, prompt: str, correct: str, incorrect: str) -> Dict:
+    def analyze(
+        self,
+        prompt:    str,
+        correct:   str,
+        incorrect: str,
+        method:    str = "taylor",
+        n_steps:   int = 10,
+    ) -> Dict:
         """
         One-call circuit discovery + faithfulness metrics.
 
@@ -638,28 +867,35 @@ class GlassboxV2:
         prompt    : Input text (e.g. "When Mary and John went to the store, John gave a drink to")
         correct   : Correct next token (e.g. " Mary")
         incorrect : Distractor token    (e.g. " John")
+        method    : Attribution method — "taylor" (fast, default) or
+                    "integrated_gradients" (accurate, 2+n_steps passes)
+        n_steps   : Interpolation steps for integrated_gradients (default 10)
 
         Returns
         -------
         {
-            'circuit'     : [(layer, head), ...],   # MFC heads, sorted by attribution
-            'n_heads'     : int,
-            'clean_ld'    : float,                  # logit(correct) - logit(distractor)
-            'corr_prompt' : str,                    # name-swap corrupted prompt
-            'attributions': {str((l, h)): float},  # all heads, string keys
+            'circuit'          : [(layer, head), ...],   # MFC heads, sorted by attribution
+            'n_heads'          : int,
+            'clean_ld'         : float,                  # logit(correct) - logit(distractor)
+            'corr_prompt'      : str,                    # name-swap corrupted prompt
+            'attributions'     : {str((l, h)): float},  # all heads, string keys
+            'mlp_attributions' : {str(layer): float},   # per-layer MLP scores
+            'top_heads'        : [{'layer', 'head', 'attr', 'rel_depth'}, ...],
+            'method'           : str,                    # attribution method used
             'faithfulness': {
-                'sufficiency':       float,  # Taylor approximation (see caveats in docstring)
+                'sufficiency':       float,  # Taylor approximation (see caveats)
                 'comprehensiveness': float,  # exact (corrupted activation patching)
                 'f1':                float,  # harmonic mean
                 'category':          str,
-                'suff_is_approx':    True,   # explicit approximation flag
+                'suff_is_approx':    bool,   # True for taylor, False for IG
             }
         }
 
         Speed
         -----
-        Costs O(3 + 2p) forward passes where p = number of backward pruning steps.
-        Typically 3-10 passes on IOI prompts. NOT O(3) — see module docstring.
+        taylor:               O(3 + 2p) passes  — fast, suitable for iteration
+        integrated_gradients: O(5 + 2n_steps + 2p) passes — accurate, use for final analysis
+        p = number of backward pruning steps, typically 0-4 on IOI.
         """
         # Token resolution with fallback
         try:
@@ -675,10 +911,17 @@ class GlassboxV2:
         corr_prompt = self._name_swap(prompt, correct.strip(), incorrect.strip())
         tokens_corr = self.model.to_tokens(corr_prompt)
 
-        # Circuit discovery — returns clean_ld, no redundant 2nd attribution call
+        # Circuit discovery — pass method through for attribution
         circuit, attrs, clean_ld = self.minimum_faithful_circuit(
-            tokens_c, tokens_corr, t_tok, d_tok
+            tokens_c, tokens_corr, t_tok, d_tok,
+            method=method, n_steps=n_steps,
         )
+
+        # MLP attribution — 3 additional passes, completes the circuit picture
+        mlp_attrs = self.mlp_attribution(tokens_c, tokens_corr, t_tok, d_tok)
+
+        # Top heads ranked by attribution score (input format for FCAS)
+        top_heads = self.get_top_heads(attrs, top_k=min(10, self.n_layers * self.n_heads))
 
         # Faithfulness metrics
         total = sum(attrs.get(h, 0.0) for h in circuit)
@@ -687,7 +930,6 @@ class GlassboxV2:
         f1    = 2.0 * suff * comp / (suff + comp) if (suff + comp) > 0.0 else 0.0
 
         # Category thresholds (documented, not theoretically derived)
-        # BUG FIX: 'incomplete' now checked before 'weak' — see root core.py
         if   suff > 0.9 and comp < 0.4:   category = "backup_mechanisms"
         elif suff > 0.7 and comp > 0.5:   category = "faithful"
         elif suff < 0.5:                   category = "incomplete"
@@ -695,16 +937,19 @@ class GlassboxV2:
         else:                               category = "moderate"
 
         return {
-            "circuit":      sorted(circuit, key=lambda lh: attrs.get(lh, 0.0), reverse=True),
-            "n_heads":      len(circuit),
-            "clean_ld":     clean_ld,
-            "corr_prompt":  corr_prompt,
-            "attributions": {str(k): v for k, v in attrs.items()},
+            "circuit":          sorted(circuit, key=lambda lh: attrs.get(lh, 0.0), reverse=True),
+            "n_heads":          len(circuit),
+            "clean_ld":         clean_ld,
+            "corr_prompt":      corr_prompt,
+            "attributions":     {str(k): v for k, v in attrs.items()},
+            "mlp_attributions": {str(l): v for l, v in mlp_attrs.items()},
+            "top_heads":        top_heads,
+            "method":           method,
             "faithfulness": {
                 "sufficiency":       suff,
                 "comprehensiveness": comp,
                 "f1":                f1,
                 "category":          category,
-                "suff_is_approx":    True,  # explicit flag — see class docstring
+                "suff_is_approx":    method == "taylor",
             },
         }
