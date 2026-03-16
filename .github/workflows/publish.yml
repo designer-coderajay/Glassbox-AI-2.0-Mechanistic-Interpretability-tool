@@ -1,16 +1,36 @@
+name: Publish to PyPI
+
+# Triggers on any tag that starts with "v" (e.g. v2.2.0, v2.3.0)
+# Uses OIDC Trusted Publisher — no API token required.
+# Set up once at: https://pypi.org/manage/project/glassbox-mech-interp/settings/publishing/
+
 on:
   push:
     tags: ["v*"]
 
 jobs:
   publish:
+    name: Build and publish to PyPI
     runs-on: ubuntu-latest
+
+    # Required for OIDC Trusted Publisher authentication
     permissions:
       id-token: write
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - run: pip install build
-      - run: python -m build
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build
+        run: pip install build --quiet
+
+      - name: Build wheel + sdist
+        run: python -m build
+
+      - name: Publish to PyPI (Trusted Publisher — no token needed)
+        uses: pypa/gh-action-pypi-publish@release/v1
