@@ -87,11 +87,21 @@ import numpy as np
 import einops                               # noqa: F401 — imported for TransformerLens compat
 from typing import Dict, List, Tuple, Optional
 
-# Reproducibility — matches thesis seed=42
-torch.manual_seed(42)
-np.random.seed(42)
+# NOTE: We intentionally do NOT set global random seeds here.
+# Calling torch.manual_seed / np.random.seed at module-import time
+# would silently corrupt the random state of ANY caller that imports
+# glassbox — a serious reproducibility anti-pattern.
+# Methods that need determinism accept an explicit `seed` parameter.
 
 logger = logging.getLogger(__name__)
+
+# Expose version inside the module so model_metadata can self-document results
+# without importing glassbox/__init__.py (circular import risk).
+try:
+    from importlib.metadata import version as _pkg_version
+    _GLASSBOX_VERSION: str = _pkg_version("glassbox-mech-interp")
+except Exception:
+    _GLASSBOX_VERSION = "unknown"
 
 
 class GlassboxV2:
@@ -1315,6 +1325,7 @@ class GlassboxV2:
         prompts: List[Tuple[str, str, str]],
         n_boot:  int   = 500,
         alpha:   float = 0.05,
+        seed:    int   = 42,
     ) -> Dict:
         """
         Bootstrap 95% CI on Sufficiency / Comprehensiveness / F1.
@@ -1327,11 +1338,14 @@ class GlassboxV2:
         prompts : List of (prompt, correct, incorrect) tuples
         n_boot  : Bootstrap resamples (default 500)
         alpha   : Significance level (default 0.05 → 95% CI)
+        seed    : RNG seed for reproducible bootstrap samples (default 42).
+                  Pass seed=None for a random seed.
 
         Returns
         -------
         dict with keys 'sufficiency', 'comprehensiveness', 'f1', each containing:
             mean, std, ci_lo, ci_hi, n
+        Also includes 'meta': {n_boot, alpha, seed, n_prompts_used}.
         """
         suff_vals: List[float] = []
         comp_vals: List[float] = []
@@ -1380,10 +1394,13 @@ class GlassboxV2:
                 "Bootstrap CI computed on n=%d prompts. Recommend n≥20 for reliable intervals.", n
             )
 
+        # Seeded RNG — reproducible bootstrap samples without polluting global state
+        rng = np.random.default_rng(seed)
+
         def _boot_ci(vals: List[float]) -> Dict:
             arr  = np.array(vals)
             boot = np.array([
-                np.mean(np.random.choice(arr, len(arr), replace=True))
+                np.mean(rng.choice(arr, len(arr), replace=True))
                 for _ in range(n_boot)
             ])
             return {
@@ -1398,6 +1415,12 @@ class GlassboxV2:
             "sufficiency":       _boot_ci(suff_vals),
             "comprehensiveness": _boot_ci(comp_vals),
             "f1":                _boot_ci(f1_vals),
+            "meta": {
+                "n_boot":          n_boot,
+                "alpha":           alpha,
+                "seed":            seed,
+                "n_prompts_used":  n,
+            },
         }
 
     # ──────────────────────────────────────────────────────────────────────
@@ -1410,6 +1433,7 @@ class GlassboxV2:
         heads_b:     List[Dict],
         top_k:       int = 3,
         n_null:      int = 1000,
+        seed:        int = 42,
     ) -> Dict:
         """
         Functional Circuit Alignment Score (FCAS).
@@ -1461,8 +1485,8 @@ class GlassboxV2:
 
         fcas = 1.0 - (sum(p["depth_diff"] for p in pairs) / k)
 
-        # Null distribution: random circuits of the same size
-        rng = np.random.default_rng(42)
+        # Null distribution: random circuits of the same size (seeded for reproducibility)
+        rng = np.random.default_rng(seed)
         null_fcas_vals = []
         for _ in range(n_null):
             rand_a = rng.uniform(0, 1, k)
@@ -1600,10 +1624,80 @@ class GlassboxV2:
                 "category":          category,
                 "suff_is_approx":    method == "taylor",
             },
+            # Reproducibility metadata — include model identity in every result
+            # so saved results are self-documenting and can be re-verified.
+            "model_metadata": {
+                "model_name":  getattr(self.model.cfg, "model_name",
+                                       getattr(self.model.cfg, "checkpoint_value", "unknown")),
+                "n_layers":    self.n_layers,
+                "n_heads":     self.n_heads,
+                "d_model":     int(self.model.cfg.d_model),
+                "d_head":      int(self.model.cfg.d_head),
+                "glassbox_version": _GLASSBOX_VERSION,
+            },
         }
         if ll_result is not None:
             result["logit_lens"] = ll_result
         return result
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 6b. BATCH ANALYSIS — process multiple prompts in one call
+    # ──────────────────────────────────────────────────────────────────────
+
+    def batch_analyze(
+        self,
+        prompts:        List[Tuple[str, str, str]],
+        method:         str  = "taylor",
+        show_progress:  bool = True,
+        skip_errors:    bool = True,
+    ) -> List[Dict]:
+        """
+        Run analyze() on a batch of (prompt, correct, incorrect) tuples.
+
+        Parameters
+        ----------
+        prompts       : List of (prompt, correct, incorrect) 3-tuples.
+        method        : Attribution method passed to each analyze() call.
+        show_progress : Log progress as "Processing i/N" (default True).
+        skip_errors   : If True, failed prompts are recorded with an 'error'
+                        key and processing continues.  If False, the first
+                        error propagates immediately (default True).
+
+        Returns
+        -------
+        List of result dicts (one per prompt), preserving input order.
+        Each dict is identical to the output of analyze() for that prompt.
+        Failed prompts (skip_errors=True) have an 'error' key instead of
+        'circuit' / 'faithfulness' etc.
+
+        Example
+        -------
+        >>> results = gb.batch_analyze([
+        ...     ("When Mary and John went to the store, John gave a drink to", " Mary", " John"),
+        ...     ("The capital of France is",                                   " Paris", " London"),
+        ... ])
+        >>> [r["faithfulness"]["f1"] for r in results if "faithfulness" in r]
+        """
+        results: List[Dict] = []
+        n = len(prompts)
+        for i, (prompt, correct, incorrect) in enumerate(prompts, start=1):
+            if show_progress:
+                logger.info("[%d/%d] %s", i, n, prompt[:70])
+            try:
+                result = self.analyze(prompt, correct, incorrect, method=method)
+                results.append(result)
+            except Exception as exc:
+                if skip_errors:
+                    logger.warning("[%d/%d] SKIPPED — %s: %s", i, n, type(exc).__name__, exc)
+                    results.append({
+                        "prompt":   prompt,
+                        "correct":  correct,
+                        "incorrect": incorrect,
+                        "error":    f"{type(exc).__name__}: {exc}",
+                    })
+                else:
+                    raise
+        return results
 
     # ──────────────────────────────────────────────────────────────────────
     # 7. TOKEN ATTRIBUTION  (gradient × input, Simonyan et al. 2014)

@@ -95,14 +95,56 @@ except ImportError:
 from glassbox.composition import HeadCompositionAnalyzer
 
 # ---------------------------------------------------------------------------
+# Public type aliases and constants
+# ---------------------------------------------------------------------------
+from glassbox.types import (
+    HeadTuple,
+    CircuitList,
+    AttributionDict,
+    PromptTuple,
+    VALID_HEAD_TYPES,
+    FAITHFULNESS_CATEGORIES,
+    ATTRIBUTION_METHODS,
+)
+
+# ---------------------------------------------------------------------------
+# Utility helpers — exposed for power users and extension authors
+# ---------------------------------------------------------------------------
+from glassbox.utils import (
+    stable_api,
+    deprecated,
+    format_head_label,
+    parse_head_label,
+    estimate_forward_pass_memory_mb,
+)
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
 
 __all__ = [
+    # Primary classes
     "GlassboxV2",
-    "GlassboxEngine",          # deprecated alias
-    "SAEFeatureAttributor",    # requires sae-lens
+    "SAEFeatureAttributor",          # requires sae-lens
     "HeadCompositionAnalyzer",
+    # Type aliases
+    "HeadTuple",
+    "CircuitList",
+    "AttributionDict",
+    "PromptTuple",
+    # Constants
+    "VALID_HEAD_TYPES",
+    "FAITHFULNESS_CATEGORIES",
+    "ATTRIBUTION_METHODS",
+    # Utilities
+    "stable_api",
+    "deprecated",
+    "format_head_label",
+    "parse_head_label",
+    "estimate_forward_pass_memory_mb",
+    # Meta
     "__version__",
+    # Deprecated
+    "GlassboxEngine",
 ]

@@ -1,4 +1,7 @@
 import math
+import re
+import subprocess
+import sys
 import time
 import pytest
 
@@ -857,3 +860,190 @@ class TestHeadCompositionAnalyzer:
         result  = comp.all_composition_scores(circuit, min_score=0.0)
         for key in ("q", "k", "v", "combined_edges", "head_labels"):
             assert key in result, f"all_composition_scores missing key: {key!r}"
+
+
+# ===========================================================================
+# TestNegativeInputs — validate error handling and edge cases
+# ===========================================================================
+
+class TestNegativeInputs:
+    """
+    Negative-path tests: verify Glassbox raises or recovers gracefully on
+    bad inputs rather than producing silent wrong answers.
+    """
+
+    def test_none_prompt_raises(self, engine):
+        """None is not a valid prompt — should raise TypeError or AttributeError."""
+        with pytest.raises((TypeError, AttributeError, Exception)):
+            engine.analyze(None, " Mary", " John")
+
+    def test_integer_prompt_raises(self, engine):
+        """Integer is not a valid prompt."""
+        with pytest.raises((TypeError, AttributeError, Exception)):
+            engine.analyze(42, " Mary", " John")
+
+    def test_identical_tokens_zero_ld(self, engine):
+        """Same target and distractor → LD ≈ 0, circuit may be empty, should not crash."""
+        result = engine.analyze(
+            "When Mary and John went to the store, John gave a drink to",
+            " John", " John",
+        )
+        assert "faithfulness" in result
+        # With LD = 0, sufficiency must be 0.0 (no logit difference to explain)
+        assert result["faithfulness"]["sufficiency"] == 0.0
+
+    def test_model_metadata_present(self, engine):
+        """Every analyze() result must include model_metadata for reproducibility."""
+        result = engine.analyze(
+            "When Mary and John went to the store, John gave a drink to",
+            " Mary", " John",
+        )
+        meta = result.get("model_metadata")
+        assert meta is not None, "model_metadata missing from analyze() result"
+        for key in ("model_name", "n_layers", "n_heads", "d_model", "glassbox_version"):
+            assert key in meta, f"model_metadata missing key: {key!r}"
+        assert meta["n_layers"] > 0
+        assert meta["n_heads"]  > 0
+        assert meta["d_model"]  > 0
+
+    def test_batch_analyze_returns_list(self, engine):
+        """batch_analyze() must return a list of the same length as the input."""
+        prompts = [
+            ("When Mary and John went to the store, John gave a drink to", " Mary", " John"),
+            ("The capital of France is",                                   " Paris", " London"),
+        ]
+        results = engine.batch_analyze(prompts, show_progress=False)
+        assert isinstance(results, list)
+        assert len(results) == len(prompts)
+
+    def test_batch_analyze_skips_errors(self, engine):
+        """batch_analyze(skip_errors=True) should record error dicts, not crash."""
+        prompts = [
+            ("When Mary and John went to the store, John gave a drink to", " Mary", " John"),
+            # Deliberately bad — None will cause an error
+            (None, " Mary", " John"),
+        ]
+        results = engine.batch_analyze(prompts, skip_errors=True, show_progress=False)
+        assert len(results) == 2
+        # First prompt should succeed
+        assert "faithfulness" in results[0]
+        # Second prompt should have an 'error' key, not crash
+        assert "error" in results[1]
+
+    def test_normalize_token_int_passthrough(self):
+        """normalize_token with int input must return that int unchanged."""
+        from glassbox.utils import normalize_token
+
+        class _FakeModel:
+            def to_single_token(self, s):
+                raise RuntimeError("should not be called")
+
+        assert normalize_token(_FakeModel(), 42) == 42
+
+    def test_normalize_token_type_error(self):
+        """normalize_token with a list input must raise TypeError."""
+        from glassbox.utils import normalize_token
+
+        class _FakeModel:
+            pass
+
+        with pytest.raises(TypeError):
+            normalize_token(_FakeModel(), [1, 2, 3])
+
+    def test_format_head_label(self):
+        """format_head_label must produce zero-padded L/H strings."""
+        from glassbox.utils import format_head_label, parse_head_label
+        assert format_head_label(0, 0)   == "L00H00"
+        assert format_head_label(9, 9)   == "L09H09"
+        assert format_head_label(11, 11) == "L11H11"
+        # Round-trip
+        for l, h in [(0, 0), (9, 9), (11, 11)]:
+            assert parse_head_label(format_head_label(l, h)) == (l, h)
+
+    def test_estimate_memory(self):
+        """estimate_forward_pass_memory_mb must return a positive float."""
+        from glassbox.utils import estimate_forward_pass_memory_mb
+        mb = estimate_forward_pass_memory_mb(
+            n_layers=12, n_heads=12, d_model=768, seq_len=20
+        )
+        assert mb > 0.0
+        assert isinstance(mb, float)
+
+    def test_stable_api_decorator(self):
+        """@stable_api must set __glassbox_stable__ = True without changing behaviour."""
+        from glassbox.utils import stable_api
+
+        @stable_api
+        def my_fn(x):
+            return x * 2
+
+        assert my_fn(3) == 6
+        assert getattr(my_fn, "__glassbox_stable__", False) is True
+
+    def test_valid_head_types_set(self):
+        """VALID_HEAD_TYPES exported from glassbox must be non-empty."""
+        from glassbox import VALID_HEAD_TYPES
+        assert len(VALID_HEAD_TYPES) > 0
+        assert "induction_candidate" in VALID_HEAD_TYPES
+
+    def test_faithfulness_categories_set(self):
+        """FAITHFULNESS_CATEGORIES must contain all expected strings."""
+        from glassbox import FAITHFULNESS_CATEGORIES
+        assert "faithful" in FAITHFULNESS_CATEGORIES
+        assert "backup_mechanisms" in FAITHFULNESS_CATEGORIES
+
+
+# ===========================================================================
+# TestCLI — smoke tests for glassbox-ai CLI subcommands
+# ===========================================================================
+
+class TestCLI:
+    """
+    CLI smoke tests — verifies the CLI entry point works end-to-end.
+    Uses subprocess to invoke the same way a user would.
+    These tests are marked slow because they each load GPT-2.
+    """
+
+    def test_help_exits_zero(self):
+        """glassbox-ai --help must exit 0 and print usage information."""
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, "-m", "glassbox.cli", "--help"],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0
+        assert "glassbox" in result.stdout.lower()
+
+    def test_doctor_exits_zero(self):
+        """glassbox-ai doctor must exit 0 when all required deps are present."""
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, "-m", "glassbox.cli", "doctor"],
+            capture_output=True, text=True, timeout=30,
+        )
+        # doctor should succeed in this environment (all deps installed)
+        assert result.returncode == 0
+        assert "glassbox" in result.stdout.lower() or "glassbox" in result.stderr.lower()
+
+    def test_version_exits_zero(self):
+        """glassbox-ai version must exit 0 and print a version string."""
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, "-m", "glassbox.cli", "version"],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0
+        # Output must contain the version string (digits separated by dots)
+        import re
+        assert re.search(r"\d+\.\d+", result.stdout), (
+            f"No version number found in CLI version output: {result.stdout!r}"
+        )
+
+    def test_analyze_subcommand_help(self):
+        """glassbox-ai analyze --help must not crash."""
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, "-m", "glassbox.cli", "analyze", "--help"],
+            capture_output=True, text=True, timeout=30,
+        )
+        assert result.returncode == 0

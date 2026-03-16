@@ -1,0 +1,69 @@
+name: Generate SBOM
+
+# Generates a CycloneDX Software Bill of Materials (SBOM) and attaches it
+# to every release as a downloadable artifact.
+# Also runs on pushes to main when pyproject.toml changes.
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+      - ".github/workflows/sbom.yml"
+
+permissions:
+  contents: write    # needed to upload release assets
+  id-token: write    # needed for sigstore OIDC signing
+
+jobs:
+  sbom:
+    name: Generate CycloneDX SBOM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package + SBOM tooling
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install cyclonedx-bom>=4.0
+
+      - name: Generate SBOM (JSON)
+        run: |
+          cyclonedx-py environment \
+            --output-format json \
+            --outfile sbom.cyclonedx.json
+          echo "SBOM generated:"
+          python -c "import json,sys; d=json.load(open('sbom.cyclonedx.json')); print(f'  Components: {len(d.get(\"components\",[]))}')"
+
+      - name: Generate SBOM (XML)
+        run: |
+          cyclonedx-py environment \
+            --output-format xml \
+            --outfile sbom.cyclonedx.xml
+
+      - name: Upload SBOM as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: |
+            sbom.cyclonedx.json
+            sbom.cyclonedx.xml
+          retention-days: 90
+
+      - name: Attach SBOM to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            sbom.cyclonedx.json
+            sbom.cyclonedx.xml
