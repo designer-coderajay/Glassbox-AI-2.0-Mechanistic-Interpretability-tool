@@ -1,0 +1,69 @@
+name: Deploy to HuggingFace Space
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Auto-syncs dashboard/app.py → HuggingFace Space on every push to main.
+#
+# One-time setup required:
+#   1. Go to https://huggingface.co/settings/tokens
+#   2. Create a token with "write" scope
+#   3. Go to GitHub repo → Settings → Secrets and variables → Actions
+#   4. Add secret named:  HF_TOKEN  (paste the HF token)
+# ──────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/app.py"
+      - ".github/workflows/deploy_hf.yml"
+
+jobs:
+  deploy:
+    name: Sync dashboard → HuggingFace Space
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout GitHub repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Push to HuggingFace Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # ── Clone the HF Space (every Space is a git repo) ──────────────────
+          git clone \
+            "https://user:${HF_TOKEN}@huggingface.co/spaces/designer-coderajay/Glassbox-ai" \
+            hf_space
+
+          # ── Copy updated app.py to Space root ───────────────────────────────
+          cp dashboard/app.py hf_space/app.py
+
+          # ── Write requirements.txt (Space needs all deps at root) ────────────
+          cat > hf_space/requirements.txt << 'EOF'
+          streamlit>=1.32.0
+          numpy>=1.24.0
+          plotly>=5.18.0
+          transformer-lens>=1.19.0
+          glassbox-mech-interp>=2.1.0
+          pandas>=2.0.0
+          torch>=2.0.0
+          einops>=0.6.1
+          EOF
+
+          # ── Commit and push only if something changed ────────────────────────
+          cd hf_space
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+
+          SHORT_SHA=$(git -C .. rev-parse --short HEAD)
+
+          git add app.py requirements.txt
+          if git diff --staged --quiet; then
+            echo "No changes — HF Space already up to date."
+          else
+            git commit -m "Auto-sync from GitHub @ ${SHORT_SHA}"
+            git push
+            echo "✅ HF Space updated from commit ${SHORT_SHA}"
+          fi
