@@ -1,18 +1,17 @@
 name: Publish to PyPI
 
 # Triggers on any tag that starts with "v" (e.g. v2.6.0, v3.0.0)
-# Uses OIDC Trusted Publisher — no API token required.
 #
-# One-time setup (already done by repo owner):
-#   https://pypi.org/manage/project/glassbox-mech-interp/settings/publishing/
-#   → Trusted Publisher settings:
-#       Owner:    designer-coderajay
-#       Repo:     Glassbox-AI-2.0-Mechanistic-Interpretability-tool
-#       Workflow: publish.yml
-#       Env:      pypi   ← must match the environment: name below
-#
-# GitHub repo setup:
-#   Settings → Environments → "pypi" environment must exist
+# Setup required (one time):
+#   1. Go to https://pypi.org/manage/account/token/
+#   2. Click "Add API token"
+#   3. Name: "glassbox-github-actions"
+#   4. Scope: "Project: glassbox-mech-interp"
+#   5. Copy the token (starts with "pypi-")
+#   6. Go to GitHub repo → Settings → Secrets and variables → Actions
+#   7. Click "New repository secret"
+#   8. Name: PYPI_API_TOKEN  Value: <paste the token>
+#   9. Save
 
 on:
   push:
@@ -58,9 +57,6 @@ jobs:
       name: pypi
       url: https://pypi.org/p/glassbox-mech-interp
 
-    permissions:
-      id-token: write    # Required for OIDC token minting
-
     steps:
       - name: Download dist artifact
         uses: actions/download-artifact@v4
@@ -68,68 +64,8 @@ jobs:
           name: dist-${{ github.ref_name }}
           path: dist/
 
-      - name: Mint OIDC token and upload to PyPI
-        run: |
-          pip install twine --quiet
-          python3 << 'PYEOF'
-          import os, urllib.request, json, sys, urllib.error, base64
-
-          # ── Step 1: Mint OIDC JWT from GitHub ─────────────────────────────
-          url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
-          req = urllib.request.Request(url, headers={
-              "Authorization": f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"
-          })
-          with urllib.request.urlopen(req) as r:
-              oidc_token = json.loads(r.read())['value']
-
-          # ── Step 2: Decode JWT claims — show sub + environment for debugging
-          parts = oidc_token.split('.')
-          if len(parts) >= 2:
-              padded = parts[1] + '=='
-              claims = json.loads(base64.urlsafe_b64decode(padded.encode()))
-              sub = claims.get('sub', '?')
-              env_claim = claims.get('environment', '(none)')
-              repo = claims.get('repository', '?')
-              workflow = claims.get('workflow_ref', '?').split('@')[0].split('/')[-1]
-              print(f'::notice::JWT claims — repo={repo}  sub={sub}  environment={env_claim}  workflow={workflow}')
-
-          # ── Step 3: Mint PyPI upload token ─────────────────────────────────
-          body = json.dumps({'token': oidc_token}).encode()
-          req2 = urllib.request.Request(
-              'https://pypi.org/_/oidc/github/mint-token',
-              data=body, headers={'Content-Type': 'application/json'}
-          )
-          try:
-              with urllib.request.urlopen(req2) as r:
-                  resp = json.loads(r.read())
-                  upload_token = resp['token']
-              print(f'::notice::PyPI token minted OK  prefix={upload_token[:20]}')
-
-              # Decode Macaroon to show ProjectIDCaveat UUID (type-4 caveat)
-              import re as _re
-              try:
-                  raw = base64.urlsafe_b64decode(upload_token[5:] + '==')
-                  strs = _re.findall(rb'[ -~]{4,}', raw)
-                  readable = ' | '.join(s.decode('ascii','replace') for s in strs[:12])
-                  print(f'::notice::Macaroon caveats: {readable[:700]}')
-              except Exception as _ex:
-                  print(f'::notice::Macaroon decode error: {_ex}')
-          except urllib.error.HTTPError as e:
-              err_body = e.read().decode()[:600]
-              print(f'::error::PyPI mint-token FAILED HTTP {e.code}: {err_body}')
-              sys.exit(1)
-
-          # ── Step 4: Write token to env for twine ───────────────────────────
-          with open(os.environ['GITHUB_ENV'], 'a') as f:
-              f.write(f'PYPI_UPLOAD_TOKEN={upload_token}\n')
-          PYEOF
-
-          # ── Step 5: Upload via twine ────────────────────────────────────────
-          TWINE_USERNAME=__token__ TWINE_PASSWORD="${PYPI_UPLOAD_TOKEN}" \
-              python -m twine upload --non-interactive dist/* 2>&1 | tee /tmp/twine_out.txt
-          EXIT=${PIPESTATUS[0]}
-          grep -Ei 'error|warning|success|upload|200|201|400|403|409|already' /tmp/twine_out.txt \
-              | head -5 | while IFS= read -r line; do
-                  echo "::notice::twine: $line"
-              done
-          exit $EXIT
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          attestations: false
