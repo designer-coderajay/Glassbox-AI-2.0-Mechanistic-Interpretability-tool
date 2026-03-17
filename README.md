@@ -10,8 +10,6 @@
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
 [![arXiv](https://img.shields.io/badge/arXiv-2603.09988-b31b1b?logo=arxiv)](https://arxiv.org/abs/2603.09988)
 [![Tests](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml)
-[![LessWrong](https://img.shields.io/badge/LessWrong-Discussion-teal)](https://www.lesswrong.com/posts/Bkp73EaixnXdL4tKa/glassbox-i-built-a-circuit-discovery-toolkit-that-s-37)
-
 [**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**Docs**](https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/)
 
 </div>
@@ -33,9 +31,6 @@ Glassbox does two things.
 **Paper:** [Glassbox: A Causal Mechanistic Interpretability Toolkit with Circuit Alignment Scoring](https://arxiv.org/abs/2603.09988)
 Introduces the **Functional Circuit Alignment Score (FCAS)**, automated Minimum Faithful Circuit (MFC) discovery, and bootstrap CIs on circuit faithfulness. 37x faster than ACDC on GPT-2 small.
 
-**Discussion:** [LessWrong post]([https://lesswrong.com](https://www.lesswrong.com/posts/Bkp73EaixnXdL4tKa/glassbox-i-built-a-circuit-discovery-toolkit-that-s-37)) — technical deep-dive with caveats, questions on FCAS validity, and discussion of backup mechanisms.
-
-**ICML 2026 Workshop submission deadline: April 24, 2026.**
 
 ---
 
