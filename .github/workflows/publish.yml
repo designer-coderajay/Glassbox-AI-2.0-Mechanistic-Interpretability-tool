@@ -75,9 +75,87 @@ jobs:
           pip install twine --quiet
           python -m twine check dist/*
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          attestations: false
-          verbose: true
-          print-hash: true
+      - name: Mint OIDC token + decode Macaroon caveats
+        run: |
+          python3 << 'PYEOF'
+          import os, urllib.request, json, sys, base64, urllib.error
+
+          # Step 1: get GitHub OIDC JWT
+          url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
+          req = urllib.request.Request(url, headers={"Authorization": f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"})
+          with urllib.request.urlopen(req) as r:
+              oidc_token = json.loads(r.read())['value']
+          print(f'::notice::GitHub OIDC JWT obtained (len={len(oidc_token)})')
+
+          # Decode the GitHub JWT payload (middle segment) — no signature verify needed
+          parts = oidc_token.split('.')
+          if len(parts) == 3:
+              padded = parts[1] + '=' * (-len(parts[1]) % 4)
+              claims = json.loads(base64.urlsafe_b64decode(padded))
+              for key in ['sub', 'repository', 'workflow', 'environment', 'job_workflow_ref', 'ref']:
+                  val = claims.get(key, '<missing>')
+                  print(f'::notice::JWT claim {key}: {val}')
+
+          # Step 2: exchange for PyPI upload token
+          body = json.dumps({'token': oidc_token}).encode()
+          req2 = urllib.request.Request(
+              'https://pypi.org/_/oidc/github/mint-token',
+              data=body, headers={'Content-Type': 'application/json'}
+          )
+          try:
+              with urllib.request.urlopen(req2) as r:
+                  upload_token = json.loads(r.read())['token']
+          except urllib.error.HTTPError as e:
+              print(f'::error::mint-token FAILED {e.code}: {e.read().decode()[:400]}')
+              sys.exit(1)
+
+          print(f'::notice::Minted token prefix: {upload_token[:20]}...')
+
+          # Step 3: decode Macaroon caveats from the upload token
+          # Format: "pypi-" + base64(macaroon_bytes)
+          if upload_token.startswith('pypi-'):
+              raw = base64.b64decode(upload_token[5:] + '==')
+              i = 0
+              while i < len(raw):
+                  if i + 4 > len(raw):
+                      break
+                  try:
+                      size = int(raw[i:i+4], 16)
+                  except ValueError:
+                      break
+                  if size == 0 or size > len(raw) - i:
+                      break
+                  packet = raw[i+4:i+size]
+                  space = packet.find(b' ')
+                  if space >= 0:
+                      field = packet[:space].decode('utf-8', errors='replace')
+                      value = packet[space+1:].rstrip(b'\n').decode('utf-8', errors='replace')
+                      if field in ('location', 'identifier', 'cid'):
+                          safe_val = value.replace('\n', ' | ')[:200]
+                          print(f'::notice::Macaroon {field}: {safe_val}')
+                  i += size
+
+          # Write token to env for next step
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f'PYPI_UPLOAD_TOKEN={upload_token}\n')
+          PYEOF
+
+      - name: Upload to PyPI via twine
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ env.PYPI_UPLOAD_TOKEN }}
+        run: |
+          pip install twine --quiet
+          set +e
+          python -m twine upload --non-interactive --verbose dist/* > twine_out.txt 2>&1
+          TWINE_EXIT=$?
+          python3 -c "
+          import re, sys
+          ansi = re.compile(r'\x1b\[[0-9;]*m')
+          with open('twine_out.txt') as f:
+              for line in f:
+                  clean = ansi.sub('', line).rstrip()
+                  if clean:
+                      print(f'::notice::twine: {clean[:400]}')
+          "
+          exit $TWINE_EXIT
