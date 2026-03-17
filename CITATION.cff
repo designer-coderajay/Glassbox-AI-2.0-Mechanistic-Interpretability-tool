@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use Glassbox in your research, please cite it as below."
 type: software
 title: "Glassbox 2.3: Mechanistic Interpretability via Attribution Patching, SAE Feature Attribution, and Head Composition Analysis"
-version: 2.3.8
+version: 2.3.9
 date-released: "2026-03-17"
 license: MIT
 repository-code: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
@@ -70,5 +70,5 @@ preferred-citation:
     - family-names: Mahale
       given-names: Ajay
   year: 2026
-  version: 2.3.8
+  version: 2.3.9
   url: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"

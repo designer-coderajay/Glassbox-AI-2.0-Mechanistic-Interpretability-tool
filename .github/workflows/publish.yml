@@ -72,3 +72,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
+          attestations: false   # disable sigstore attestations — avoids permission issues
