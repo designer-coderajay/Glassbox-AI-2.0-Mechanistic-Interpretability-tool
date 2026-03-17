@@ -1,67 +1,19 @@
 """
-conftest.py — shared pytest fixtures and configuration for Glassbox tests.
+conftest.py — shared pytest fixtures for the Glassbox test suite.
 
-Fixtures are session-scoped to avoid reloading GPT-2 (~117M params) for
-every test class. The model is loaded once and reused across all tests.
+IMPORTANT architecture note
+─────────────────────────────────────────────────────────────────────────────
+test_engine.py is self-contained: it defines its own module-scoped ``engine``
+fixture that loads GPT-2 once per module, plus all dependent fixtures
+(``ioi_tokens``, ``ioi_result``, ``eap_result``, etc.) as module-scoped
+fixtures.
+
+This conftest intentionally does NOT redefine any fixture that test_engine.py
+already owns.  Duplicating fixture names at session scope here would cause
+pytest to pick whichever scope it resolves first, depending on the pytest
+version — leading to hard-to-diagnose "wrong fixture" failures in CI.
+
+If you add a second test module that needs the shared GPT-2 engine, add a
+``gb`` session fixture here at that time and wire it up carefully.
+─────────────────────────────────────────────────────────────────────────────
 """
-from __future__ import annotations
-
-import pytest
-
-
-# ---------------------------------------------------------------------------
-# Session-scoped model + engine — loaded ONCE for the entire test run
-# ---------------------------------------------------------------------------
-
-@pytest.fixture(scope="session")
-def hf_model():
-    """HookedTransformer GPT-2 small, loaded once per pytest session."""
-    from transformer_lens import HookedTransformer
-    return HookedTransformer.from_pretrained("gpt2")
-
-
-@pytest.fixture(scope="session")
-def gb(hf_model):
-    """GlassboxV2 engine wrapping GPT-2 small."""
-    from glassbox import GlassboxV2
-    return GlassboxV2(hf_model)
-
-
-@pytest.fixture(scope="session")
-def composition_analyzer(hf_model):
-    """HeadCompositionAnalyzer for GPT-2 small."""
-    from glassbox import HeadCompositionAnalyzer
-    return HeadCompositionAnalyzer(hf_model)
-
-
-# ---------------------------------------------------------------------------
-# Canonical test inputs
-# ---------------------------------------------------------------------------
-
-IOI_PROMPT    = "When Mary and John went to the store, John gave a drink to"
-IOI_CORRECT   = " Mary"
-IOI_INCORRECT = " John"
-
-
-@pytest.fixture(scope="session")
-def ioi_result(gb):
-    """Full analyze() result for the canonical IOI prompt."""
-    return gb.analyze(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT)
-
-
-@pytest.fixture(scope="session")
-def ioi_tokens(hf_model):
-    """Tokenized canonical IOI prompt."""
-    return hf_model.to_tokens(IOI_PROMPT)
-
-
-@pytest.fixture(scope="session")
-def ioi_target_id(hf_model):
-    """Token ID for ' Mary'."""
-    return hf_model.to_single_token(IOI_CORRECT)
-
-
-@pytest.fixture(scope="session")
-def ioi_distractor_id(hf_model):
-    """Token ID for ' John'."""
-    return hf_model.to_single_token(IOI_INCORRECT)
