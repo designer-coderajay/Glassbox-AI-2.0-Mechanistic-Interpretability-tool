@@ -8,9 +8,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
+[![Live API](https://img.shields.io/badge/API-Live%20on%20Render-success)](https://glassbox-ai-2-0-mechanistic.onrender.com)
 [![arXiv](https://img.shields.io/badge/arXiv-2603.09988-b31b1b?logo=arxiv)](https://arxiv.org/abs/2603.09988)
 [![Tests](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml)
-[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
+[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Live API**](https://glassbox-ai-2-0-mechanistic.onrender.com) · [**Dashboard**](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard)
 
 · [**Paper**](https://arxiv.org/abs/2603.09988) · [**Docs**](https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/)
 
@@ -141,7 +142,7 @@ report.add_analysis(result)
 report.to_pdf("gpt4_annex_iv.pdf")
 ```
 
-Web dashboard (no Python required): open `dashboard/compliance_dashboard.html` and run the REST API backend with `uvicorn api.main:app`.
+Web dashboard (no Python required): visit [glassbox-ai-2-0-mechanistic.onrender.com/dashboard](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard) — live, no setup needed. Or run locally with `uvicorn api.main:app`.
 
 ---
 
