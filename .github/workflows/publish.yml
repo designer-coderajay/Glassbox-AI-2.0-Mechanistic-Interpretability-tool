@@ -59,9 +59,7 @@ jobs:
       url: https://pypi.org/p/glassbox-mech-interp
 
     permissions:
-      id-token: write    # Required for OIDC Trusted Publisher
-      attestations: write # Required for SLSA provenance attestations (pypa action default)
-      contents: read     # Required for reading repo contents during attestation
+      id-token: write    # Required for OIDC token minting
 
     steps:
       - name: Download dist artifact
@@ -70,8 +68,58 @@ jobs:
           name: dist-${{ github.ref_name }}
           path: dist/
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          attestations: false   # Disable SLSA attestations — simplifies OIDC flow
-          verbose: true         # Surface upload errors as annotations
+      - name: Mint OIDC token and upload to PyPI
+        run: |
+          pip install twine --quiet
+          python3 << 'PYEOF'
+          import os, urllib.request, json, sys, urllib.error, base64
+
+          # ── Step 1: Mint OIDC JWT from GitHub ─────────────────────────────
+          url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
+          req = urllib.request.Request(url, headers={
+              "Authorization": f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"
+          })
+          with urllib.request.urlopen(req) as r:
+              oidc_token = json.loads(r.read())['value']
+
+          # ── Step 2: Decode JWT claims — show sub + environment for debugging
+          parts = oidc_token.split('.')
+          if len(parts) >= 2:
+              padded = parts[1] + '=='
+              claims = json.loads(base64.urlsafe_b64decode(padded.encode()))
+              sub = claims.get('sub', '?')
+              env_claim = claims.get('environment', '(none)')
+              repo = claims.get('repository', '?')
+              workflow = claims.get('workflow_ref', '?').split('@')[0].split('/')[-1]
+              print(f'::notice::JWT claims — repo={repo}  sub={sub}  environment={env_claim}  workflow={workflow}')
+
+          # ── Step 3: Mint PyPI upload token ─────────────────────────────────
+          body = json.dumps({'token': oidc_token}).encode()
+          req2 = urllib.request.Request(
+              'https://pypi.org/_/oidc/github/mint-token',
+              data=body, headers={'Content-Type': 'application/json'}
+          )
+          try:
+              with urllib.request.urlopen(req2) as r:
+                  resp = json.loads(r.read())
+                  upload_token = resp['token']
+              print(f'::notice::PyPI token minted OK  prefix={upload_token[:20]}')
+          except urllib.error.HTTPError as e:
+              err_body = e.read().decode()[:600]
+              print(f'::error::PyPI mint-token FAILED HTTP {e.code}: {err_body}')
+              sys.exit(1)
+
+          # ── Step 4: Write token to env for twine ───────────────────────────
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f'PYPI_UPLOAD_TOKEN={upload_token}\n')
+          PYEOF
+
+          # ── Step 5: Upload via twine ────────────────────────────────────────
+          TWINE_USERNAME=__token__ TWINE_PASSWORD="${PYPI_UPLOAD_TOKEN}" \
+              python -m twine upload --non-interactive dist/* 2>&1 | tee /tmp/twine_out.txt
+          EXIT=${PIPESTATUS[0]}
+          grep -Ei 'error|warning|success|upload|200|201|400|403|409|already' /tmp/twine_out.txt \
+              | head -5 | while IFS= read -r line; do
+                  echo "::notice::twine: $line"
+              done
+          exit $EXIT
