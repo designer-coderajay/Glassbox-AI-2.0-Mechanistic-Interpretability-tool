@@ -1,22 +1,26 @@
 name: Publish to PyPI
 
-# Triggers on any tag that starts with "v" (e.g. v2.2.0, v2.3.0)
+# Triggers on any tag that starts with "v" (e.g. v2.3.1, v2.3.2)
 # Uses OIDC Trusted Publisher — no API token required.
-# Set up once at: https://pypi.org/manage/project/glassbox-mech-interp/settings/publishing/
+#
+# One-time setup on Test PyPI (already done):
+#   https://test.pypi.org/manage/project/glassbox-mech-interp/settings/publishing/
+#   → Add Trusted Publisher:
+#       Owner:    designer-coderajay
+#       Repo:     Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+#       Workflow: publish.yml
+#
+# To also publish to production PyPI, add the same Trusted Publisher at:
+#   https://pypi.org/manage/project/glassbox-mech-interp/settings/publishing/
 
 on:
   push:
     tags: ["v*"]
 
 jobs:
-  publish:
-    name: Build and publish to PyPI
+  build:
+    name: Build distribution
     runs-on: ubuntu-latest
-
-    # Required for OIDC Trusted Publisher authentication
-    permissions:
-      id-token: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,5 +36,47 @@ jobs:
       - name: Build wheel + sdist
         run: python -m build
 
-      - name: Publish to PyPI (Trusted Publisher — no token needed)
+      - name: Upload dist as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.ref_name }}
+          path: dist/
+
+  publish-test-pypi:
+    name: Publish → TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for OIDC Trusted Publisher
+
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.ref_name }}
+          path: dist/
+
+      - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-pypi:
+    name: Publish → PyPI
+    needs: publish-test-pypi
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for OIDC Trusted Publisher
+
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.ref_name }}
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

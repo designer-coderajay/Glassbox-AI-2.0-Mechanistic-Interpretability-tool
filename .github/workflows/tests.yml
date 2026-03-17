@@ -36,21 +36,26 @@ jobs:
           key: hf-gpt2-${{ runner.os }}
           restore-keys: hf-gpt2-
 
-      # Drop --quiet so installation errors are always visible in the log.
       - name: Install package + dev deps
         run: |
           pip install --upgrade pip
           pip install -e ".[dev]"
 
-      # Confirm the key packages installed correctly (helps debug future CI issues).
       - name: Show installed versions
         run: pip list | grep -E "torch|transformer.lens|glassbox|pytest|sae"
 
-      # Run only tests NOT marked @pytest.mark.slow.
-      # GPT-2 is loaded once via the module-scope engine fixture (~30 s on
-      # first run after a cold HF cache, instant on cache hit).
+      # Run tests and always write full output to the job summary so failures
+      # are visible without needing admin log access.
       - name: Run fast tests
-        run: pytest tests/ -v --tb=short -m "not slow"
+        run: |
+          set +e
+          pytest tests/ -v --tb=long -m "not slow" 2>&1 | tee pytest_output.txt
+          PYTEST_EXIT=$?
+          echo "## Fast Test Results" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -100 pytest_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit $PYTEST_EXIT
         timeout-minutes: 20
 
   slow-tests:
@@ -89,6 +94,13 @@ jobs:
         run: pip list | grep -E "torch|transformer.lens|glassbox|pytest|sae"
 
       - name: Run full test suite (including slow)
-        run: pytest tests/ -v --tb=short
-        # Generous timeout — GPT-2 load + all tests on CPU takes ~5 min
+        run: |
+          set +e
+          pytest tests/ -v --tb=long 2>&1 | tee pytest_output.txt
+          PYTEST_EXIT=$?
+          echo "## Full Test Results" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -150 pytest_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit $PYTEST_EXIT
         timeout-minutes: 25
