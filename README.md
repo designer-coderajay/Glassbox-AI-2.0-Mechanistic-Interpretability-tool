@@ -1,7 +1,7 @@
 <div align="center">
 
 # Glassbox 2.0
-**The most complete open-source mechanistic interpretability toolkit for transformer models.**
+**Causal mechanistic interpretability for transformer models. See exactly why your LLM made that prediction.**
 
 [![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI)](https://pypi.org/project/glassbox-mech-interp/)
 [![Downloads](https://static.pepy.tech/badge/glassbox-mech-interp)](https://pepy.tech/projects/glassbox-mech-interp)
@@ -10,8 +10,9 @@
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
 [![arXiv](https://img.shields.io/badge/arXiv-2603.09988-b31b1b?logo=arxiv)](https://arxiv.org/abs/2603.09988)
 [![Tests](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml)
+[![LessWrong](https://img.shields.io/badge/LessWrong-Discussion-teal)](https://lesswrong.com)
 
-[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Docs**](https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**Paper**](https://arxiv.org/abs/2603.09988)
+[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**Docs**](https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**Discussion**](https://lesswrong.com)
 
 </div>
 
@@ -22,6 +23,17 @@ Glassbox answers a single question: **what is this transformer actually doing?**
 One function call identifies the circuit — the sparse subgraph of attention heads and MLP layers causally responsible for a prediction. Every score is grounded in peer-reviewed mechanistic interpretability research. Every approximation is disclosed.
 
 Built for researchers. Designed for production.
+
+---
+
+## Research
+
+**Paper:** [Glassbox: A Causal Mechanistic Interpretability Toolkit with Circuit Alignment Scoring](https://arxiv.org/abs/2603.09988)
+Introduces the **Functional Circuit Alignment Score (FCAS)**, automated Minimum Faithful Circuit (MFC) discovery, and bootstrap CIs on circuit faithfulness. 37x faster than ACDC on GPT-2 small.
+
+**Discussion:** [LessWrong post](https://lesswrong.com) — technical deep-dive with caveats, questions on FCAS validity, and discussion of backup mechanisms.
+
+**ICML 2026 Workshop submission deadline: April 24, 2026.**
 
 ---
 
@@ -378,13 +390,15 @@ pip install -e ".[dev]"
 ## Dashboard
 
 ```bash
-pip install glassbox-mech-interp streamlit plotly
+pip install glassbox-mech-interp gradio matplotlib
 git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
 cd Glassbox-AI-2.0-Mechanistic-Interpretability-tool
-streamlit run dashboard/app.py
+python dashboard/app.py
 ```
 
-Or use the hosted version: **[huggingface.co/spaces/designer-coderajay/Glassbox-ai](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)**
+This opens a Gradio interface at `http://localhost:7860`. Three tabs: **Circuit Analysis** (attribution heatmap + faithfulness report), **Logit Lens**, and **Attention Patterns**.
+
+Or use the hosted version — no install needed: **[huggingface.co/spaces/designer-coderajay/Glassbox-ai](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)**
 
 ---
 
@@ -466,10 +480,10 @@ All other metrics (Comprehensiveness, EAP scores, Composition scores, Bootstrap 
 If you use Glassbox 2.0 in your research, please cite:
 
 ```bibtex
-@software{mahale2025glassbox,
+@software{mahale2026glassbox,
   author    = {Mahale, Ajay Pravin},
-  title     = {Glassbox 2.0: Causally Grounded Mechanistic Interpretability for Transformer Models},
-  year      = {2025},
+  title     = {Glassbox: A Causal Mechanistic Interpretability Toolkit with Circuit Alignment Scoring},
+  year      = {2026},
   publisher = {GitHub},
   url       = {https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool},
   note      = {arXiv:2603.09988}
