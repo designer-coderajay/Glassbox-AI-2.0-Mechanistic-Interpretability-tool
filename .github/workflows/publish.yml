@@ -78,7 +78,7 @@ jobs:
       - name: Mint OIDC token + decode Macaroon caveats
         run: |
           python3 << 'PYEOF'
-          import os, urllib.request, json, sys, base64, urllib.error
+          import os, urllib.request, json, sys, base64, urllib.error, re
 
           # Step 1: get GitHub OIDC JWT
           url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
@@ -87,16 +87,15 @@ jobs:
               oidc_token = json.loads(r.read())['value']
           print(f'::notice::GitHub OIDC JWT obtained (len={len(oidc_token)})')
 
-          # Decode the GitHub JWT payload (middle segment) — no signature verify needed
+          # Decode JWT payload
           parts = oidc_token.split('.')
           if len(parts) == 3:
               padded = parts[1] + '=' * (-len(parts[1]) % 4)
               claims = json.loads(base64.urlsafe_b64decode(padded))
-              for key in ['sub', 'repository', 'workflow', 'environment', 'job_workflow_ref', 'ref']:
-                  val = claims.get(key, '<missing>')
-                  print(f'::notice::JWT claim {key}: {val}')
+              for key in ['sub', 'repository', 'workflow', 'environment', 'job_workflow_ref']:
+                  print(f'::notice::JWT {key}: {claims.get(key, "MISSING")}')
 
-          # Step 2: exchange for PyPI upload token
+          # Step 2: mint PyPI upload token
           body = json.dumps({'token': oidc_token}).encode()
           req2 = urllib.request.Request(
               'https://pypi.org/_/oidc/github/mint-token',
@@ -109,35 +108,25 @@ jobs:
               print(f'::error::mint-token FAILED {e.code}: {e.read().decode()[:400]}')
               sys.exit(1)
 
-          print(f'::notice::Minted token prefix: {upload_token[:20]}...')
+          print(f'::notice::Minted token (prefix: {upload_token[:20]}...)')
 
-          # Step 3: decode Macaroon caveats from the upload token
-          # Format: "pypi-" + base64(macaroon_bytes)
-          if upload_token.startswith('pypi-'):
-              raw = base64.b64decode(upload_token[5:] + '==')
-              i = 0
-              while i < len(raw):
-                  if i + 4 > len(raw):
-                      break
-                  try:
-                      size = int(raw[i:i+4], 16)
-                  except ValueError:
-                      break
-                  if size == 0 or size > len(raw) - i:
-                      break
-                  packet = raw[i+4:i+size]
-                  space = packet.find(b' ')
-                  if space >= 0:
-                      field = packet[:space].decode('utf-8', errors='replace')
-                      value = packet[space+1:].rstrip(b'\n').decode('utf-8', errors='replace')
-                      if field in ('location', 'identifier', 'cid'):
-                          safe_val = value.replace('\n', ' | ')[:200]
-                          print(f'::notice::Macaroon {field}: {safe_val}')
-                  i += size
-
-          # Write token to env for next step
+          # WRITE TOKEN TO ENV FIRST before any parsing that might throw
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f'PYPI_UPLOAD_TOKEN={upload_token}\n')
+          print(f'::notice::Token written to GITHUB_ENV')
+
+          # Step 3: decode Macaroon — use urlsafe_b64decode for v2 binary format
+          try:
+              raw = base64.urlsafe_b64decode(upload_token[5:] + '==')
+              print(f'::notice::Macaroon raw size: {len(raw)} bytes')
+              print(f'::notice::Macaroon first byte (version): 0x{raw[0]:02x}')
+              # Extract all printable ASCII substrings >= 6 chars (finds caveats, location, etc.)
+              strings = re.findall(rb'[ -~]{6,}', raw)
+              for s in strings[:20]:
+                  safe = s.decode('ascii').replace('\n', ' | ')
+                  print(f'::notice::Macaroon string: {safe[:300]}')
+          except Exception as exc:
+              print(f'::notice::Macaroon decode error (non-fatal): {exc}')
           PYEOF
 
       - name: Upload to PyPI via twine
