@@ -1,10 +1,10 @@
 [build-system]
-requires      = ["setuptools>=61", "wheel"]
+requires      = ["setuptools>=61,<74", "wheel"]  # <74 keeps Metadata-Version 2.3 (PyPI-safe)
 build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "2.4.1"
+version     = "2.4.2"
 description = "The most complete open-source mechanistic interpretability toolkit — circuits, SAE features, composition scores, token attribution, and more."
 readme      = "README.md"
 license     = { text = "MIT" }
