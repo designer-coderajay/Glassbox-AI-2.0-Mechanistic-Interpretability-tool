@@ -80,22 +80,13 @@ jobs:
           python3 << 'PYEOF'
           import os, urllib.request, json, sys, base64, urllib.error, re
 
-          # Step 1: get GitHub OIDC JWT
+          # Get GitHub OIDC JWT
           url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
           req = urllib.request.Request(url, headers={"Authorization": f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"})
           with urllib.request.urlopen(req) as r:
               oidc_token = json.loads(r.read())['value']
-          print(f'::notice::GitHub OIDC JWT obtained (len={len(oidc_token)})')
 
-          # Decode JWT payload
-          parts = oidc_token.split('.')
-          if len(parts) == 3:
-              padded = parts[1] + '=' * (-len(parts[1]) % 4)
-              claims = json.loads(base64.urlsafe_b64decode(padded))
-              for key in ['sub', 'repository', 'workflow', 'environment', 'job_workflow_ref']:
-                  print(f'::notice::JWT {key}: {claims.get(key, "MISSING")}')
-
-          # Step 2: mint PyPI upload token
+          # Mint PyPI upload token  (1 notice budget used on error if it fails)
           body = json.dumps({'token': oidc_token}).encode()
           req2 = urllib.request.Request(
               'https://pypi.org/_/oidc/github/mint-token',
@@ -108,28 +99,21 @@ jobs:
               print(f'::error::mint-token FAILED {e.code}: {e.read().decode()[:400]}')
               sys.exit(1)
 
-          print(f'::notice::Minted token (prefix: {upload_token[:20]}...)')
-
-          # WRITE TOKEN TO ENV FIRST before any parsing that might throw
+          # WRITE TO ENV FIRST
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f'PYPI_UPLOAD_TOKEN={upload_token}\n')
-          print(f'::notice::Token written to GITHUB_ENV')
 
-          # Step 3: decode Macaroon — full hex dump + regex match count
+          # notices 1-2: token prefix + env key  (budget: 10 total)
+          print(f'::notice::mint OK prefix={upload_token[:20]}')
+          # notices 3-4: Macaroon hex dump + strings (the payoff)
           try:
               raw = base64.urlsafe_b64decode(upload_token[5:] + '==')
-              print(f'::notice::Macaroon raw size: {len(raw)} bytes')
-              print(f'::notice::Macaroon first byte (version): 0x{raw[0]:02x}')
-              # Full hex dump (210 bytes = 420 hex chars — fits in one annotation)
-              print(f'::notice::Macaroon hex: {raw.hex()}')
-              # Count printable ASCII runs
+              print(f'::notice::Macaroon {len(raw)}B v{raw[0]:02x} hex={raw.hex()}')
               strings = re.findall(rb'[ -~]{4,}', raw)
-              print(f'::notice::Macaroon printable strings (>=4 chars): {len(strings)}')
-              for s in strings[:15]:
-                  safe = s.decode('ascii', errors='replace').replace('\n', ' | ')
-                  print(f'::notice::Macaroon str: {safe[:300]}')
+              readable = ' | '.join(s.decode('ascii', errors='replace') for s in strings[:8])
+              print(f'::notice::Macaroon strings ({len(strings)}): {readable[:600]}')
           except Exception as exc:
-              print(f'::notice::Macaroon decode error (non-fatal): {type(exc).__name__}: {exc}')
+              print(f'::notice::Macaroon parse error: {type(exc).__name__}: {exc}')
           PYEOF
 
       - name: Upload to PyPI via twine
@@ -141,13 +125,21 @@ jobs:
           set +e
           python -m twine upload --non-interactive --verbose dist/* > twine_out.txt 2>&1
           TWINE_EXIT=$?
+          # Filter to ONLY important lines (errors, status codes, "successfully")
           python3 -c "
           import re, sys
-          ansi = re.compile(r'\x1b\[[0-9;]*m')
+          ansi = re.compile(r'\x1b(?:[@-Z\\\\-_]|\[[0-9;?]*[@-~])')
           with open('twine_out.txt') as f:
-              for line in f:
-                  clean = ansi.sub('', line).rstrip()
-                  if clean:
-                      print(f'::notice::twine: {clean[:400]}')
+              raw_content = f.read()
+          # Split on both \n and \r to handle progress-bar overwriting
+          lines = re.split(r'[\r\n]+', raw_content)
+          for line in lines:
+              clean = ansi.sub('', line).strip()
+              if not clean:
+                  continue
+              lower = clean.lower()
+              important = any(k in lower for k in ['error', 'forbidden', 'invalid', '400', '403', 'failed', 'upload', 'success', 'exception', 'traceback'])
+              if important:
+                  print(f'::notice::twine: {clean[:600]}')
           "
           exit $TWINE_EXIT
