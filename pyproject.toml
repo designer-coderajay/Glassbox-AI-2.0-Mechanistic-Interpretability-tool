@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "2.3.2"
+version     = "2.3.3"
 description = "The most complete open-source mechanistic interpretability toolkit — circuits, SAE features, composition scores, token attribution, and more."
 readme      = "README.md"
 license     = { text = "MIT" }
