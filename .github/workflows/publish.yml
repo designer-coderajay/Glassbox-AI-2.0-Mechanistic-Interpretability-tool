@@ -103,19 +103,77 @@ jobs:
               sys.exit(1)
           PYEOF
 
-      - name: Upload to PyPI via twine
+      - name: Upload to PyPI via Python (requests)
         run: |
-          TWINE_USERNAME=__token__ TWINE_PASSWORD="${PYPI_UPLOAD_TOKEN}" \
-            python -m twine upload --skip-existing --verbose dist/* 2>&1 | tee /tmp/twine_out.txt
-          TWINE_EXIT=${PIPESTATUS[0]}
-          if [ $TWINE_EXIT -ne 0 ]; then
-            echo "::error::Twine upload failed (exit $TWINE_EXIT) — last 30 lines:"
-            # Strip ANSI codes and emit each non-blank line as an annotation
-            tail -50 /tmp/twine_out.txt \
-              | sed 's/\x1B\[[0-9;]*[mKHFJsu]//g; s/\x1B\[?[0-9]*[lh]//g; s/\r//g' \
-              | grep -v '^\s*$' | tail -30 \
-              | while IFS= read -r line; do
-                  echo "::error::$line"
-                done
-          fi
-          exit $TWINE_EXIT
+          pip install requests --quiet
+          python3 << 'PYEOF'
+          import os, glob, hashlib, sys
+          import urllib.request, urllib.error
+          import json, base64
+
+          try:
+              import requests
+          except ImportError:
+              print('::error::requests not installed')
+              sys.exit(1)
+
+          upload_token = os.environ.get('PYPI_UPLOAD_TOKEN', '')
+          if not upload_token:
+              print('::error::PYPI_UPLOAD_TOKEN is empty')
+              sys.exit(1)
+
+          UPLOAD_URL = 'https://upload.pypi.org/legacy/'
+
+          files_to_upload = sorted(glob.glob('dist/*'))
+          print(f'::notice::Files to upload: {files_to_upload}')
+
+          all_ok = True
+          for filepath in files_to_upload:
+              fname = os.path.basename(filepath)
+              print(f'::notice::Uploading {fname}...')
+              with open(filepath, 'rb') as fh:
+                  content = fh.read()
+
+              md5 = hashlib.md5(content).hexdigest()
+              sha2 = hashlib.sha256(content).hexdigest()
+
+              # Determine file type
+              if filepath.endswith('.whl'):
+                  filetype = 'bdist_wheel'
+              else:
+                  filetype = 'sdist'
+
+              data = {
+                  ':action': 'file_upload',
+                  'protocol_version': '1',
+                  'metadata_version': '1.0',
+                  'filetype': filetype,
+                  'md5_digest': md5,
+                  'sha2_digest': sha2,
+              }
+
+              try:
+                  resp = requests.post(
+                      UPLOAD_URL,
+                      auth=('__token__', upload_token),
+                      files={'content': (fname, content, 'application/zip')},
+                      data=data,
+                      timeout=120,
+                  )
+                  print(f'::notice::{fname} → HTTP {resp.status_code}')
+                  if resp.status_code not in (200, 400):
+                      print(f'::error::Upload failed {resp.status_code}: {resp.text[:500]}')
+                      all_ok = False
+                  elif resp.status_code == 400:
+                      body = resp.text.strip()
+                      if 'already exist' in body.lower() or 'duplicate' in body.lower():
+                          print(f'::notice::{fname} already exists — skipping')
+                      else:
+                          print(f'::error::400 from PyPI: {body[:500]}')
+                          all_ok = False
+              except Exception as exc:
+                  print(f'::error::Exception uploading {fname}: {exc}')
+                  all_ok = False
+
+          sys.exit(0 if all_ok else 1)
+          PYEOF
