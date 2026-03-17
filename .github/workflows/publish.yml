@@ -72,3 +72,6 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: false   # Disable SLSA attestations — simplifies OIDC flow
+          verbose: true         # Surface upload errors as annotations
