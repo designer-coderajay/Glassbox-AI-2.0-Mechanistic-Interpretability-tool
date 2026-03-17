@@ -68,33 +68,66 @@ jobs:
           name: dist-${{ github.ref_name }}
           path: dist/
 
-      # Decode and surface the OIDC token claims so we can verify they
-      # match the PyPI Trusted Publisher config even without log access.
-      - name: Show OIDC token claims (diagnostic)
+      # ── PyPI OIDC diagnostic ─────────────────────────────────────────────
+      # Calls PyPI's mint-token endpoint directly so the exact error is
+      # captured in an artifact even without admin log access.
+      - name: Diagnose OIDC → PyPI mint-token
         run: |
-          TOKEN=$(curl -sSf \
-            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=pypi" \
-            | python3 -c "import json,sys; print(json.load(sys.stdin)['value'])")
-          PAYLOAD=$(echo "$TOKEN" | cut -d. -f2 | python3 -c "
-          import sys, base64, json
-          raw = sys.stdin.read().strip()
-          raw += '=' * (4 - len(raw) % 4)
-          claims = json.loads(base64.urlsafe_b64decode(raw))
-          keys = ['repository','repository_owner','workflow','environment','job_workflow_ref','ref']
-          for k in keys:
-              print(f'{k}: {claims.get(k,\"<not present>\")}')
-          ")
-          echo "--- OIDC claims relevant to PyPI Trusted Publisher ---"
-          echo "$PAYLOAD"
-          echo "## OIDC token claims" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "$PAYLOAD" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "Match these values in https://pypi.org/manage/project/glassbox-mech-interp/settings/publishing/" >> $GITHUB_STEP_SUMMARY
+          python3 << 'PYEOF'
+          import os, urllib.request, json, base64
+
+          report = []
+
+          # 1. Fetch OIDC token
+          url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
+          req = urllib.request.Request(
+              url, headers={"Authorization": f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"}
+          )
+          with urllib.request.urlopen(req) as r:
+              oidc_token = json.loads(r.read())['value']
+
+          # 2. Decode and print claims
+          payload = oidc_token.split('.')[1]
+          payload += '=' * (4 - len(payload) % 4)
+          claims = json.loads(base64.urlsafe_b64decode(payload))
+          report.append('=== OIDC token claims (must match PyPI Trusted Publisher config) ===')
+          for k in ['repository','repository_owner','workflow','environment','ref','job_workflow_ref']:
+              report.append(f'  {k}: {claims.get(k,"<not present>")}')
+
+          # 3. Call PyPI mint-token — capture success OR failure body
+          import urllib.error
+          data = json.dumps({'token': oidc_token}).encode()
+          req2 = urllib.request.Request(
+              'https://pypi.org/_/oidc/github/mint-token',
+              data=data,
+              headers={'Content-Type': 'application/json'}
+          )
+          try:
+              with urllib.request.urlopen(req2) as r:
+                  report.append('\n=== PyPI mint-token: SUCCESS (OIDC auth is fine) ===')
+          except urllib.error.HTTPError as e:
+              report.append(f'\n=== PyPI mint-token ERROR {e.code} ===')
+              report.append(e.read().decode())
+
+          text = '\n'.join(report)
+          print(text)
+          with open('oidc_diagnosis.txt', 'w') as f:
+              f.write(text)
+
+          # Also echo claims as error annotations so they appear in PR checks
+          for line in report:
+              if line.strip():
+                  print(f'::notice::{line.strip()}')
+          PYEOF
+
+      - name: Upload OIDC diagnosis artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oidc-diagnosis-${{ github.ref_name }}
+          path: oidc_diagnosis.txt
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
-          verbose: true        # prints token claims on failure — helps diagnose mismatches
+          verbose: true
