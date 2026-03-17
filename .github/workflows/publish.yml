@@ -59,7 +59,9 @@ jobs:
       url: https://pypi.org/p/glassbox-mech-interp
 
     permissions:
-      id-token: write   # Required for OIDC Trusted Publisher
+      id-token: write    # Required for OIDC Trusted Publisher
+      attestations: write # Required for SLSA provenance attestations (pypa action default)
+      contents: read     # Required for reading repo contents during attestation
 
     steps:
       - name: Download dist artifact
