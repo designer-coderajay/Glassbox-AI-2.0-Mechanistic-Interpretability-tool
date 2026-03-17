@@ -9,10 +9,10 @@ name: Publish to PyPI
 #       Owner:    designer-coderajay
 #       Repo:     Glassbox-AI-2.0-Mechanistic-Interpretability-tool
 #       Workflow: publish.yml
-#       Env:      release   ← must match the environment: name below
+#       Env:      pypi   ← must match the environment: name below
 #
 # GitHub repo setup:
-#   Settings → Environments → create "release" (no extra rules needed)
+#   Settings → Environments → create "pypi" (no extra rules needed)
 
 on:
   push:
@@ -51,11 +51,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
-    # "release" must match the Environment name you entered in PyPI's
+    # "pypi" must match the Environment name you entered in PyPI's
     # Trusted Publisher settings.  If you left it blank on PyPI, delete
     # the environment block below AND update the comment in the header.
     environment:
-      name: release
+      name: pypi
       url: https://pypi.org/p/glassbox-mech-interp
 
     permissions:
