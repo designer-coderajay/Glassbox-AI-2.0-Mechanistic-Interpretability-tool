@@ -6,6 +6,37 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.7.0] — 2026-03-17
+
+### Added
+- **EU AI Act Compliance module** (`glassbox/compliance.py`): `AnnexIVReport` class generates
+  all 9 Annex IV sections as PDF + JSON. Maps faithfulness metrics to Article 13.
+  Explainability grades A–D with exact thresholds. 26/26 tests passing.
+- **Black-box auditor** (`glassbox/audit.py`): `BlackBoxAuditor` audits any model via API
+  (OpenAI, Anthropic, Together, Groq, Azure, custom endpoint) — no model weights needed.
+  Uses counterfactual probing, sensitivity sweeps, consistency testing. Zero extra dependencies.
+- **REST API** (`api/main.py`): FastAPI app with `POST /v1/audit/analyze` (white-box),
+  `POST /v1/audit/black-box`, `GET /v1/audit/report/{id}`, `GET /v1/audit/pdf/{id}`,
+  `GET /dashboard` (serves compliance UI), `GET /docs` (Swagger UI).
+- **Compliance dashboard** (`dashboard/compliance_dashboard.html`): Full web UI for compliance
+  officers. Demo mode with real IOI/GPT-2 data — works with zero backend.
+- **Dockerfile** + **render.yaml**: production-ready container, one-click Render deploy.
+- **Live deployment**: API live at `https://glassbox-ai-2-0-mechanistic.onrender.com`.
+
+### Security
+- API key moved from request body to `X-Provider-Api-Key` header — never logged or stored.
+- `_StripKeyFilter` log handler scrubs any accidental key-shaped strings from all log output.
+- `SECURITY.md` added with full key handling documentation, GDPR note, self-hosting guide.
+
+### Fixed
+- `api/main.py`: version string was hardcoded `2.6.0`; now reads from `glassbox.__version__`.
+- README restructured: TOC added, section order fixed, REST API section added, Dashboard
+  section updated to reflect live URL, benchmark numbers marked as preliminary.
+- All EU AI Act article references verified against final Regulation (EU) 2024/1689 text.
+- Penalty claim updated to include Article 99(4) citation and EUR-Lex link.
+
+---
+
 ## [2.6.0] — 2026-03-17
 
 ### Fixed

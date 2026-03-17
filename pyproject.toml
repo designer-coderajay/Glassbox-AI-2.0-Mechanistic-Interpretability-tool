@@ -49,6 +49,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business",
+    "Intended Audience :: Legal Industry",
+    "Intended Audience :: Financial and Insurance Industry",
     "Typing :: Typed",
 ]
 
@@ -58,6 +61,14 @@ dependencies = [
     "einops",
     "numpy",
 ]
+
+
+[project.urls]
+Homepage      = "https://glassbox-ai-2-0-mechanistic.onrender.com"
+Dashboard     = "https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard"
+Documentation = "https://glassbox-ai-2-0-mechanistic.onrender.com/docs"
+Repository    = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+Paper         = "https://arxiv.org/abs/2603.09988"
 
 [project.optional-dependencies]
 sae = [
@@ -77,15 +88,6 @@ dev = [
     "sae-lens>=3.0",
     "reportlab>=3.6.0",
 ]
-
-[project.urls]
-Homepage      = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
-Documentation = "https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/"
-"Bug Tracker" = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues"
-"HuggingFace" = "https://huggingface.co/spaces/designer-coderajay/Glassbox-ai"
-"arXiv Paper" = "https://arxiv.org/abs/2603.09988"
-Changelog     = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/CHANGELOG.md"
-
 [project.scripts]
 glassbox-ai = "glassbox.cli:main"
 
