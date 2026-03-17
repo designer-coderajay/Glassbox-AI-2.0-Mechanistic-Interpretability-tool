@@ -104,6 +104,16 @@ jobs:
                   resp = json.loads(r.read())
                   upload_token = resp['token']
               print(f'::notice::PyPI token minted OK  prefix={upload_token[:20]}')
+
+              # Decode Macaroon to show ProjectIDCaveat UUID (type-4 caveat)
+              import re as _re
+              try:
+                  raw = base64.urlsafe_b64decode(upload_token[5:] + '==')
+                  strs = _re.findall(rb'[ -~]{4,}', raw)
+                  readable = ' | '.join(s.decode('ascii','replace') for s in strs[:12])
+                  print(f'::notice::Macaroon caveats: {readable[:700]}')
+              except Exception as _ex:
+                  print(f'::notice::Macaroon decode error: {_ex}')
           except urllib.error.HTTPError as e:
               err_body = e.read().decode()[:600]
               print(f'::error::PyPI mint-token FAILED HTTP {e.code}: {err_body}')
