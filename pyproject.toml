@@ -86,7 +86,7 @@ glassbox = ["py.typed"]
 markers = [
     "slow: marks tests as slow — skip in fast CI with '-m \"not slow\"'",
 ]
-addopts = "--tb=short -q"
+addopts = "--tb=short"
 
 [tool.coverage.run]
 source  = ["glassbox"]

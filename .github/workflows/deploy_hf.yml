@@ -28,7 +28,20 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Check HF_TOKEN availability
+        id: token-check
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -n "$HF_TOKEN" ]; then
+            echo "available=true" >> $GITHUB_OUTPUT
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+            echo "::notice::HF_TOKEN secret not configured — skipping HuggingFace deployment. Add HF_TOKEN in repo Settings → Secrets to enable auto-sync."
+          fi
+
       - name: Push to HuggingFace Space
+        if: steps.token-check.outputs.available == 'true'
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
