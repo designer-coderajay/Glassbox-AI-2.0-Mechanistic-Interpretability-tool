@@ -40,16 +40,16 @@ jobs:
       - name: Generate SBOM (JSON)
         run: |
           cyclonedx-py environment \
-            --output-format json \
-            --outfile sbom.cyclonedx.json
+            --of JSON \
+            -o sbom.cyclonedx.json
           echo "SBOM generated:"
           python -c "import json,sys; d=json.load(open('sbom.cyclonedx.json')); print(f'  Components: {len(d.get(\"components\",[]))}')"
 
       - name: Generate SBOM (XML)
         run: |
           cyclonedx-py environment \
-            --output-format xml \
-            --outfile sbom.cyclonedx.xml
+            --of XML \
+            -o sbom.cyclonedx.xml
 
       - name: Upload SBOM as workflow artifact
         uses: actions/upload-artifact@v4
