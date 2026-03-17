@@ -21,7 +21,7 @@
 
 Glassbox does two things.
 
-**For researchers:** one function call identifies the minimum faithful circuit — the smallest subgraph of attention heads causally responsible for a prediction. 37x faster than ACDC. Every approximation disclosed.
+**For researchers:** one function call identifies the minimum faithful circuit — the smallest subgraph of attention heads causally responsible for a prediction. Preliminary benchmarks show 15–37× faster than ACDC on GPT-2 (single run, Apple M2 Pro — see Benchmarks section). Every approximation is disclosed.
 
 **For companies deploying AI in the EU:** generates a legally-structured Annex IV technical documentation report (all 9 sections) from that analysis. Works on open-source models (white-box) and proprietary APIs like GPT-4 and Claude (black-box). Enforcement deadline: August 2026.
 
@@ -32,14 +32,14 @@ Glassbox does two things.
 ## Research
 
 **Paper:** [Glassbox: A Causal Mechanistic Interpretability Toolkit with Circuit Alignment Scoring](https://arxiv.org/abs/2603.09988)
-Introduces the **Functional Circuit Alignment Score (FCAS)**, automated Minimum Faithful Circuit (MFC) discovery, and bootstrap CIs on circuit faithfulness. 37x faster than ACDC on GPT-2 small.
+Introduces the **Functional Circuit Alignment Score (FCAS)**, automated Minimum Faithful Circuit (MFC) discovery, and bootstrap CIs on circuit faithfulness. Preliminary benchmarks: 15–37× faster than ACDC on GPT-2 (single-run results, see paper for methodology).
 
 
 ---
 
 ## What's Novel
 
-Glassbox v2.6.0 ships features that exist **nowhere else as a unified toolkit**:
+Glassbox v2.7.0 ships features not available in any other single open-source toolkit (as of March 2026):
 
 | Feature | Glassbox | TransformerLens | Baukit | Pyvene |
 |---------|:--------:|:---------------:|:------:|:------:|
@@ -98,7 +98,7 @@ Try it instantly — no install needed: **[huggingface.co/spaces/designer-codera
 
 ## EU AI Act Compliance — Annex IV Reports
 
-If your company deploys AI in the EU (finance, healthcare, HR, legal, critical infrastructure), Regulation EU 2024/1689 requires Annex IV technical documentation. Enforcement starts August 2026. Penalties: up to 3% of global annual turnover.
+If your company deploys AI in the EU (finance, healthcare, HR, legal, critical infrastructure), [Regulation (EU) 2024/1689](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) requires Annex IV technical documentation (Article 11). Enforcement starts August 2026. Non-compliance penalties: up to €15M or 3% of global annual turnover, whichever is higher (Article 99(4)).
 
 Glassbox generates the report from your analysis in one call.
 
@@ -368,17 +368,19 @@ glassbox analyze \
 
 ## Benchmarks
 
+> **Preliminary results.** Timing benchmarks are single-run measurements on an Apple M2 Pro (32GB RAM), PyTorch 2.2, CUDA disabled. ACDC baseline uses the [official implementation](https://github.com/ArthurConmy/Automatic-Circuit-DisCovery) with default settings. Independent replication is encouraged — scripts in `benchmarks/`. Results will be updated as more hardware configurations are tested.
+
 ### IOI (Indirect Object Identification) — Wang et al. (2022)
 
 Evaluated on the canonical IOI task across the GPT-2 family.
 
-| Model | Layers | Heads | Suff.* | Comp. | F1 | Glassbox | ACDC | Speedup |
+| Model | Layers | Heads | Suff.* | Comp. | F1 | Glassbox (s) | ACDC (s) | Speedup |
 |-------|--------|-------|--------|-------|----|----------|------|---------|
-| GPT-2 small | 12 | 12 | 80.0% | 37.2% | 48.8% | **1.2s** | 43.2s | **37×** |
-| GPT-2 medium | 24 | 16 | 35.1% | 23.7% | 27.9% | **4.9s** | 115.2s | **24×** |
-| GPT-2 large | 36 | 20 | 18.2% | 14.2% | 15.9% | **14.3s** | 216.0s | **15×** |
+| GPT-2 small | 12 | 12 | 80.0% | 37.2% | 48.8% | **1.2** | 43.2 | **~37×** |
+| GPT-2 medium | 24 | 16 | 35.1% | 23.7% | 27.9% | **4.9** | 115.2 | **~24×** |
+| GPT-2 large | 36 | 20 | 18.2% | 14.2% | 15.9% | **14.3** | 216.0 | **~15×** |
 
-*Sufficiency is a first-order Taylor approximation. Exact causal sufficiency (requiring full ablation runs over non-circuit heads) is higher — see the [arXiv paper](https://arxiv.org/abs/2603.09988).
+*Sufficiency is a first-order Taylor approximation. Exact causal sufficiency (full ablation over non-circuit heads) is higher — see the [arXiv paper](https://arxiv.org/abs/2603.09988). FCAS and faithfulness metrics are cross-validated across 5 IOI prompts (see `benchmarks/run_ioi.py`).
 
 ### Cross-model Circuit Alignment (FCAS)
 
@@ -562,8 +564,14 @@ If you use Glassbox 2.0 in your research, please cite:
 
 - [TransformerLens](https://github.com/neelnanda-io/TransformerLens) — mechanistic interpretability library Glassbox is built on
 - [sae-lens](https://github.com/jbloomAus/SAELens) — pretrained Sparse Autoencoders (required for SAE feature attribution)
-- [ACDC](https://github.com/ArthurConmy/Automatic-Circuit-DisCovery) — automated circuit discovery (baseline we benchmark against: Glassbox is 15–37× faster)
+- [ACDC](https://github.com/ArthurConmy/Automatic-Circuit-DisCovery) — automated circuit discovery (Conmy et al. 2023). Used as timing baseline; preliminary benchmarks show Glassbox is 15–37× faster on GPT-2.
 - [Neuronpedia](https://www.neuronpedia.org/) — SAE feature browser (linked from SAE attribution output)
+
+---
+
+## Security & Privacy
+
+See [SECURITY.md](SECURITY.md) for how API keys are handled, our self-hosting recommendation, and GDPR compliance notes.
 
 ---
 

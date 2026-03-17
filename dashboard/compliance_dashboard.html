@@ -759,8 +759,15 @@
               <input id="bb-model" type="text" value="gpt-4" placeholder="gpt-4, claude-3-opus-20240229, llama-3-70b" />
             </div>
             <div class="form-row">
-              <label>API Key <span class="required">*</span><span class="hint">not stored</span></label>
-              <input id="bb-apikey" type="password" placeholder="sk-..." />
+              <label>API Key <span class="required">*</span>
+                <span class="hint" title="Sent as HTTP header only. Never in request body, never logged, never stored. Zero-copy: cleared after request completes.">
+                  🔒 header-only, never logged
+                </span>
+              </label>
+              <input id="bb-apikey" type="password" placeholder="sk-..." autocomplete="off" />
+              <small style="color:#aaa;font-size:11px;margin-top:4px;display:block;">
+                Your key is sent as an HTTP header (not in the request body). It is never logged, never stored, and never included in the compliance report. For production use, we recommend self-hosting: <code>docker run -p 8000:8000 glassbox</code>
+              </small>
             </div>
           </div>
 
@@ -1114,7 +1121,6 @@
         payload = {
           target_provider:   document.getElementById('bb-provider-api').value,
           target_model:      document.getElementById('bb-model').value,
-          api_key:           document.getElementById('bb-apikey').value,
           decision_prompt:   document.getElementById('bb-prompt').value,
           expected_positive: document.getElementById('bb-positive').value,
           expected_negative: document.getElementById('bb-negative').value,
@@ -1132,9 +1138,13 @@
       }
 
       const t0 = Date.now();
+      const apiKey = document.getElementById('bb-apikey')?.value || '';
       const resp = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { 'X-Provider-Api-Key': apiKey } : {}),
+        },
         body: JSON.stringify(payload),
       });
 

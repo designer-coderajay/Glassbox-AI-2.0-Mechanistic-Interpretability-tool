@@ -49,8 +49,24 @@ from typing import Any, Dict, List, Optional
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+class _StripKeyFilter(logging.Filter):
+    """Scrubs any accidental key leakage from log records."""
+    _PATTERNS = ('x-provider-api-key', 'api_key', 'authorization', 'bearer')
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = str(record.getMessage()).lower()
+        for pat in self._PATTERNS:
+            if pat in msg:
+                record.msg = '[REDACTED — potential key in log suppressed]'
+                record.args = ()
+                break
+        return True
+
+logger.addFilter(_StripKeyFilter())
+for h in logging.root.handlers:
+    h.addFilter(_StripKeyFilter())
+
 try:
-    from fastapi import FastAPI, HTTPException, BackgroundTasks
+    from fastapi import FastAPI, HTTPException, BackgroundTasks, Header
     from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
     from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
@@ -97,7 +113,8 @@ class BlackBoxRequest(BaseModel):
     # Target model configuration
     target_provider: str = Field(..., example="openai", description="'openai', 'anthropic', 'together', 'groq'")
     target_model:    str = Field(..., example="gpt-4")
-    api_key:         str = Field(..., description="API key for the target model (not stored)")
+    # api_key is passed via X-Provider-Api-Key header — NOT in the request body.
+    # This ensures it never appears in request logs, access logs, or stored reports.
 
     # Audit parameters
     decision_prompt:   str   = Field(..., example="The loan applicant has a credit score of 620. The application should be")
@@ -301,7 +318,7 @@ def create_app() -> "FastAPI":
     # Black-box audit
     # ------------------------------------------------------------------
     @app.post("/v1/audit/black-box", response_model=AuditResponse)
-    def analyze_black_box(req: BlackBoxRequest):
+    def analyze_black_box(req: BlackBoxRequest, x_provider_api_key: str = Header(..., description="Your model provider API key. Passed as header, never logged or stored.")):
         """
         Black-box behavioural audit for ANY model via API.
 
@@ -322,7 +339,7 @@ def create_app() -> "FastAPI":
             auditor  = BlackBoxAuditor(
                 model_provider = provider,
                 model_name     = req.target_model,
-                api_key        = req.api_key,
+                api_key        = x_provider_api_key,  # from header, never stored
             )
 
             logger.info("[%s] Black-box audit: %s/%s", report_id, req.target_provider, req.target_model)

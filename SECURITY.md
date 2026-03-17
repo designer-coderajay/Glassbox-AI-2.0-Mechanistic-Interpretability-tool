@@ -1,55 +1,44 @@
-# Security Policy
+# Security & Privacy
 
-## Supported Versions
+## API Key Handling
 
-| Version | Supported          |
-|---------|--------------------|
-| 2.3.x   | ✅ Active support  |
-| 2.2.x   | ⚠️ Security fixes only |
-| < 2.2   | ❌ End of life     |
+Glassbox never stores, logs, or retains your model provider API keys.
 
-## Reporting a Vulnerability
+**Architecture (v2.7.0+):**
+- API keys are passed via the `X-Provider-Api-Key` HTTP request header — not in the request body
+- All log filters explicitly scrub any string matching known key patterns before writing to disk
+- Keys are used in-memory only for the duration of the HTTP request
+- Keys are never written to `_REPORT_STORE`, PDF reports, or any persistent storage
+- Compliance reports (JSON/PDF) contain zero credential data — only model behaviour metrics
 
-**Please do NOT open a public GitHub issue for security vulnerabilities.**
+**Verification:** You can confirm this yourself by reading [`api/main.py`](api/main.py):
+- `_StripKeyFilter` class: active on all log handlers
+- `_REPORT_STORE` write: contains only `json`, `mode`, `created_at`
+- `BlackBoxRequest` model: contains no `api_key` field
 
-Instead, report them privately via one of these channels:
+## Recommended: Self-Hosting
 
-1. **GitHub Private Security Advisory** (preferred):
-   Go to the [Security tab](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/security/advisories/new)
-   and open a private advisory.
+For production compliance audits, run Glassbox locally. Your keys never leave your infrastructure:
 
-2. **Email**: Send details to `mahale.ajay01@gmail.com`
-   with subject line `[SECURITY] Glassbox — <brief description>`.
+```bash
+git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+docker build -t glassbox .
+docker run -p 8000:8000 glassbox
+```
 
-### What to include
+The hosted instance at `https://glassbox-ai-2-0-mechanistic.onrender.com` is provided for evaluation and testing only.
 
-- A clear description of the vulnerability
-- Steps to reproduce
-- Affected versions
-- Potential impact
-- Any suggested fix (optional but appreciated)
+## Reporting Vulnerabilities
 
-### Response timeline
+Please report security issues privately to: mahale.ajay01@gmail.com
 
-| Step                    | Time         |
-|-------------------------|--------------|
-| Acknowledgement         | Within 48 h  |
-| Initial triage          | Within 5 days |
-| Fix + coordinated disclosure | Within 30 days |
+Do not open a public GitHub issue for security vulnerabilities.
 
-## Scope
+## Legal Jurisdiction
 
-Glassbox runs **entirely locally** — it performs no network requests and stores
-no user data. The primary attack surface is:
+This project is developed and operated under EU/German law. The GDPR applies to all personal data processed through this service. No personal data is intentionally collected. API keys are not personal data under GDPR Article 4.
 
-- **Malicious model files** loaded via `HookedTransformer.from_pretrained()`.
-  Glassbox inherits TransformerLens's trust model for checkpoint loading.
-  Only load models from sources you trust.
-- **Pickle deserialization** in PyTorch checkpoint loading (upstream risk,
-  not specific to Glassbox).
-- **SAE downloads** via sae-lens: only models from Neuronpedia's official
-  registry are used by default.
+## References
 
-## Hall of Fame
-
-We publicly thank security researchers who responsibly disclose vulnerabilities.
+- [EU AI Act Regulation (EU) 2024/1689](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) — Article 99(4): penalties for non-compliance
+- [GDPR Regulation (EU) 2016/679](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679)
