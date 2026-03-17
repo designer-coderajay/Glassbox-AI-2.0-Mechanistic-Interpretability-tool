@@ -68,6 +68,31 @@ jobs:
           name: dist-${{ github.ref_name }}
           path: dist/
 
+      # Decode and surface the OIDC token claims so we can verify they
+      # match the PyPI Trusted Publisher config even without log access.
+      - name: Show OIDC token claims (diagnostic)
+        run: |
+          TOKEN=$(curl -sSf \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=pypi" \
+            | python3 -c "import json,sys; print(json.load(sys.stdin)['value'])")
+          PAYLOAD=$(echo "$TOKEN" | cut -d. -f2 | python3 -c "
+          import sys, base64, json
+          raw = sys.stdin.read().strip()
+          raw += '=' * (4 - len(raw) % 4)
+          claims = json.loads(base64.urlsafe_b64decode(raw))
+          keys = ['repository','repository_owner','workflow','environment','job_workflow_ref','ref']
+          for k in keys:
+              print(f'{k}: {claims.get(k,\"<not present>\")}')
+          ")
+          echo "--- OIDC claims relevant to PyPI Trusted Publisher ---"
+          echo "$PAYLOAD"
+          echo "## OIDC token claims" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$PAYLOAD" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "Match these values in https://pypi.org/manage/project/glassbox-mech-interp/settings/publishing/" >> $GITHUB_STEP_SUMMARY
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
