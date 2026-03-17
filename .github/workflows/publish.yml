@@ -115,18 +115,21 @@ jobs:
               f.write(f'PYPI_UPLOAD_TOKEN={upload_token}\n')
           print(f'::notice::Token written to GITHUB_ENV')
 
-          # Step 3: decode Macaroon — use urlsafe_b64decode for v2 binary format
+          # Step 3: decode Macaroon — full hex dump + regex match count
           try:
               raw = base64.urlsafe_b64decode(upload_token[5:] + '==')
               print(f'::notice::Macaroon raw size: {len(raw)} bytes')
               print(f'::notice::Macaroon first byte (version): 0x{raw[0]:02x}')
-              # Extract all printable ASCII substrings >= 6 chars (finds caveats, location, etc.)
-              strings = re.findall(rb'[ -~]{6,}', raw)
-              for s in strings[:20]:
-                  safe = s.decode('ascii').replace('\n', ' | ')
-                  print(f'::notice::Macaroon string: {safe[:300]}')
+              # Full hex dump (210 bytes = 420 hex chars — fits in one annotation)
+              print(f'::notice::Macaroon hex: {raw.hex()}')
+              # Count printable ASCII runs
+              strings = re.findall(rb'[ -~]{4,}', raw)
+              print(f'::notice::Macaroon printable strings (>=4 chars): {len(strings)}')
+              for s in strings[:15]:
+                  safe = s.decode('ascii', errors='replace').replace('\n', ' | ')
+                  print(f'::notice::Macaroon str: {safe[:300]}')
           except Exception as exc:
-              print(f'::notice::Macaroon decode error (non-fatal): {exc}')
+              print(f'::notice::Macaroon decode error (non-fatal): {type(exc).__name__}: {exc}')
           PYEOF
 
       - name: Upload to PyPI via twine
