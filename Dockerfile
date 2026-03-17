@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r requirements-api.txt
 COPY glassbox/ ./glassbox/
 COPY api/       ./api/
 COPY dashboard/ ./dashboard/
-COPY setup.py pyproject.toml README.md ./
+COPY pyproject.toml README.md ./
 
 # Install package itself
 RUN pip install --no-cache-dir -e .
