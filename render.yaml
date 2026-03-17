@@ -1,0 +1,27 @@
+# Render.com deployment config — https://render.com
+# One-click deploy: connect GitHub repo, Render reads this file automatically.
+# Free tier: 512MB RAM, shared CPU, spins down after 15min inactivity (first request is slow).
+# Upgrade to $7/mo for always-on.
+
+services:
+  - type: web
+    name: glassbox-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    plan: free
+
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+    healthCheckPath: /health
+
+    autoDeploy: true   # redeploy on every push to main
+
+    # Static dashboard served from same service
+    staticPublishPath: ./dashboard

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "2.6.0"
-description = "The most complete open-source mechanistic interpretability toolkit — circuits, SAE features, composition scores, token attribution, and more."
+version     = "2.7.0"
+description = "Mechanistic interpretability toolkit + EU AI Act Annex IV compliance report generator. Circuit analysis, black-box audit, PDF/JSON reports."
 readme      = "README.md"
 license     = { text = "MIT" }
 authors     = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]
@@ -28,6 +28,12 @@ keywords = [
     "GPT-2",
     "circuit-discovery",
     "alignment",
+    "eu-ai-act",
+    "annex-iv",
+    "compliance",
+    "audit",
+    "black-box-audit",
+    "regulatory-compliance",
 ]
 
 classifiers = [
@@ -57,9 +63,19 @@ dependencies = [
 sae = [
     "sae-lens>=3.0",
 ]
+compliance = [
+    "reportlab>=3.6.0",
+]
+api = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.0.0",
+    "reportlab>=3.6.0",
+]
 dev = [
     "pytest>=7.0",
     "sae-lens>=3.0",
+    "reportlab>=3.6.0",
 ]
 
 [project.urls]

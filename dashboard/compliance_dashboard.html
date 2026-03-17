@@ -830,6 +830,9 @@
           <span class="spinner" id="spinner"></span>
           <span id="submit-label">⚡ Generate Annex IV Report</span>
         </button>
+        <button onclick="runDemo()" style="width:100%;margin-top:10px;padding:11px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          👁 Preview with demo data (no backend needed)
+        </button>
       </div>
     </div>
   </div>
@@ -1147,12 +1150,19 @@
       showResult(data, elapsed);
 
     } catch (err) {
+      setLoading(false);
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        showError('Cannot reach the API server at ' + base + '. Make sure it\'s running: uvicorn api.main:app --port 8000');
+        // Backend not running — offer demo mode automatically
+        document.getElementById('progress-panel').style.display = 'none';
+        document.getElementById('empty-state').style.display = 'none';
+        document.getElementById('error-panel').style.display = 'block';
+        document.getElementById('error-msg').innerHTML =
+          'API server not reachable at <code style="color:var(--accent2)">' + base + '</code>. ' +
+          'Run <code style="color:var(--accent2)">uvicorn api.main:app</code> to connect your model. ' +
+          '<br><br><button onclick="runDemo()" style="margin-top:8px;padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Preview with demo data instead</button>';
       } else {
         showError(err.message || 'Unknown error occurred.');
       }
-      setLoading(false);
     }
   }
 
@@ -1160,6 +1170,67 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && e.ctrlKey) runAudit();
   });
+
+  // ---- DEMO MODE ----
+  // Hardcoded realistic result based on actual Glassbox output for IOI/GPT-2
+  // Lets anyone preview the full product with zero backend setup
+  const DEMO_RESULT = {
+    report_id: "2F906F6A",
+    status: "completed",
+    compliance_status: "conditionally_compliant",
+    explainability_grade: "A — Fully Explainable",
+    faithfulness: { sufficiency: 0.921, comprehensiveness: 0.634, f1: 0.751, category: "faithful" },
+    n_circuit_components: 4,
+    analysis_mode: "white_box (demo)",
+    elapsed_seconds: 1.2,
+    json_report_url: "#",
+    pdf_report_url: null,
+    full_report: {
+      report_id: "2F906F6A",
+      compliance_status: "conditionally_compliant",
+      sections: {
+        "2_development_design": {
+          circuit_heads: ["L9H9", "L9H6", "L10H0", "L3H0"],
+          n_circuit_heads_found: 4,
+          n_analysis_heads_total: 144,
+          attribution_method: "taylor",
+        },
+        "3_monitoring_control": {
+          explainability_grade: "A — Fully Explainable",
+          sufficiency: 0.921,
+          comprehensiveness: 0.634,
+          f1_score: 0.751,
+          faithfulness_category: "faithful",
+          explainability_rationale: "Grade A: The identified circuit comprehensively explains model behaviour. Sufficiency=0.921 (>0.80), Comprehensiveness=0.634 (>0.60), F1=0.751. Faithfulness category: faithful. This system meets the Article 13 transparency standard for EU AI Act compliance.",
+        },
+        "5_risk_management": {
+          identified_risks: [
+            { risk: "Incomplete data governance documentation", severity: "high", rationale: "Training, validation, and test dataset fields require provider completion before regulatory submission.", article: "Article 10, Annex IV Section 4" },
+            { risk: "Declaration of conformity not executed", severity: "high", rationale: "Article 47 requires a written, signed declaration of conformity before placing high-risk AI on the market.", article: "Article 47" }
+          ],
+          recommended_actions: [
+            "Complete all [PROVIDER TO COMPLETE] fields before submitting to national competent authority",
+            "Execute EU Declaration of Conformity (Article 47) before market deployment",
+            "Register system in EU AI Act database (Article 71) if applicable",
+          ]
+        }
+      }
+    }
+  };
+
+  function runDemo() {
+    setLoading(true);
+    showProgress();
+    const steps = [300, 700, 1200, 1700, 2100, 2500];
+    steps.forEach((t, i) => setTimeout(() => setStep(i + 1), t));
+    setTimeout(() => {
+      setLoading(false);
+      showResult(DEMO_RESULT, 1.2);
+      // Show demo notice
+      const elapsed = document.getElementById('elapsed-info');
+      elapsed.innerHTML = '⚡ Demo mode — <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" style="color:var(--accent2)">run the backend</a> for real analysis · ' + new Date().toLocaleString();
+    }, 2700);
+  }
 </script>
 </body>
 </html>
