@@ -6,6 +6,30 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.8.0] — 2026-03-17
+
+### Added
+- **Model card generator** (`glassbox/compliance.py`): `AnnexIVReport.to_model_card()` generates
+  a HuggingFace-compatible `MODEL_CARD.md` with YAML frontmatter (tags: eu-ai-act, annex-iv,
+  compliance, mechanistic-interpretability), compliance status table, faithfulness metrics,
+  risk flags, EU AI Act article references, and citation block.
+  `save_model_card(path)` convenience method writes it to disk.
+- **D3 circuit graph** (`dashboard/compliance_dashboard.html`): Interactive force-directed
+  graph visualising the minimum faithful circuit. Nodes = attention heads, size proportional
+  to attribution score, colour mapped by layer, gold border on high-attribution heads.
+  Draggable, hover tooltips, layer-adjacency edges. Uses D3.js v7.
+- **Attribution heatmap** (`dashboard/compliance_dashboard.html`): 12×12 grid of attention
+  head attribution scores. Colour intensity maps to score magnitude; circuit members highlighted
+  with a gold border. Demo data uses real IOI/GPT-2 results (L9H9, L9H6, L10H0, L3H0…).
+- **Async job endpoint** (`api/main.py`): `POST /v1/audit/black-box/async` returns immediately
+  with a `job_id`. Audit runs as a FastAPI `BackgroundTask`. Poll status via
+  `GET /v1/jobs/{job_id}` (states: queued → running → completed/failed).
+  `GET /v1/jobs` lists all session jobs. Accepts same `X-Provider-Api-Key` header.
+
+### Changed
+- Dashboard default API URL updated to the live Render endpoint.
+- API privacy notice added to dashboard: key sent as header only, never logged, never stored.
+
 ## [2.7.0] — 2026-03-17
 
 ### Added

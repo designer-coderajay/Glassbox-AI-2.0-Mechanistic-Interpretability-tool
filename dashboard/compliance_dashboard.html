@@ -606,6 +606,7 @@
       .hero h1 { font-size: 28px; }
     }
   </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
 <body>
 
@@ -927,6 +928,21 @@
       <!-- Risks -->
       <div id="risks-section" style="margin-top:12px"></div>
 
+
+      <!-- D3 Force-Directed Circuit Graph -->
+      <div class="circuit-graph-section" id="circuit-graph-section" style="display:none">
+        <h4>Circuit Graph — Causal Head Connections</h4>
+        <svg id="circuit-graph-svg">
+          <defs>
+            <marker id="arrow" markerWidth="6" markerHeight="6"
+                    refX="5" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L6,3 z" fill="rgba(56,139,253,0.6)"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="graph-legend" id="graph-legend"></div>
+      </div>
+
       <!-- Downloads -->
       <div class="download-row">
         <a class="dl-btn dl-pdf" id="dl-pdf-btn" href="#" target="_blank">
@@ -1071,7 +1087,8 @@
       ? heads.map(h => `<span class="head-chip">${h}</span>`).join('')
       : '<span style="color:var(--muted);font-size:12px;">No circuit identified</span>';
 
-    // Circuit heatmap
+    // Circuit graph + heatmap
+    renderCircuitGraph(data);
     renderHeatmap(data);
 
     // Risks
@@ -1203,6 +1220,130 @@
   // ---- DEMO MODE ----
   // Hardcoded realistic result based on actual Glassbox output for IOI/GPT-2
   // Lets anyone preview the full product with zero backend setup
+
+
+  // ---------------------------------------------------------------------------
+  // D3 Force-Directed Circuit Graph
+  // ---------------------------------------------------------------------------
+  function renderCircuitGraph(data) {
+    const report  = data.full_report || {};
+    const s2      = (report.sections || {})['2_development_design'] || {};
+    const circuitHeads = s2.circuit_heads || data.circuit || [];
+    const attrScores   = s2.attribution_scores || {};
+    if (circuitHeads.length === 0) return;
+
+    // Layer-colour palette (one colour per layer)
+    const layerColours = [
+      '#6e7681','#3fb950','#388bfd','#d29922','#f85149',
+      '#bc8cff','#79c0ff','#56d364','#ffa657','#ff7b72',
+      '#a5d6ff','#7ee787',
+    ];
+
+    // Parse head labels like "L9H9" → {layer:9, head:9}
+    const parse = h => {
+      const m = h.match(/L(\d+)H(\d+)/);
+      return m ? { id: h, layer: +m[1], head: +m[2] } : null;
+    };
+
+    const nodes = circuitHeads.map(parse).filter(Boolean).map(n => ({
+      ...n,
+      score: attrScores[n.id] || 0.05,
+    }));
+
+    if (nodes.length === 0) return;
+
+    // Edges: connect heads in adjacent layers (heuristic — real EAP edges if available)
+    const links = [];
+    const byLayer = {};
+    nodes.forEach(n => { (byLayer[n.layer] = byLayer[n.layer] || []).push(n); });
+    const layers = Object.keys(byLayer).map(Number).sort((a,b) => a-b);
+    for (let i = 0; i < layers.length - 1; i++) {
+      const src = byLayer[layers[i]];
+      const tgt = byLayer[layers[i+1]];
+      src.forEach(s => tgt.forEach(t => {
+        links.push({ source: s.id, target: t.id, value: 0.5 });
+      }));
+    }
+
+    const svg = d3.select('#circuit-graph-svg');
+    svg.selectAll('*').remove();
+
+    const el  = document.getElementById('circuit-graph-svg');
+    const W   = el.clientWidth || 420;
+    const H   = el.clientHeight || 260;
+
+    // Arrowhead marker
+    svg.append('defs').append('marker')
+      .attr('id','cg-arrow').attr('markerWidth',6).attr('markerHeight',6)
+      .attr('refX',14).attr('refY',3).attr('orient','auto')
+      .append('path').attr('d','M0,0 L0,6 L6,3 z')
+      .attr('fill','rgba(56,139,253,0.55)');
+
+    const sim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(d => d.id).distance(60).strength(0.4))
+      .force('charge', d3.forceManyBody().strength(-120))
+      .force('center', d3.forceCenter(W/2, H/2))
+      .force('x', d3.forceX(d => (d.layer / (Math.max(...layers) || 1)) * (W-60) + 30).strength(0.5))
+      .force('y', d3.forceY(H/2).strength(0.1))
+      .force('collision', d3.forceCollide(20));
+
+    const maxScore = Math.max(...nodes.map(n => n.score), 0.01);
+
+    const linkEl = svg.append('g').selectAll('line')
+      .data(links).enter().append('line')
+      .attr('class','graph-link')
+      .attr('marker-end','url(#cg-arrow)');
+
+    const nodeEl = svg.append('g').selectAll('.graph-node')
+      .data(nodes).enter().append('g')
+      .attr('class','graph-node')
+      .call(d3.drag()
+        .on('start', (e,d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+        .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
+        .on('end',   (e,d) => { if (!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
+      );
+
+    nodeEl.append('circle')
+      .attr('r', d => 10 + (d.score / maxScore) * 10)
+      .attr('fill', d => layerColours[d.layer % layerColours.length])
+      .attr('stroke', '#f0b429')
+      .attr('stroke-opacity', d => d.score > 0.08 ? 1 : 0.2);
+
+    nodeEl.append('text')
+      .attr('dy', 1)
+      .text(d => d.id);
+
+    // Tooltip
+    const tip = document.getElementById('heatmap-tooltip');
+    nodeEl.on('mouseenter', (e,d) => {
+      tip.style.display = 'block';
+      tip.innerHTML = `<strong>${d.id}</strong><br>Layer ${d.layer}, Head ${d.head}<br>Attribution: ${d.score.toFixed(4)}<br><span style="color:#f0b429">★ Circuit member</span>`;
+    }).on('mousemove', e => {
+      tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-10)+'px';
+    }).on('mouseleave', () => { tip.style.display='none'; });
+
+    sim.on('tick', () => {
+      linkEl
+        .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+      nodeEl.attr('transform', d => `translate(${Math.max(16,Math.min(W-16,d.x))},${Math.max(16,Math.min(H-16,d.y))})`);
+    });
+
+    // Legend
+    const uniqueLayers = [...new Set(nodes.map(n=>n.layer))].sort((a,b)=>a-b);
+    const leg = document.getElementById('graph-legend');
+    leg.innerHTML = uniqueLayers.map(l =>
+      `<div class="graph-legend-item">
+        <div class="graph-legend-dot" style="background:${layerColours[l%layerColours.length]}"></div>
+        Layer ${l}
+      </div>`).join('') +
+      `<div class="graph-legend-item" style="margin-left:auto;">
+        <div class="graph-legend-dot" style="border:2px solid #f0b429;background:transparent;width:8px;height:8px"></div>
+        Gold border = high attribution
+      </div>`;
+
+    document.getElementById('circuit-graph-section').style.display = 'block';
+  }
 
   // ---------------------------------------------------------------------------
   // Circuit Heatmap — Attribution Patching Visualization

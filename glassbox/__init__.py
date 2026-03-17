@@ -56,7 +56,7 @@ glassbox/
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "2.7.0"
+__version__ = "2.8.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -122,7 +122,7 @@ from glassbox.utils import (
 # EU AI Act Annex IV Compliance Report Generator — core product
 # ---------------------------------------------------------------------------
 from glassbox.compliance import (
-    AnnexIVReport,
+    AnnexIVReport,             # .to_model_card() and .save_model_card() added in v2.8.0
     DeploymentContext,
     RiskClassification,
     ExplainabilityGrade,

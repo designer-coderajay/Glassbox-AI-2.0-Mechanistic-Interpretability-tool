@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "2.7.0"
+version     = "2.8.0"
 description = "Mechanistic interpretability toolkit + EU AI Act Annex IV compliance report generator. Circuit analysis, black-box audit, PDF/JSON reports."
 readme      = "README.md"
 license     = { text = "MIT" }

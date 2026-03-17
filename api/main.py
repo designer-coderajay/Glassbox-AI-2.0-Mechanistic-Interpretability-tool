@@ -153,6 +153,7 @@ class AuditResponse(BaseModel):
 # ---------------------------------------------------------------------------
 _REPORT_STORE: Dict[str, Dict[str, Any]] = {}
 _PDF_STORE:    Dict[str, Path]          = {}
+_JOB_STORE:    Dict[str, Dict[str, Any]] = {}   # async job status: {id: {status, result, error, created_at}}
 
 
 # ---------------------------------------------------------------------------
@@ -437,6 +438,125 @@ def create_app() -> "FastAPI":
     # ------------------------------------------------------------------
     # List reports
     # ------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
+    # Async black-box audit (non-blocking) — Engineering dept
+    # ------------------------------------------------------------------
+    @app.post("/v1/audit/black-box/async")
+    def analyze_black_box_async(
+        req: BlackBoxRequest,
+        background_tasks: BackgroundTasks,
+        x_provider_api_key: str = Header(..., description="Model provider API key. Header only, never logged."),
+    ):
+        """
+        Submit a black-box audit as a background job.
+
+        Returns immediately with a job_id. Poll GET /v1/jobs/{job_id} for status.
+        Use this for large audits (n_rephrases > 5) or CI/CD pipelines where
+        you don't want to block the HTTP connection.
+
+        Returns: {"job_id": "...", "status_url": "/v1/jobs/{job_id}"}
+        """
+        job_id = uuid.uuid4().hex[:10].upper()
+        _JOB_STORE[job_id] = {
+            "status":     "queued",
+            "report_id":  None,
+            "error":      None,
+            "created_at": time.time(),
+        }
+
+        def _run_job():
+            _JOB_STORE[job_id]["status"] = "running"
+            try:
+                from glassbox.audit import BlackBoxAuditor, ModelProvider
+                from glassbox.compliance import AnnexIVReport
+
+                provider = ModelProvider(req.target_provider)
+                auditor  = BlackBoxAuditor(
+                    model_provider=provider,
+                    model_name=req.target_model,
+                    api_key=x_provider_api_key,
+                )
+                logger.info("[JOB:%s] black-box audit: %s/%s", job_id, req.target_provider, req.target_model)
+                result = auditor.audit(
+                    decision_prompt    =req.decision_prompt,
+                    expected_positive  =req.expected_positive,
+                    expected_negative  =req.expected_negative,
+                    context_variables  =req.context_variables,
+                    n_rephrases        =req.n_rephrases,
+                    n_sensitivity_steps=req.n_sensitivity_steps,
+                )
+                ctx   = _parse_context(req.deployment_context)
+                annex = AnnexIVReport(
+                    model_name         =req.target_model,
+                    system_purpose     =req.system_purpose,
+                    provider_name      =req.provider_name,
+                    provider_address   =req.provider_address,
+                    deployment_context =ctx,
+                )
+                annex.add_analysis(result, use_case=req.use_case)
+                json_report = annex.to_json()
+                report_id   = uuid.uuid4().hex[:8].upper()
+                _REPORT_STORE[report_id] = {
+                    "json":       json_report,
+                    "mode":       "black_box_async",
+                    "created_at": time.time(),
+                }
+                if req.generate_pdf:
+                    import tempfile
+                    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                        pdf_path = Path(tmp.name)
+                    annex.to_pdf(str(pdf_path))
+                    _PDF_STORE[report_id] = pdf_path
+                _JOB_STORE[job_id].update({"status": "completed", "report_id": report_id})
+            except Exception as exc:
+                logger.error("[JOB:%s] failed: %s", job_id, exc)
+                _JOB_STORE[job_id].update({"status": "failed", "error": str(exc)[:300]})
+
+        background_tasks.add_task(_run_job)
+        return {
+            "job_id":     job_id,
+            "status":     "queued",
+            "status_url": f"/v1/jobs/{job_id}",
+            "message":    "Audit queued. Poll status_url for completion.",
+        }
+
+    @app.get("/v1/jobs/{job_id}")
+    def get_job_status(job_id: str):
+        """
+        Poll the status of an async audit job.
+
+        Returns one of: queued | running | completed | failed
+        When completed, includes report_id for use with GET /v1/audit/report/{id}
+        """
+        if job_id not in _JOB_STORE:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+        job = _JOB_STORE[job_id]
+        resp = {
+            "job_id":     job_id,
+            "status":     job["status"],
+            "created_at": job["created_at"],
+            "elapsed":    round(time.time() - job["created_at"], 1),
+        }
+        if job["status"] == "completed":
+            resp["report_id"]    = job["report_id"]
+            resp["report_url"]   = f"/v1/audit/report/{job['report_id']}"
+            resp["pdf_url"]      = f"/v1/audit/pdf/{job['report_id']}" if job["report_id"] in _PDF_STORE else None
+        if job["status"] == "failed":
+            resp["error"] = job["error"]
+        return resp
+
+    @app.get("/v1/jobs")
+    def list_jobs():
+        """List all async jobs in this session."""
+        return {
+            "jobs": [
+                {"job_id": jid, "status": j["status"], "created_at": j["created_at"]}
+                for jid, j in _JOB_STORE.items()
+            ],
+            "total": len(_JOB_STORE),
+        }
+
     @app.get("/v1/audit/reports")
     def list_reports():
         """List all report IDs stored in this session."""
