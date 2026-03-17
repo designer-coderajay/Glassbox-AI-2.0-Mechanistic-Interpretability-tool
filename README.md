@@ -1,7 +1,7 @@
 <div align="center">
 
 # Glassbox 2.0
-**Causal mechanistic interpretability for transformer models. See exactly why your LLM made that prediction.**
+**Circuit analysis for transformer models + EU AI Act Annex IV compliance reports. Open source. Free.**
 
 [![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI)](https://pypi.org/project/glassbox-mech-interp/)
 [![Downloads](https://static.pepy.tech/badge/glassbox-mech-interp)](https://pepy.tech/projects/glassbox-mech-interp)
@@ -10,19 +10,21 @@
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
 [![arXiv](https://img.shields.io/badge/arXiv-2603.09988-b31b1b?logo=arxiv)](https://arxiv.org/abs/2603.09988)
 [![Tests](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml)
-[![LessWrong](https://img.shields.io/badge/LessWrong-Discussion-teal)]([https://lesswrong.com](https://www.lesswrong.com/posts/Bkp73EaixnXdL4tKa/glassbox-i-built-a-circuit-discovery-toolkit-that-s-37))
+[![LessWrong](https://img.shields.io/badge/LessWrong-Discussion-teal)](https://www.lesswrong.com/posts/Bkp73EaixnXdL4tKa/glassbox-i-built-a-circuit-discovery-toolkit-that-s-37)
 
-[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**Docs**](https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**Discussion**](https://lesswrong.com)
+[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**Docs**](https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/)
 
 </div>
 
 ---
 
-Glassbox answers a single question: **what is this transformer actually doing?**
+Glassbox does two things.
 
-One function call identifies the circuit — the sparse subgraph of attention heads and MLP layers causally responsible for a prediction. Every score is grounded in peer-reviewed mechanistic interpretability research. Every approximation is disclosed.
+**For researchers:** one function call identifies the minimum faithful circuit — the smallest subgraph of attention heads causally responsible for a prediction. 37x faster than ACDC. Every approximation disclosed.
 
-Built for researchers. Designed for production.
+**For companies deploying AI in the EU:** generates a legally-structured Annex IV technical documentation report (all 9 sections) from that analysis. Works on open-source models (white-box) and proprietary APIs like GPT-4 and Claude (black-box). Enforcement deadline: August 2026.
+
+100% open source. MIT license. No paid tier yet.
 
 ---
 
@@ -48,13 +50,17 @@ Glassbox v2.6.0 ships features that exist **nowhere else as a unified toolkit**:
 | Edge Attribution Patching (Syed et al. 2024) | ✅ | ❌ | ❌ | ❌ |
 | Logit Lens + Per-head Direct Effects | ✅ | Partial | ❌ | ❌ |
 | Attribution Stability (Kendall τ-b) | ✅ | ❌ | ❌ | ❌ |
-| **SAE Feature Attribution (sae-lens)** | ✅ | ❌ | ❌ | ❌ |
-| **QK / OV Composition Scores** | ✅ | ❌ | ❌ | ❌ |
-| **Token-level Saliency Maps** | ✅ | ❌ | ❌ | ❌ |
-| **Attention Pattern Analysis + Head Typing** | ✅ | ❌ | ❌ | ❌ |
+| SAE Feature Attribution (sae-lens) | ✅ | ❌ | ❌ | ❌ |
+| QK / OV Composition Scores | ✅ | ❌ | ❌ | ❌ |
+| Token-level Saliency Maps | ✅ | ❌ | ❌ | ❌ |
+| Attention Pattern Analysis + Head Typing | ✅ | ❌ | ❌ | ❌ |
 | Bootstrap 95% CI on faithfulness | ✅ | ❌ | ❌ | ❌ |
 | Cross-model circuit alignment (FCAS) | ✅ | ❌ | ❌ | ❌ |
 | MLP attribution | ✅ | ❌ | ❌ | ❌ |
+| **EU AI Act Annex IV report (all 9 sections)** | ✅ | ❌ | ❌ | ❌ |
+| **Black-box audit — any API model** | ✅ | ❌ | ❌ | ❌ |
+| **REST API (FastAPI)** | ✅ | ❌ | ❌ | ❌ |
+| **Compliance officer web dashboard** | ✅ | ❌ | ❌ | ❌ |
 | One-call API | ✅ | ❌ | ❌ | ❌ |
 | Interactive dashboard (HF Spaces) | ✅ | ❌ | ❌ | ❌ |
 
@@ -89,6 +95,56 @@ print(result["faithfulness"])
 ```
 
 Try it instantly — no install needed: **[huggingface.co/spaces/designer-coderajay/Glassbox-ai](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)**
+
+---
+
+## EU AI Act Compliance — Annex IV Reports
+
+If your company deploys AI in the EU (finance, healthcare, HR, legal, critical infrastructure), Regulation EU 2024/1689 requires Annex IV technical documentation. Enforcement starts August 2026. Penalties: up to 3% of global annual turnover.
+
+Glassbox generates the report from your analysis in one call.
+
+```python
+from glassbox.compliance import AnnexIVReport, DeploymentContext
+
+report = AnnexIVReport(
+    model_name         = "LoanDecision v2.1",
+    system_purpose     = "Credit risk assessment for loan applications",
+    provider_name      = "Acme Bank NV",
+    provider_address   = "1 Fintech Street, Amsterdam 1011AB, Netherlands",
+    deployment_context = DeploymentContext.FINANCIAL_SERVICES,
+)
+
+result = gb.analyze(prompt, " denied", " approved")
+report.add_analysis(result, use_case="Loan denial — insufficient credit history")
+
+report.to_pdf("annex_iv_report.pdf")   # 20-page legally-structured PDF
+report.save_json("annex_iv_report.json")  # machine-readable for audit systems
+```
+
+For proprietary models (GPT-4, Claude, Llama via API) — no weights needed:
+
+```python
+from glassbox.audit import BlackBoxAuditor, ModelProvider
+
+auditor = BlackBoxAuditor(
+    model_provider = ModelProvider.OPENAI,
+    model_name     = "gpt-4",
+    api_key        = "sk-...",
+)
+
+result = auditor.audit(
+    decision_prompt    = "The loan applicant has credit score 620. The decision should be",
+    expected_positive  = "approved",
+    expected_negative  = "denied",
+    context_variables  = {"credit_score": 620, "income": 45000},
+)
+
+report.add_analysis(result)
+report.to_pdf("gpt4_annex_iv.pdf")
+```
+
+Web dashboard (no Python required): open `dashboard/compliance_dashboard.html` and run the REST API backend with `uvicorn api.main:app`.
 
 ---
 

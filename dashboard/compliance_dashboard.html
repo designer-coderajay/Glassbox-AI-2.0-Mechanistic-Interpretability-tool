@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glassbox — EU AI Act Compliance Dashboard</title>
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #21262d;
+      --border:    #30363d;
+      --accent:    #1f6feb;
+      --accent2:   #388bfd;
+      --green:     #3fb950;
+      --yellow:    #d29922;
+      --red:       #f85149;
+      --orange:    #e3b341;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --code-bg:   #161b22;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ---- NAV ---- */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo .logo-box {
+      background: var(--accent);
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+    .nav-badge {
+      background: rgba(31, 111, 235, 0.15);
+      border: 1px solid rgba(31, 111, 235, 0.4);
+      color: var(--accent2);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ---- HERO ---- */
+    .hero {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 32px 32px;
+      text-align: center;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #e6edf3, #8b949e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 640px;
+      margin: 0 auto 32px;
+    }
+    .deadline-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(245, 82, 73, 0.1);
+      border: 1px solid rgba(245, 82, 73, 0.3);
+      color: #ff7b72;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+    .deadline-banner .dot {
+      width: 7px; height: 7px;
+      background: #f85149;
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ---- STATS BAR ---- */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      max-width: 700px;
+      margin: 40px auto 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .stat-item {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent2);
+      display: block;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* ---- MAIN LAYOUT ---- */
+    .main {
+      max-width: 1100px;
+      margin: 60px auto 0;
+      padding: 0 32px 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* ---- FORM PANEL ---- */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title .icon {
+      font-size: 16px;
+    }
+    .panel-body { padding: 24px; }
+
+    .form-section {
+      margin-bottom: 24px;
+    }
+    .form-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-row { margin-bottom: 16px; }
+    .form-row label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .form-row label .required {
+      color: var(--red);
+      margin-left: 3px;
+    }
+    .form-row label .hint {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 9px 12px;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-row textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15);
+    }
+    .form-row textarea { resize: vertical; min-height: 72px; }
+    .form-row select { cursor: pointer; }
+
+    .form-row input[type="password"] {
+      font-family: monospace;
+      letter-spacing: 1px;
+    }
+
+    /* mode toggle */
+    .mode-toggle {
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .mode-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* submit button */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .submit-btn:hover:not(:disabled) {
+      background: #1158cc;
+      transform: translateY(-1px);
+    }
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .submit-btn .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- RESULT PANEL ---- */
+    .result-panel {
+      grid-column: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* empty state */
+    .empty-state {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 60px 32px;
+      text-align: center;
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .empty-state p { color: var(--muted); font-size: 14px; max-width: 280px; margin: 0 auto; }
+
+    /* grade card */
+    .grade-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: none;
+    }
+    .grade-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .grade-badge {
+      width: 72px; height: 72px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    .grade-A { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 2px solid rgba(63, 185, 80, 0.4); }
+    .grade-B { background: rgba(56, 139, 253, 0.15); color: #388bfd; border: 2px solid rgba(56, 139, 253, 0.4); }
+    .grade-C { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 2px solid rgba(210, 153, 34, 0.4); }
+    .grade-D { background: rgba(248, 81, 73, 0.15); color: #f85149; border: 2px solid rgba(248, 81, 73, 0.4); }
+
+    .grade-info { flex: 1; margin-left: 16px; }
+    .grade-info h3 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .grade-info .grade-sub { font-size: 13px; color: var(--muted); }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .metric-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+    .metric-box .m-value {
+      font-size: 22px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-box .m-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .circuit-row {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .circuit-row h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .circuit-heads {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .head-chip {
+      background: rgba(31, 111, 235, 0.12);
+      border: 1px solid rgba(31, 111, 235, 0.25);
+      color: var(--accent2);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-family: monospace;
+    }
+
+    /* risk flags */
+    .risk-list { display: flex; flex-direction: column; gap: 8px; }
+    .risk-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 7px;
+      font-size: 13px;
+    }
+    .risk-high   { background: rgba(248, 81, 73, 0.08); border: 1px solid rgba(248, 81, 73, 0.2); }
+    .risk-medium { background: rgba(210, 153, 34, 0.08); border: 1px solid rgba(210, 153, 34, 0.2); }
+    .risk-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+    .risk-text strong { display: block; font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+    .risk-text span { color: var(--muted); font-size: 11px; }
+
+    /* compliance status */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .status-CONDITIONALLY_COMPLIANT { background: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.25); }
+    .status-INCOMPLETE               { background: rgba(210, 153, 34, 0.1); border: 1px solid rgba(210, 153, 34, 0.25); }
+    .status-NON_COMPLIANT            { background: rgba(248, 81, 73, 0.1);  border: 1px solid rgba(248, 81, 73, 0.25); }
+
+    /* download buttons */
+    .download-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .dl-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .dl-pdf {
+      background: rgba(248, 81, 73, 0.1);
+      border-color: rgba(248, 81, 73, 0.3);
+      color: #ff7b72;
+    }
+    .dl-pdf:hover { background: rgba(248, 81, 73, 0.2); }
+    .dl-json {
+      background: rgba(63, 185, 80, 0.1);
+      border-color: rgba(63, 185, 80, 0.3);
+      color: #3fb950;
+    }
+    .dl-json:hover { background: rgba(63, 185, 80, 0.2); }
+
+    /* progress steps */
+    .progress-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: none;
+    }
+    .progress-panel h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .step.active { color: var(--text); }
+    .step.done   { color: var(--green); }
+    .step-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .step.active .step-dot { background: var(--accent); animation: pulse 1.2s infinite; }
+    .step.done .step-dot   { background: var(--green); }
+
+    /* error panel */
+    .error-panel {
+      background: rgba(248, 81, 73, 0.08);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      border-radius: 10px;
+      padding: 20px;
+      display: none;
+    }
+    .error-panel h3 { color: #ff7b72; font-size: 14px; margin-bottom: 8px; }
+    .error-panel p  { color: var(--muted); font-size: 13px; }
+
+    /* ---- HOW IT WORKS ---- */
+    .how-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px 60px;
+    }
+    .how-section h2 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .how-section p { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .step-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .step-card p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ---- FOOTER ---- */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 32px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .result-panel { grid-column: 1; }
+      .steps-grid { grid-template-columns: 1fr 1fr; }
+      .hero h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span class="logo-box">GB</span>
+    Glassbox
+    <span class="nav-badge">EU AI Act v2.6.0</span>
+  </div>
+  <div class="nav-links">
+    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">GitHub</a>
+    <a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI</a>
+    <a href="#how-it-works">Docs</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">Open Source. EU AI Act. Annex IV.</div>
+  <h1>AI compliance reports.<br>Automated. In seconds.</h1>
+  <p>The only tool that generates a legally-structured EU AI Act Annex IV technical documentation report from your model. Works on any LLM — open source or proprietary.</p>
+  <div class="deadline-banner">
+    <span class="dot"></span>
+    Enforcement deadline: 2 August 2026 — <strong style="margin-left:4px;">High-risk AI systems under Annex III</strong>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-value">37×</span>
+    <span class="stat-label">Faster than ACDC</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-value">9</span>
+    <span class="stat-label">Annex IV Sections</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-value">100%</span>
+    <span class="stat-label">Model Coverage</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-value">A–D</span>
+    <span class="stat-label">Explainability Grade</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<section class="main">
+
+  <!-- LEFT: FORM -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span class="icon">⚡</span> Generate Compliance Report</div>
+      </div>
+      <div class="panel-body">
+
+        <!-- Mode toggle -->
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="btn-whitebox" onclick="setMode('white')">
+            🔬 White-Box (Open Models)
+          </button>
+          <button class="mode-btn" id="btn-blackbox" onclick="setMode('black')">
+            🔒 Black-Box (Any API)
+          </button>
+        </div>
+
+        <!-- WHITE-BOX FORM -->
+        <div id="form-whitebox">
+          <div class="form-section">
+            <div class="form-section-title">Model &amp; Analysis</div>
+            <div class="form-row">
+              <label>Model Name <span class="required">*</span><span class="hint">TransformerLens-compatible</span></label>
+              <input id="wb-model" type="text" value="gpt2" placeholder="gpt2, gpt2-medium, EleutherAI/gpt-neo-125m" />
+            </div>
+            <div class="form-row">
+              <label>Decision Prompt <span class="required">*</span></label>
+              <textarea id="wb-prompt" placeholder="When Mary and John went to the store, John gave a drink to">When Mary and John went to the store, John gave a drink to</textarea>
+            </div>
+            <div class="form-row">
+              <label>Correct Token <span class="required">*</span><span class="hint">expected output</span></label>
+              <input id="wb-correct" type="text" value=" Mary" placeholder=" Mary" />
+            </div>
+            <div class="form-row">
+              <label>Incorrect Token <span class="required">*</span><span class="hint">distractor</span></label>
+              <input id="wb-incorrect" type="text" value=" John" placeholder=" John" />
+            </div>
+            <div class="form-row">
+              <label>Attribution Method</label>
+              <select id="wb-method">
+                <option value="taylor">Taylor (fast — 3+2p passes)</option>
+                <option value="integrated_gradients">Integrated Gradients (accurate, slower)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Annex IV — Provider Information</div>
+            <div class="form-row">
+              <label>AI System Name <span class="required">*</span></label>
+              <input id="wb-sysname" type="text" placeholder="LoanDecision v2.1" />
+            </div>
+            <div class="form-row">
+              <label>System Purpose <span class="required">*</span></label>
+              <input id="wb-purpose" type="text" placeholder="Automated credit risk assessment for loan applications" />
+            </div>
+            <div class="form-row">
+              <label>Provider Name <span class="required">*</span></label>
+              <input id="wb-provider" type="text" placeholder="Acme Bank NV" />
+            </div>
+            <div class="form-row">
+              <label>Provider Address <span class="required">*</span></label>
+              <input id="wb-address" type="text" placeholder="1 Fintech Street, Amsterdam 1011AB, Netherlands" />
+            </div>
+            <div class="form-row">
+              <label>Deployment Context</label>
+              <select id="wb-context">
+                <option value="financial_services">Financial Services (credit, insurance, loans)</option>
+                <option value="healthcare">Healthcare (diagnosis, treatment AI)</option>
+                <option value="hr_employment">HR &amp; Employment (recruitment, assessment)</option>
+                <option value="legal">Legal (document analysis, advice)</option>
+                <option value="critical_infrastructure">Critical Infrastructure</option>
+                <option value="education">Education (assessment, admissions)</option>
+                <option value="other_high_risk">Other High-Risk (Annex III)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Use Case Description</label>
+              <input id="wb-usecase" type="text" placeholder="Loan denial — insufficient credit history" />
+            </div>
+          </div>
+        </div>
+
+        <!-- BLACK-BOX FORM -->
+        <div id="form-blackbox" style="display:none">
+          <div class="form-section">
+            <div class="form-section-title">Target Model</div>
+            <div class="form-row">
+              <label>Provider <span class="required">*</span></label>
+              <select id="bb-provider-api">
+                <option value="openai">OpenAI (GPT-4, GPT-3.5)</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+                <option value="together">Together AI (Llama, Mistral)</option>
+                <option value="groq">Groq (Llama 3, Mixtral)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Model Name <span class="required">*</span></label>
+              <input id="bb-model" type="text" value="gpt-4" placeholder="gpt-4, claude-3-opus-20240229, llama-3-70b" />
+            </div>
+            <div class="form-row">
+              <label>API Key <span class="required">*</span><span class="hint">not stored</span></label>
+              <input id="bb-apikey" type="password" placeholder="sk-..." />
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Behavioural Probe</div>
+            <div class="form-row">
+              <label>Decision Prompt <span class="required">*</span></label>
+              <textarea id="bb-prompt" placeholder="The applicant has a credit score of 620 and annual income of $45,000. Based on standard banking criteria, the loan application should be">The applicant has a credit score of 620 and annual income of $45,000. The loan application should be</textarea>
+            </div>
+            <div class="form-row">
+              <label>Expected Positive Output <span class="required">*</span></label>
+              <input id="bb-positive" type="text" value="approved" placeholder="approved" />
+            </div>
+            <div class="form-row">
+              <label>Expected Negative Output <span class="required">*</span></label>
+              <input id="bb-negative" type="text" value="denied" placeholder="denied" />
+            </div>
+            <div class="form-row">
+              <label>Context Variables <span class="hint">JSON</span></label>
+              <textarea id="bb-vars" style="min-height:60px; font-family:monospace; font-size:12px">{"credit_score": 620, "annual_income": 45000, "loan_amount": 25000}</textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Annex IV — Provider Information</div>
+            <div class="form-row">
+              <label>AI System Name <span class="required">*</span></label>
+              <input id="bb-sysname" type="text" placeholder="GPT-4 Credit Scorer v1.0" />
+            </div>
+            <div class="form-row">
+              <label>System Purpose <span class="required">*</span></label>
+              <input id="bb-purpose" type="text" placeholder="Credit risk assessment for loan applications" />
+            </div>
+            <div class="form-row">
+              <label>Provider Name <span class="required">*</span></label>
+              <input id="bb-provider" type="text" placeholder="Acme Bank NV" />
+            </div>
+            <div class="form-row">
+              <label>Provider Address <span class="required">*</span></label>
+              <input id="bb-address" type="text" placeholder="1 Fintech Street, Amsterdam 1011AB, Netherlands" />
+            </div>
+            <div class="form-row">
+              <label>Deployment Context</label>
+              <select id="bb-context">
+                <option value="financial_services">Financial Services</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="hr_employment">HR &amp; Employment</option>
+                <option value="legal">Legal</option>
+                <option value="other_high_risk">Other High-Risk</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- API config note -->
+        <div style="background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:12px 14px; font-size:12px; color:var(--muted); margin-bottom:16px; display:flex; gap:8px; align-items:flex-start;">
+          <span>ℹ️</span>
+          <span>API endpoint: <code style="color:var(--accent2);">http://localhost:8000</code> — run <code style="color:var(--accent2);">uvicorn api.main:app</code> to start the backend. <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" style="color:var(--accent2);">Setup guide →</a></span>
+        </div>
+
+        <div class="form-row">
+          <label>API Server URL</label>
+          <input id="api-url" type="text" value="http://localhost:8000" placeholder="http://localhost:8000" />
+        </div>
+
+        <button class="submit-btn" id="submit-btn" onclick="runAudit()">
+          <span class="spinner" id="spinner"></span>
+          <span id="submit-label">⚡ Generate Annex IV Report</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: RESULTS -->
+  <div class="result-panel" id="result-panel">
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>Your compliance report</h3>
+      <p>Fill in the form and click "Generate" to produce a legally-structured EU AI Act Annex IV report.</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-panel" id="progress-panel">
+      <h3>Generating Annex IV Report...</h3>
+      <div class="step" id="step-1"><div class="step-dot"></div> Loading model</div>
+      <div class="step" id="step-2"><div class="step-dot"></div> Running attribution patching</div>
+      <div class="step" id="step-3"><div class="step-dot"></div> Discovering minimum faithful circuit</div>
+      <div class="step" id="step-4"><div class="step-dot"></div> Computing faithfulness metrics</div>
+      <div class="step" id="step-5"><div class="step-dot"></div> Building Annex IV sections (1–9)</div>
+      <div class="step" id="step-6"><div class="step-dot"></div> Generating PDF + JSON report</div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-panel" id="error-panel">
+      <h3>⚠️ Error</h3>
+      <p id="error-msg">Something went wrong.</p>
+    </div>
+
+    <!-- Grade card -->
+    <div class="grade-card" id="grade-card">
+      <div class="grade-header">
+        <div class="grade-badge" id="grade-badge">A</div>
+        <div class="grade-info">
+          <h3 id="grade-title">Grade A — Fully Explainable</h3>
+          <div class="grade-sub" id="grade-sub">Report ID: GB-XXXXXXXX</div>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="m-value" id="m-suff" style="color:#3fb950">—</div>
+          <div class="m-label">Sufficiency</div>
+        </div>
+        <div class="metric-box">
+          <div class="m-value" id="m-comp" style="color:#388bfd">—</div>
+          <div class="m-label">Comprehensiveness</div>
+        </div>
+        <div class="metric-box">
+          <div class="m-value" id="m-f1" style="color:#d29922">—</div>
+          <div class="m-label">F1 Score</div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="status-row" id="status-row">
+        <span id="status-icon">✓</span>
+        <span id="status-text">Conditionally Compliant</span>
+      </div>
+
+      <!-- Circuit -->
+      <div class="circuit-row" style="margin-top:16px">
+        <h4>Identified Circuit Components</h4>
+        <div class="circuit-heads" id="circuit-heads"></div>
+      </div>
+
+      <!-- Risks -->
+      <div id="risks-section" style="margin-top:12px"></div>
+
+      <!-- Downloads -->
+      <div class="download-row">
+        <a class="dl-btn dl-pdf" id="dl-pdf-btn" href="#" target="_blank">
+          📄 Download PDF Report
+        </a>
+        <a class="dl-btn dl-json" id="dl-json-btn" href="#" target="_blank">
+          { } View JSON Report
+        </a>
+      </div>
+
+      <!-- Elapsed -->
+      <div style="text-align:center; margin-top:12px; font-size:11px; color:var(--muted)" id="elapsed-info"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how-it-works">
+  <h2>How it works</h2>
+  <p>Three steps from model to compliance report, fully automated.</p>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <h4>Describe your system</h4>
+      <p>Enter your model name (or API key for proprietary models), your use case, and provider details for Annex IV.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <h4>Glassbox runs the audit</h4>
+      <p>Attribution patching identifies the causal circuit. Sufficiency, comprehensiveness, and F1 scores are computed against EU Article 13 thresholds.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <h4>Report generated</h4>
+      <p>All 9 Annex IV sections are populated, risk flags identified, and explainability grade A–D assigned per the regulation.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <h4>Download &amp; submit</h4>
+      <p>Download your PDF and JSON report. Fill in the [PROVIDER TO COMPLETE] fields and submit to your national competent authority.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Glassbox v2.6.0 — Open Source — MIT License —
+    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">GitHub</a> ·
+    <a href="https://pypi.org/project/glassbox-mech-interp/">PyPI</a> ·
+    Built by Ajay Pravin Mahale · Regulation (EU) 2024/1689</p>
+</footer>
+
+<script>
+  let currentMode = 'white';
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('form-whitebox').style.display = mode === 'white' ? 'block' : 'none';
+    document.getElementById('form-blackbox').style.display = mode === 'black' ? 'block' : 'none';
+    document.getElementById('btn-whitebox').classList.toggle('active', mode === 'white');
+    document.getElementById('btn-blackbox').classList.toggle('active', mode === 'black');
+  }
+
+  function setLoading(loading) {
+    const btn = document.getElementById('submit-btn');
+    const spinner = document.getElementById('spinner');
+    const label = document.getElementById('submit-label');
+    btn.disabled = loading;
+    spinner.style.display = loading ? 'block' : 'none';
+    label.textContent = loading ? 'Generating...' : '⚡ Generate Annex IV Report';
+  }
+
+  function setStep(n) {
+    for (let i = 1; i <= 6; i++) {
+      const el = document.getElementById('step-' + i);
+      if (i < n)       el.className = 'step done';
+      else if (i === n) el.className = 'step active';
+      else              el.className = 'step';
+    }
+  }
+
+  function showProgress() {
+    document.getElementById('empty-state').style.display   = 'none';
+    document.getElementById('progress-panel').style.display = 'block';
+    document.getElementById('error-panel').style.display    = 'none';
+    document.getElementById('grade-card').style.display     = 'none';
+    setStep(1);
+  }
+
+  function showError(msg) {
+    setLoading(false);
+    document.getElementById('progress-panel').style.display = 'none';
+    document.getElementById('error-panel').style.display    = 'block';
+    document.getElementById('error-msg').textContent        = msg;
+  }
+
+  function showResult(data, elapsed) {
+    document.getElementById('progress-panel').style.display = 'none';
+    document.getElementById('grade-card').style.display     = 'block';
+
+    const faith = data.faithfulness || {};
+    const suff  = faith.sufficiency       || 0;
+    const comp  = faith.comprehensiveness || 0;
+    const f1    = faith.f1                || 0;
+    const grade = (data.explainability_grade || 'D')[0];
+    const reportId = data.report_id || '?';
+    const status   = data.compliance_status || '';
+
+    // Grade badge
+    const badge = document.getElementById('grade-badge');
+    badge.textContent = grade;
+    badge.className = 'grade-badge grade-' + grade;
+
+    document.getElementById('grade-title').textContent = data.explainability_grade || 'Not assessed';
+    document.getElementById('grade-sub').textContent   = 'Report ID: GB-' + reportId + ' · ' + data.analysis_mode;
+
+    // Metrics
+    const colour = f1 >= 0.70 ? '#3fb950' : f1 >= 0.50 ? '#d29922' : '#f85149';
+    document.getElementById('m-suff').textContent = suff.toFixed(3);
+    document.getElementById('m-comp').textContent = comp.toFixed(3);
+    document.getElementById('m-f1').textContent   = f1.toFixed(3);
+    document.getElementById('m-f1').style.color   = colour;
+
+    // Status row
+    const statusRow = document.getElementById('status-row');
+    statusRow.className = 'status-row status-' + status.toUpperCase();
+    const statusMap = {
+      'conditionally_compliant': ['✓', 'Conditionally Compliant — complete provider fields before submission'],
+      'incomplete':              ['⚠', 'Incomplete — provider fields required'],
+      'non_compliant':           ['✗', 'Non-Compliant — low explainability, review required'],
+    };
+    const [icon, text] = statusMap[status] || ['?', status];
+    document.getElementById('status-icon').textContent = icon;
+    document.getElementById('status-text').textContent = text;
+
+    // Circuit heads
+    const circuitEl = document.getElementById('circuit-heads');
+    const report = data.full_report || {};
+    const s2 = (report.sections || {})['2_development_design'] || {};
+    const heads = s2.circuit_heads || data.circuit || [];
+    circuitEl.innerHTML = heads.length
+      ? heads.map(h => `<span class="head-chip">${h}</span>`).join('')
+      : '<span style="color:var(--muted);font-size:12px;">No circuit identified</span>';
+
+    // Risks
+    const s5 = (report.sections || {})['5_risk_management'] || {};
+    const risks = s5.identified_risks || [];
+    const risksEl = document.getElementById('risks-section');
+    if (risks.length) {
+      risksEl.innerHTML = '<div class="risk-list">' +
+        risks.slice(0,3).map(r => `
+          <div class="risk-item risk-${r.severity || 'medium'}">
+            <span class="risk-icon">${r.severity === 'high' ? '🔴' : '🟡'}</span>
+            <div class="risk-text">
+              <strong>${r.risk || ''}</strong>
+              <span>${(r.rationale || '').slice(0,120)}...</span>
+            </div>
+          </div>`).join('') + '</div>';
+    } else {
+      risksEl.innerHTML = '';
+    }
+
+    // Downloads
+    const base = document.getElementById('api-url').value;
+    document.getElementById('dl-pdf-btn').href  = base + '/v1/audit/pdf/'    + reportId;
+    document.getElementById('dl-json-btn').href = base + '/v1/audit/report/' + reportId;
+
+    // Elapsed
+    document.getElementById('elapsed-info').textContent = `Generated in ${elapsed.toFixed(1)}s · ${new Date().toLocaleString()}`;
+  }
+
+  async function runAudit() {
+    const base = document.getElementById('api-url').value.replace(/\/$/, '');
+    setLoading(true);
+    showProgress();
+
+    // Simulate step progression for UX
+    const stepTimings = [0, 1000, 2500, 4000, 5500, 7000];
+    stepTimings.forEach((t, i) => setTimeout(() => setStep(i + 1), t));
+
+    try {
+      let endpoint, payload;
+
+      if (currentMode === 'white') {
+        endpoint = base + '/v1/audit/analyze';
+        payload = {
+          model_name:        document.getElementById('wb-model').value,
+          prompt:            document.getElementById('wb-prompt').value,
+          correct_token:     document.getElementById('wb-correct').value,
+          incorrect_token:   document.getElementById('wb-incorrect').value,
+          method:            document.getElementById('wb-method').value,
+          provider_name:     document.getElementById('wb-provider').value,
+          provider_address:  document.getElementById('wb-address').value,
+          system_purpose:    document.getElementById('wb-purpose').value,
+          deployment_context: document.getElementById('wb-context').value,
+          use_case:          document.getElementById('wb-usecase').value,
+          generate_pdf:      true,
+        };
+        // Use system name for model_name display if provided
+        const sysName = document.getElementById('wb-sysname').value;
+        if (sysName) payload.model_name = sysName;
+      } else {
+        endpoint = base + '/v1/audit/black-box';
+        let contextVars = null;
+        try {
+          contextVars = JSON.parse(document.getElementById('bb-vars').value || '{}');
+        } catch(e) { /* ignore */ }
+        payload = {
+          target_provider:   document.getElementById('bb-provider-api').value,
+          target_model:      document.getElementById('bb-model').value,
+          api_key:           document.getElementById('bb-apikey').value,
+          decision_prompt:   document.getElementById('bb-prompt').value,
+          expected_positive: document.getElementById('bb-positive').value,
+          expected_negative: document.getElementById('bb-negative').value,
+          context_variables: contextVars,
+          n_rephrases:       3,
+          provider_name:     document.getElementById('bb-provider').value,
+          provider_address:  document.getElementById('bb-address').value,
+          system_purpose:    document.getElementById('bb-purpose').value,
+          deployment_context: document.getElementById('bb-context').value,
+          use_case:          document.getElementById('bb-model').value + ' compliance audit',
+          generate_pdf:      true,
+        };
+        const sysName = document.getElementById('bb-sysname').value;
+        if (sysName) payload.target_model = sysName;
+      }
+
+      const t0 = Date.now();
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+        throw new Error(err.detail || resp.statusText);
+      }
+
+      const data = await resp.json();
+      const elapsed = (Date.now() - t0) / 1000;
+      setStep(7); // all done
+      setLoading(false);
+      showResult(data, elapsed);
+
+    } catch (err) {
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        showError('Cannot reach the API server at ' + base + '. Make sure it\'s running: uvicorn api.main:app --port 8000');
+      } else {
+        showError(err.message || 'Unknown error occurred.');
+      }
+      setLoading(false);
+    }
+  }
+
+  // Allow Enter in text inputs
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.ctrlKey) runAudit();
+  });
+</script>
+</body>
+</html>
