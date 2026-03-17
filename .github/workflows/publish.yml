@@ -75,40 +75,11 @@ jobs:
           pip install twine --quiet
           python -m twine check dist/*
 
-      - name: Get PyPI upload token (OIDC)
-        run: |
-          python3 << 'PYEOF'
-          import os, urllib.request, json, sys, urllib.error
-
-          # Get OIDC token
-          url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
-          req = urllib.request.Request(url, headers={"Authorization": f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"})
-          with urllib.request.urlopen(req) as r:
-              oidc_token = json.loads(r.read())['value']
-
-          # Exchange for PyPI upload token
-          body = json.dumps({'token': oidc_token}).encode()
-          req2 = urllib.request.Request(
-              'https://pypi.org/_/oidc/github/mint-token',
-              data=body, headers={'Content-Type': 'application/json'}
-          )
-          try:
-              with urllib.request.urlopen(req2) as r:
-                  upload_token = json.loads(r.read())['token']
-              print(f'::notice::OIDC mint-token SUCCESS (token prefix: {upload_token[:15]}...)')
-              with open(os.environ['GITHUB_ENV'], 'a') as f:
-                  f.write(f'PYPI_UPLOAD_TOKEN={upload_token}\n')
-          except urllib.error.HTTPError as e:
-              print(f'::error::mint-token FAILED {e.code}: {e.read().decode()}')
-              sys.exit(1)
-          PYEOF
-
       - name: Upload to PyPI via Python (requests + full metadata)
         run: |
           pip install requests --quiet
           python3 << 'PYEOF'
-          import os, glob, hashlib, sys, zipfile, tarfile, email
-          import json
+          import os, glob, hashlib, sys, zipfile, tarfile, email, json, urllib.request, urllib.error
 
           try:
               import requests
@@ -116,32 +87,36 @@ jobs:
               print('::error::requests not installed')
               sys.exit(1)
 
-          upload_token = os.environ.get('PYPI_UPLOAD_TOKEN', '')
-          if not upload_token:
-              print('::error::PYPI_UPLOAD_TOKEN is empty')
-              sys.exit(1)
-
           UPLOAD_URL = 'https://upload.pypi.org/legacy/'
 
+          def mint_token():
+              """Exchange GitHub OIDC JWT for a PyPI upload token."""
+              url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
+              req = urllib.request.Request(url, headers={"Authorization": f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"})
+              with urllib.request.urlopen(req) as r:
+                  oidc_token = json.loads(r.read())['value']
+              body = json.dumps({'token': oidc_token}).encode()
+              req2 = urllib.request.Request(
+                  'https://pypi.org/_/oidc/github/mint-token',
+                  data=body, headers={'Content-Type': 'application/json'}
+              )
+              with urllib.request.urlopen(req2) as r:
+                  return json.loads(r.read())['token']
+
           def parse_wheel_meta(filepath):
-              """Extract metadata dict from wheel METADATA file."""
               with zipfile.ZipFile(filepath) as z:
                   for name in z.namelist():
                       if name.endswith('/METADATA') or name == 'METADATA':
-                          raw = z.read(name).decode('utf-8', errors='replace')
-                          msg = email.message_from_string(raw)
-                          return msg
+                          return email.message_from_string(z.read(name).decode('utf-8', errors='replace'))
               return None
 
           def parse_sdist_meta(filepath):
-              """Extract PKG-INFO from sdist."""
               with tarfile.open(filepath, 'r:gz') as t:
                   for member in t.getmembers():
                       if member.name.endswith('/PKG-INFO') or member.name == 'PKG-INFO':
                           f = t.extractfile(member)
                           if f:
-                              raw = f.read().decode('utf-8', errors='replace')
-                              return email.message_from_string(raw)
+                              return email.message_from_string(f.read().decode('utf-8', errors='replace'))
               return None
 
           files_to_upload = sorted(glob.glob('dist/*'))
@@ -162,9 +137,12 @@ jobs:
               if filepath.endswith('.whl'):
                   filetype = 'bdist_wheel'
                   meta = parse_wheel_meta(filepath)
+                  # Extract python tag from wheel filename: pkg-ver-pytag-abi-platform.whl
+                  pyversion = fname.split('-')[2]   # e.g. 'py3'
               else:
                   filetype = 'sdist'
                   meta = parse_sdist_meta(filepath)
+                  pyversion = 'source'
 
               if meta is None:
                   print(f'::error::Could not parse metadata from {fname}')
@@ -173,7 +151,16 @@ jobs:
 
               name    = meta.get('Name', '')
               version = meta.get('Version', '')
-              print(f'::notice::{fname} → name={name} version={version} type={filetype}')
+              print(f'::notice::{fname} → name={name} version={version} type={filetype} pyversion={pyversion}')
+
+              # Mint a fresh token per file (OIDC tokens may be single-use)
+              try:
+                  upload_token = mint_token()
+                  print(f'::notice::Token minted for {fname} (prefix: {upload_token[:15]}...)')
+              except Exception as exc:
+                  print(f'::error::Failed to mint token for {fname}: {exc}')
+                  all_ok = False
+                  continue
 
               # Build full metadata dict (twine-compatible fields)
               data = {':action': 'file_upload', 'protocol_version': '1'}
@@ -191,9 +178,10 @@ jobs:
                       data[key.lower().replace('-', '_')] = vals
 
               data.update({
-                  'filetype':        filetype,
-                  'md5_digest':      md5,
-                  'sha2_digest':     sha2,
+                  'filetype':          filetype,
+                  'pyversion':         pyversion,
+                  'md5_digest':        md5,
+                  'sha2_digest':       sha2,
                   'blake2_256_digest': b2,
               })
 
@@ -205,7 +193,6 @@ jobs:
                       data=data,
                       timeout=120,
                   )
-                  # Flatten response for annotation (no newlines allowed)
                   body = resp.text.replace('\n', ' | ').replace('\r', '')[:600]
                   print(f'::notice::{fname} → HTTP {resp.status_code}')
                   if resp.status_code == 200:
