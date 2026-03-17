@@ -103,13 +103,12 @@ jobs:
               sys.exit(1)
           PYEOF
 
-      - name: Upload to PyPI via Python (requests)
+      - name: Upload to PyPI via Python (requests + full metadata)
         run: |
           pip install requests --quiet
           python3 << 'PYEOF'
-          import os, glob, hashlib, sys
-          import urllib.request, urllib.error
-          import json, base64
+          import os, glob, hashlib, sys, zipfile, tarfile, email
+          import json
 
           try:
               import requests
@@ -124,53 +123,98 @@ jobs:
 
           UPLOAD_URL = 'https://upload.pypi.org/legacy/'
 
+          def parse_wheel_meta(filepath):
+              """Extract metadata dict from wheel METADATA file."""
+              with zipfile.ZipFile(filepath) as z:
+                  for name in z.namelist():
+                      if name.endswith('/METADATA') or name == 'METADATA':
+                          raw = z.read(name).decode('utf-8', errors='replace')
+                          msg = email.message_from_string(raw)
+                          return msg
+              return None
+
+          def parse_sdist_meta(filepath):
+              """Extract PKG-INFO from sdist."""
+              with tarfile.open(filepath, 'r:gz') as t:
+                  for member in t.getmembers():
+                      if member.name.endswith('/PKG-INFO') or member.name == 'PKG-INFO':
+                          f = t.extractfile(member)
+                          if f:
+                              raw = f.read().decode('utf-8', errors='replace')
+                              return email.message_from_string(raw)
+              return None
+
           files_to_upload = sorted(glob.glob('dist/*'))
-          print(f'::notice::Files to upload: {files_to_upload}')
+          print(f'::notice::Files: {[os.path.basename(f) for f in files_to_upload]}')
 
           all_ok = True
           for filepath in files_to_upload:
               fname = os.path.basename(filepath)
-              print(f'::notice::Uploading {fname}...')
+              print(f'::notice::Processing {fname}...')
+
               with open(filepath, 'rb') as fh:
                   content = fh.read()
 
-              md5 = hashlib.md5(content).hexdigest()
+              md5  = hashlib.md5(content).hexdigest()
               sha2 = hashlib.sha256(content).hexdigest()
+              b2   = hashlib.blake2b(content, digest_size=32).hexdigest()
 
-              # Determine file type
               if filepath.endswith('.whl'):
                   filetype = 'bdist_wheel'
+                  meta = parse_wheel_meta(filepath)
               else:
                   filetype = 'sdist'
+                  meta = parse_sdist_meta(filepath)
 
-              data = {
-                  ':action': 'file_upload',
-                  'protocol_version': '1',
-                  'metadata_version': '1.0',
-                  'filetype': filetype,
-                  'md5_digest': md5,
-                  'sha2_digest': sha2,
-              }
+              if meta is None:
+                  print(f'::error::Could not parse metadata from {fname}')
+                  all_ok = False
+                  continue
+
+              name    = meta.get('Name', '')
+              version = meta.get('Version', '')
+              print(f'::notice::{fname} → name={name} version={version} type={filetype}')
+
+              # Build full metadata dict (twine-compatible fields)
+              data = {':action': 'file_upload', 'protocol_version': '1'}
+              for key in ['Metadata-Version', 'Name', 'Version', 'Summary',
+                          'Home-page', 'Author', 'Author-email', 'License',
+                          'Keywords', 'Platform', 'Requires-Python',
+                          'Description-Content-Type']:
+                  val = meta.get(key)
+                  if val:
+                      data[key.lower().replace('-', '_')] = val
+
+              for key in ['Classifier', 'Requires-Dist', 'Project-URL']:
+                  vals = meta.get_all(key) or []
+                  if vals:
+                      data[key.lower().replace('-', '_')] = vals
+
+              data.update({
+                  'filetype':        filetype,
+                  'md5_digest':      md5,
+                  'sha2_digest':     sha2,
+                  'blake2_256_digest': b2,
+              })
 
               try:
                   resp = requests.post(
                       UPLOAD_URL,
                       auth=('__token__', upload_token),
-                      files={'content': (fname, content, 'application/zip')},
+                      files={'content': (fname, content, 'application/octet-stream')},
                       data=data,
                       timeout=120,
                   )
+                  # Flatten response for annotation (no newlines allowed)
+                  body = resp.text.replace('\n', ' | ').replace('\r', '')[:600]
                   print(f'::notice::{fname} → HTTP {resp.status_code}')
-                  if resp.status_code not in (200, 400):
-                      print(f'::error::Upload failed {resp.status_code}: {resp.text[:500]}')
+                  if resp.status_code == 200:
+                      print(f'::notice::{fname} uploaded successfully!')
+                  elif resp.status_code == 400 and ('already exist' in resp.text.lower() or 'duplicate' in resp.text.lower()):
+                      print(f'::notice::{fname} already exists on PyPI — skipping')
+                  else:
+                      print(f'::error::HTTP {resp.status_code} for {fname}: {body}')
                       all_ok = False
-                  elif resp.status_code == 400:
-                      body = resp.text.strip()
-                      if 'already exist' in body.lower() or 'duplicate' in body.lower():
-                          print(f'::notice::{fname} already exists — skipping')
-                      else:
-                          print(f'::error::400 from PyPI: {body[:500]}')
-                          all_ok = False
               except Exception as exc:
                   print(f'::error::Exception uploading {fname}: {exc}')
                   all_ok = False
