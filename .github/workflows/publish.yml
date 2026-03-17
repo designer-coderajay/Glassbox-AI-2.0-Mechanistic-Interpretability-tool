@@ -104,10 +104,16 @@ jobs:
               ['python', '-m', 'twine', 'upload', '--skip-existing', '--verbose', 'dist/*'],
               env=env, capture_output=True, text=True
           )
-          print(result.stdout)
+          combined = (result.stdout + '\n' + result.stderr).strip()
           if result.returncode != 0:
-              print(f'::error::twine upload failed:\n{result.stderr}')
+              # Emit every line as a separate annotation so it's fully visible
+              for line in combined.splitlines():
+                  if line.strip():
+                      print(f'::error::{line.strip()}')
               sys.exit(result.returncode)
           else:
               print('::notice::Package uploaded successfully!')
+              for line in combined.splitlines()[-10:]:
+                  if line.strip():
+                      print(f'::notice::{line.strip()}')
           PYEOF
