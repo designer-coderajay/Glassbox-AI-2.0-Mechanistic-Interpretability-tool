@@ -18,7 +18,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      # Cache pip wheels so dependency install is fast on repeat runs
+      # Cache pip wheels so dependency install is fast on repeat runs.
+      # Key includes pyproject.toml hash so a dep change busts the cache.
       - name: Cache pip
         uses: actions/cache@v4
         with:
@@ -26,10 +27,8 @@ jobs:
           key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: pip-${{ runner.os }}-
 
-      # Cache HuggingFace model weights — GPT-2 is ~500 MB and needed even
-      # for fast tests because the module-scope engine fixture loads it once
-      # for the whole test session.  Without this cache every push re-downloads
-      # GPT-2 and the job fails or times out on the free Actions tier.
+      # Cache HuggingFace model weights — GPT-2 is ~500 MB.
+      # Key is OS-only (no hash) so it survives pyproject.toml changes.
       - name: Cache HuggingFace models
         uses: actions/cache@v4
         with:
@@ -37,21 +36,26 @@ jobs:
           key: hf-gpt2-${{ runner.os }}
           restore-keys: hf-gpt2-
 
+      # Drop --quiet so installation errors are always visible in the log.
       - name: Install package + dev deps
-        run: pip install -e ".[dev]" --quiet
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      # Confirm the key packages installed correctly (helps debug future CI issues).
+      - name: Show installed versions
+        run: pip list | grep -E "torch|transformer.lens|glassbox|pytest|sae"
 
       # Run only tests NOT marked @pytest.mark.slow.
       # GPT-2 is loaded once via the module-scope engine fixture (~30 s on
-      # first run, instant on cache hit).  The actual fast tests complete in
-      # a few seconds after that.
+      # first run after a cold HF cache, instant on cache hit).
       - name: Run fast tests
         run: pytest tests/ -v --tb=short -m "not slow"
-        timeout-minutes: 15
+        timeout-minutes: 20
 
   slow-tests:
     name: Slow tests (GPU optional, full model suite)
     # Only run when manually triggered via workflow_dispatch, not on every push.
-    # This avoids downloading GPT-2 (~500 MB) on every commit.
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
@@ -69,9 +73,6 @@ jobs:
           key: pip-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: pip-${{ runner.os }}-
 
-      # Cache HuggingFace model weights so GPT-2 is not re-downloaded on
-      # every slow-test run.  Cache key includes the model name so a new
-      # model or different variant gets its own cache slot.
       - name: Cache HuggingFace models
         uses: actions/cache@v4
         with:
@@ -80,9 +81,14 @@ jobs:
           restore-keys: hf-gpt2-
 
       - name: Install package + dev deps
-        run: pip install -e ".[dev]" --quiet
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Show installed versions
+        run: pip list | grep -E "torch|transformer.lens|glassbox|pytest|sae"
 
       - name: Run full test suite (including slow)
         run: pytest tests/ -v --tb=short
-        # Generous timeout — GPT-2 load + 38 tests on CPU takes ~5 min
-        timeout-minutes: 20
+        # Generous timeout — GPT-2 load + all tests on CPU takes ~5 min
+        timeout-minutes: 25
