@@ -153,7 +153,7 @@ def create_app() -> "FastAPI":
             "black-box behavioural audit. "
             "Regulation (EU) 2024/1689 — enforced August 2026."
         ),
-        version="2.6.0",
+        version=_get_version(),
         contact={"name": "Ajay Pravin Mahale", "email": "mahale.ajay01@gmail.com"},
         license_info={"name": "Apache 2.0"},
     )
@@ -176,7 +176,7 @@ def create_app() -> "FastAPI":
     def root():
         return {
             "name":       "Glassbox AI Compliance API",
-            "version":    "2.6.0",
+            "version": _get_version(),
             "regulation": "Regulation (EU) 2024/1689 — AI Act",
             "endpoints": {
                 "white_box_analysis": "POST /v1/audit/analyze",
