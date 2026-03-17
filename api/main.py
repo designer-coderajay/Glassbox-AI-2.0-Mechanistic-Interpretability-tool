@@ -51,7 +51,8 @@ logger = logging.getLogger(__name__)
 
 try:
     from fastapi import FastAPI, HTTPException, BackgroundTasks
-    from fastapi.responses import FileResponse, JSONResponse
+    from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
     _FASTAPI_AVAILABLE = True
 except ImportError:
@@ -188,6 +189,17 @@ def create_app() -> "FastAPI":
             "docs":        "/docs",
             "openapi_url": "/openapi.json",
         }
+
+    # ------------------------------------------------------------------
+    # Dashboard UI
+    # ------------------------------------------------------------------
+    @app.get("/dashboard", response_class=HTMLResponse)
+    def dashboard():
+        """Serve the compliance dashboard UI."""
+        dashboard_path = Path(__file__).parent.parent / "dashboard" / "compliance_dashboard.html"
+        if dashboard_path.exists():
+            return HTMLResponse(content=dashboard_path.read_text(), status_code=200)
+        return HTMLResponse(content="<h1>Dashboard not found</h1>", status_code=404)
 
     # ------------------------------------------------------------------
     # White-box analysis
