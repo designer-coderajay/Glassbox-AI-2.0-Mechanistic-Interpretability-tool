@@ -1,6 +1,6 @@
 name: Publish to PyPI
 
-# Triggers on any tag that starts with "v" (e.g. v2.3.2, v2.4.0)
+# Triggers on any tag that starts with "v" (e.g. v2.3.4, v2.4.0)
 # Uses OIDC Trusted Publisher — no API token required.
 #
 # One-time setup (already done by repo owner):
@@ -9,7 +9,10 @@ name: Publish to PyPI
 #       Owner:    designer-coderajay
 #       Repo:     Glassbox-AI-2.0-Mechanistic-Interpretability-tool
 #       Workflow: publish.yml
-#       Env:      (leave blank)
+#       Env:      release   ← must match the environment: name below
+#
+# GitHub repo setup:
+#   Settings → Environments → create "release" (no extra rules needed)
 
 on:
   push:
@@ -47,6 +50,14 @@ jobs:
     name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
+
+    # "release" must match the Environment name you entered in PyPI's
+    # Trusted Publisher settings.  If you left it blank on PyPI, delete
+    # the environment block below AND update the comment in the header.
+    environment:
+      name: release
+      url: https://pypi.org/p/glassbox-mech-interp
+
     permissions:
       id-token: write   # required for OIDC Trusted Publisher
 
@@ -61,3 +72,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
+          verbose: true        # prints token claims on failure — helps diagnose mismatches
