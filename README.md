@@ -29,7 +29,7 @@ Built for researchers. Designed for production.
 
 ## What's Novel
 
-Glassbox v2.3.0 ships features that exist **nowhere else as a unified toolkit**:
+Glassbox v2.6.0 ships features that exist **nowhere else as a unified toolkit**:
 
 | Feature | Glassbox | TransformerLens | Baukit | Pyvene |
 |---------|:--------:|:---------------:|:------:|:------:|

@@ -6,6 +6,32 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.6.0] — 2026-03-17
+
+### Fixed
+
+- **Version sync** — `glassbox/__init__.py` `__version__` was hardcoded as `"2.3.0"` while
+  `pyproject.toml` was at `2.5.2`. Both are now `2.6.0` and will track together going forward.
+- **`publish.yml` cleanup** — removed all diagnostic Macaroon-decoding code introduced while
+  debugging PyPI OIDC 403 errors (root cause was a Pending Publisher UUID mismatch, now fixed
+  at the PyPI project settings level). Workflow now uses the official `pypa/gh-action-pypi-publish@release/v1`
+  action — the simplest and most reliable path.
+- **`CITATION.cff`** — title and abstract still referenced `Glassbox 2.3`; updated to `2.6`.
+  Both `version:` fields updated from `2.5.2` to `2.6.0`.
+- **`cli.py`** — CLI banner and argparse description both hardcoded `2.3`; updated to `2.6`.
+- **`requirements.txt`** — removed `scipy` (not imported anywhere; Kendall τ-b is implemented
+  without it), `streamlit` and `plotly` (dashboard-only, not part of the core package),
+  and `pytest` (dev-only). File now mirrors `pyproject.toml` core and dev deps.
+- **`deploy_hf.yml`** — heredoc for HuggingFace Space `requirements.txt` was indented 10 spaces
+  inside the YAML `run:` block; those spaces were being written verbatim into the file, making
+  every package name invalid for `pip install`. Replaced with explicit `echo` statements.
+  Updated `glassbox-mech-interp>=2.1.0` → `>=2.6.0`.
+- **`README.md`** — feature table header updated from `v2.3.0` to `v2.6.0`.
+- **`dist/` cleanup** — removed stale `v2.2.0` wheel and sdist that were committed to git
+  despite `dist/` being listed in `.gitignore`.
+
+---
+
 ## [2.3.0] — 2025-07-01
 
 ### Added

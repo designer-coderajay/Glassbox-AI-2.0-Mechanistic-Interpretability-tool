@@ -54,16 +54,17 @@ jobs:
           cp dashboard/app.py hf_space/app.py
 
           # ── Write requirements.txt (Space needs all deps at root) ────────────
-          cat > hf_space/requirements.txt << 'EOF'
-          streamlit>=1.32.0
-          numpy>=1.24.0
-          plotly>=5.18.0
-          transformer-lens>=1.19.0
-          glassbox-mech-interp>=2.1.0
-          pandas>=2.0.0
-          torch>=2.0.0
-          einops>=0.6.1
-          EOF
+          # NOTE: written with echo to avoid heredoc indentation issues
+          {
+            echo "streamlit>=1.32.0"
+            echo "numpy>=1.24.0"
+            echo "plotly>=5.18.0"
+            echo "transformer-lens>=1.19.0"
+            echo "glassbox-mech-interp>=2.6.0"
+            echo "pandas>=2.0.0"
+            echo "torch>=2.0.0"
+            echo "einops>=0.6.1"
+          } > hf_space/requirements.txt
 
           # ── Commit and push only if something changed ────────────────────────
           cd hf_space

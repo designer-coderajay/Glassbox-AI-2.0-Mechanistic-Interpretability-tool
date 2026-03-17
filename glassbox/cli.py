@@ -23,7 +23,7 @@ import sys
 
 BANNER = """
   +==============================================+
-  |   G L A S S B O X  2 . 3                   |
+  |   G L A S S B O X  2 . 6                   |
   |  Mechanistic Interpretability Toolkit       |
   +==============================================+
 """
@@ -199,7 +199,7 @@ def _run_version(_args: argparse.Namespace) -> int:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="glassbox-ai",
-        description="Glassbox 2.3 — Mechanistic Interpretability Toolkit",
+        description="Glassbox 2.6 — Mechanistic Interpretability Toolkit",
         epilog="""Examples:
   glassbox-ai analyze \\
       --prompt "When Mary and John went to the store, John gave a drink to" \\

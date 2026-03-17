@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use Glassbox in your research, please cite it as below."
 type: software
-title: "Glassbox 2.3: Mechanistic Interpretability via Attribution Patching, SAE Feature Attribution, and Head Composition Analysis"
-version: 2.5.2
+title: "Glassbox 2.6: Mechanistic Interpretability via Attribution Patching, SAE Feature Attribution, and Head Composition Analysis"
+version: 2.6.0
 date-released: "2026-03-17"
 license: MIT
 repository-code: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
@@ -12,7 +12,7 @@ authors:
     given-names: Ajay
     email: mahale.ajay01@gmail.com
 abstract: >
-  Glassbox 2.3 is a free, open-source mechanistic interpretability toolkit
+  Glassbox 2.6 is a free, open-source mechanistic interpretability toolkit
   for transformer language models built on TransformerLens.
   It implements attribution patching in O(3) forward passes,
   auto-discovers minimum faithful circuits (MFC),
@@ -65,10 +65,10 @@ references:
     url: "https://arxiv.org/abs/2406.04093"
 preferred-citation:
   type: software
-  title: "Glassbox 2.3: Mechanistic Interpretability via Attribution Patching"
+  title: "Glassbox 2.6: Mechanistic Interpretability via Attribution Patching"
   authors:
     - family-names: Mahale
       given-names: Ajay
   year: 2026
-  version: 2.5.2
+  version: 2.6.0
   url: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"

@@ -1,6 +1,6 @@
 name: Publish to PyPI
 
-# Triggers on any tag that starts with "v" (e.g. v2.4.2, v3.0.0)
+# Triggers on any tag that starts with "v" (e.g. v2.6.0, v3.0.0)
 # Uses OIDC Trusted Publisher — no API token required.
 #
 # One-time setup (already done by repo owner):
@@ -31,16 +31,14 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install build
-        run: pip install build --quiet
+      - name: Install build tools
+        run: pip install build twine --quiet
 
       - name: Build wheel + sdist
         run: python -m build
 
       - name: Verify metadata (twine check)
-        run: |
-          pip install twine --quiet
-          python -m twine check dist/*
+        run: python -m twine check dist/*
 
       - name: Show what was built
         run: ls -lh dist/
@@ -61,7 +59,7 @@ jobs:
       url: https://pypi.org/p/glassbox-mech-interp
 
     permissions:
-      id-token: write   # OIDC token for PyPI Trusted Publisher
+      id-token: write   # Required for OIDC Trusted Publisher
 
     steps:
       - name: Download dist artifact
@@ -70,76 +68,5 @@ jobs:
           name: dist-${{ github.ref_name }}
           path: dist/
 
-      - name: Verify dist before upload
-        run: |
-          pip install twine --quiet
-          python -m twine check dist/*
-
-      - name: Mint OIDC token + decode Macaroon caveats
-        run: |
-          python3 << 'PYEOF'
-          import os, urllib.request, json, sys, base64, urllib.error, re
-
-          # Get GitHub OIDC JWT
-          url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL'] + '&audience=pypi'
-          req = urllib.request.Request(url, headers={"Authorization": f"bearer {os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']}"})
-          with urllib.request.urlopen(req) as r:
-              oidc_token = json.loads(r.read())['value']
-
-          # Mint PyPI upload token  (1 notice budget used on error if it fails)
-          body = json.dumps({'token': oidc_token}).encode()
-          req2 = urllib.request.Request(
-              'https://pypi.org/_/oidc/github/mint-token',
-              data=body, headers={'Content-Type': 'application/json'}
-          )
-          try:
-              with urllib.request.urlopen(req2) as r:
-                  upload_token = json.loads(r.read())['token']
-          except urllib.error.HTTPError as e:
-              print(f'::error::mint-token FAILED {e.code}: {e.read().decode()[:400]}')
-              sys.exit(1)
-
-          # WRITE TO ENV FIRST
-          with open(os.environ['GITHUB_ENV'], 'a') as f:
-              f.write(f'PYPI_UPLOAD_TOKEN={upload_token}\n')
-
-          # notices 1-2: token prefix + env key  (budget: 10 total)
-          print(f'::notice::mint OK prefix={upload_token[:20]}')
-          # notices 3-4: Macaroon hex dump + strings (the payoff)
-          try:
-              raw = base64.urlsafe_b64decode(upload_token[5:] + '==')
-              print(f'::notice::Macaroon {len(raw)}B v{raw[0]:02x} hex={raw.hex()}')
-              strings = re.findall(rb'[ -~]{4,}', raw)
-              readable = ' | '.join(s.decode('ascii', errors='replace') for s in strings[:8])
-              print(f'::notice::Macaroon strings ({len(strings)}): {readable[:600]}')
-          except Exception as exc:
-              print(f'::notice::Macaroon parse error: {type(exc).__name__}: {exc}')
-          PYEOF
-
-      - name: Upload to PyPI via twine
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ env.PYPI_UPLOAD_TOKEN }}
-        run: |
-          pip install twine --quiet
-          set +e
-          python -m twine upload --non-interactive --verbose dist/* > twine_out.txt 2>&1
-          TWINE_EXIT=$?
-          # Filter to ONLY important lines (errors, status codes, "successfully")
-          python3 -c "
-          import re, sys
-          ansi = re.compile(r'\x1b(?:[@-Z\\\\-_]|\[[0-9;?]*[@-~])')
-          with open('twine_out.txt') as f:
-              raw_content = f.read()
-          # Split on both \n and \r to handle progress-bar overwriting
-          lines = re.split(r'[\r\n]+', raw_content)
-          for line in lines:
-              clean = ansi.sub('', line).strip()
-              if not clean:
-                  continue
-              lower = clean.lower()
-              important = any(k in lower for k in ['error', 'forbidden', 'invalid', '400', '403', 'failed', 'upload', 'success', 'exception', 'traceback'])
-              if important:
-                  print(f'::notice::twine: {clean[:600]}')
-          "
-          exit $TWINE_EXIT
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
