@@ -1,0 +1,17 @@
+# Core API
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.0.0
+
+# Compliance reports
+reportlab>=3.6.0
+
+# ML — pulled in by glassbox-mech-interp
+# Pinned loosely — Docker image caches these
+torch>=2.0.0
+transformer-lens>=1.19.0
+einops>=0.6.1
+numpy>=1.24.0
+
+# Utils
+python-multipart>=0.0.9
