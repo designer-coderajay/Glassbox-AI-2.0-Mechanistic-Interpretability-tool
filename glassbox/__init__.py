@@ -119,6 +119,27 @@ from glassbox.utils import (
 )
 
 # ---------------------------------------------------------------------------
+# EU AI Act Annex IV Compliance Report Generator — core product
+# ---------------------------------------------------------------------------
+from glassbox.compliance import (
+    AnnexIVReport,
+    DeploymentContext,
+    RiskClassification,
+    ExplainabilityGrade,
+    ComplianceStatus,
+)
+
+# ---------------------------------------------------------------------------
+# Black-Box Audit Mode — any model via API (no TransformerLens needed)
+# ---------------------------------------------------------------------------
+from glassbox.audit import (
+    BlackBoxAuditor,
+    ModelProvider,
+    BlackBoxResult,
+    from_env as black_box_from_env,
+)
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
@@ -128,6 +149,17 @@ __all__ = [
     "GlassboxV2",
     "SAEFeatureAttributor",          # requires sae-lens
     "HeadCompositionAnalyzer",
+    # Compliance — EU AI Act Annex IV
+    "AnnexIVReport",
+    "DeploymentContext",
+    "RiskClassification",
+    "ExplainabilityGrade",
+    "ComplianceStatus",
+    # Black-box audit — any model via API
+    "BlackBoxAuditor",
+    "ModelProvider",
+    "BlackBoxResult",
+    "black_box_from_env",
     # Type aliases
     "HeadTuple",
     "CircuitList",
