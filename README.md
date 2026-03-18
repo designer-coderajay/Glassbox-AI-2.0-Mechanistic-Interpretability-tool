@@ -5,7 +5,7 @@
 **The only open-source EU AI Act Annex IV compliance audit platform. Works on any LLM.**
 
 [![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI)](https://pypi.org/project/glassbox-mech-interp/)
-[![Downloads](https://static.pepy.tech/badge/glassbox-mech-interp)](https://pepy.tech/projects/glassbox-mech-interp)
+[![Downloads]([https://static.pepy.tech/badge/glassbox-mech-interp](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp))](h[ttps://pepy.tech/projects/glassbox-mech-interp](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp))
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
