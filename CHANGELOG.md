@@ -6,6 +6,50 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.9.0] — 2026-03-20
+
+### Added
+- **Tamper-evident Audit Log** (`glassbox/audit_log.py`): `AuditLog` class persists every
+  compliance audit to an append-only JSONL file. Each record carries a SHA-256 hash of the
+  previous entry, forming a hash chain that `verify_chain()` can validate. Supports
+  `export_csv()` and `export_json()` for regulator hand-off. `summary()` returns grade
+  distribution, compliance rate, and average F1 over all stored audits.
+  Now exported from `glassbox` top-level: `from glassbox import AuditLog`.
+- **GitHub Actions Composite Action** (`action.yml`): `glassbox-audit@v1` drops EU AI Act
+  compliance gates into any CI/CD pipeline. Inputs: `model_name`, `prompt`, `correct_token`,
+  `incorrect_token`, `fail_below_grade` (default: C), `deployment_context`, `method`.
+  Outputs: `grade`, `f1_score`, `sufficiency`, `comprehensiveness`, `compliance_status`,
+  `report_id`. Exits 1 and emits `::error::` annotation when grade falls below threshold.
+  Uses composite run steps — no Docker image needed.
+- **TypeScript SDK** (`sdk/glassbox.ts`): Zero-dependency fetch-based client for the
+  Glassbox REST API. Works in Node.js ≥18, Deno, Bun, and browsers. Typed request/response
+  interfaces (`WhiteBoxRequest`, `BlackBoxRequest`, `AuditReport`, `AsyncJobResponse`,
+  `AttentionPatternsResponse`). `GlassboxClient` class with `auditWhiteBox()`,
+  `auditBlackBox()`, `startBlackBoxJob()`, `waitForJob()` (polling helper), and
+  `attentionPatterns()`. `GlassboxError` carries `statusCode` + `detail`. Default export +
+  named `createClient()` factory for CJS/ESM compatibility.
+- **Jupyter Notebook Widgets** (`glassbox/widget.py`): `CircuitWidget` wraps `GlassboxV2`
+  for one-line notebook usage. `CircuitWidget.from_prompt(gb, prompt, correct, incorrect)`
+  runs the analysis and renders an inline attribution heatmap via `_repr_html_()`.
+  `HeatmapWidget` accepts any pre-computed result dict (from the Python SDK or REST API).
+  Both classes gracefully degrade when ipywidgets is absent. Install with:
+  `pip install 'glassbox-mech-interp[jupyter]'`.
+  Now exported from `glassbox` top-level: `from glassbox import CircuitWidget, HeatmapWidget`.
+- **Attention Patterns API endpoint** (`api/main.py`): `POST /v1/attention-patterns` accepts
+  `model_name`, `prompt`, and an optional `heads` list (e.g. `["L9H9", "L9H6"]`). Returns
+  raw attention matrices, per-head entropy, last-token attention vector, and head-type
+  classifications. Returns HTTP 503 on free-tier RAM exhaustion with self-hosting instructions.
+
+### Changed
+- `glassbox/__init__.py`: `AuditLog`, `AuditRecord`, `CircuitWidget`, `HeatmapWidget` added
+  to public API and `__all__`. Version bumped to 2.9.0.
+- `pyproject.toml`: Version bumped to 2.9.0. Description updated to reflect new features.
+- Dashboard (`compliance_dashboard.html`): Full Linear/Vercel/Stripe-grade UI redesign.
+  Dark-first design system with CSS custom properties, Inter + JetBrains Mono fonts,
+  backdrop-blur nav, noise-texture overlay, 4-tier colour scale. All JS wiring preserved.
+
+---
+
 ## [2.8.0] — 2026-03-17
 
 ### Added

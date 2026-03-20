@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "2.8.0"
-description = "Mechanistic interpretability toolkit + EU AI Act Annex IV compliance report generator. Circuit analysis, black-box audit, PDF/JSON reports."
+version     = "2.9.0"
+description = "Mechanistic interpretability toolkit + EU AI Act Annex IV compliance report generator. Circuit analysis, black-box audit, audit log, Jupyter widgets, GitHub Action, TypeScript SDK."
 readme      = "README.md"
 license     = { text = "MIT" }
 authors     = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]
@@ -83,10 +83,15 @@ api = [
     "pydantic>=2.0.0",
     "reportlab>=3.6.0",
 ]
+jupyter = [
+    "ipywidgets>=8.0",
+    "ipython>=7.0",
+]
 dev = [
     "pytest>=7.0",
     "sae-lens>=3.0",
     "reportlab>=3.6.0",
+    "ipywidgets>=8.0",
 ]
 [project.scripts]
 glassbox-ai = "glassbox.cli:main"

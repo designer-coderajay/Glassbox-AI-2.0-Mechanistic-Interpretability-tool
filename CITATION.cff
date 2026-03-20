@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use Glassbox in your research, please cite it as below."
 type: software
-title: "Glassbox 2.8: Mechanistic Interpretability via Attribution Patching, SAE Feature Attribution, and Head Composition Analysis"
-version: 2.8.0
-date-released: "2026-03-17"
+title: "Glassbox 2.9: Mechanistic Interpretability, EU AI Act Compliance, Tamper-Evident Audit Log, TypeScript SDK, and Jupyter Widgets"
+version: 2.9.0
+date-released: "2026-03-20"
 license: MIT
 repository-code: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
 url: "https://glassbox-ai-2-0-mechanistic.onrender.com"
@@ -12,7 +12,7 @@ authors:
     given-names: Ajay
     email: mahale.ajay01@gmail.com
 abstract: >
-  Glassbox 2.7 is a free, open-source mechanistic interpretability and EU AI Act
+  Glassbox 2.9 is a free, open-source mechanistic interpretability and EU AI Act
   compliance audit toolkit for transformer language models, built on TransformerLens.
   It implements attribution patching in O(3) forward passes,
   auto-discovers minimum faithful circuits (MFC),
@@ -22,7 +22,11 @@ abstract: >
   scores directed computation-graph edges via Edge Attribution Patching (EAP),
   decomposes circuit components into SAE features via sae-lens,
   computes Q/K/V head-composition scores (Elhage et al. 2021),
-  and maps token-level gradient-times-embedding saliency.
+  maps token-level gradient-times-embedding saliency,
+  provides a tamper-evident SHA-256 hash-chained audit log,
+  a GitHub Actions composite action for CI/CD compliance gating,
+  a zero-dependency TypeScript SDK (Node/Deno/Bun/browser),
+  and Jupyter notebook widgets for interactive circuit visualization.
 keywords:
   - mechanistic-interpretability
   - attribution-patching
@@ -65,10 +69,10 @@ references:
     url: "https://arxiv.org/abs/2406.04093"
 preferred-citation:
   type: software
-  title: "Glassbox 2.8: Mechanistic Interpretability via Attribution Patching"
+  title: "Glassbox 2.9: Mechanistic Interpretability and EU AI Act Compliance Toolkit"
   authors:
     - family-names: Mahale
       given-names: Ajay
   year: 2026
-  version: 2.8.0
+  version: 2.9.0
   url: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"

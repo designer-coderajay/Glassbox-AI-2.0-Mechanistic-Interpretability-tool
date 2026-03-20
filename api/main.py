@@ -573,6 +573,91 @@ def create_app() -> "FastAPI":
             "total": len(_REPORT_STORE),
         }
 
+    # ------------------------------------------------------------------
+    # Attention Patterns — expose GlassboxV2.attention_patterns() via REST
+    # Dept 3 (Product/UX): powers the dashboard click-through viewer.
+    # Note: requires model weights in RAM — use self-hosted / Standard tier.
+    # ------------------------------------------------------------------
+
+    class AttentionPatternRequest(BaseModel):
+        model_name: str = Field(..., description="TransformerLens-compatible model name.")
+        prompt:     str = Field(..., description="Input prompt to analyse.")
+        heads:      Optional[List[str]] = Field(None, description="List of head labels e.g. ['L9H9','L9H6']. If null, returns top_k most interesting heads.")
+        top_k:      int = Field(10, description="Number of heads to return if heads is null.")
+
+    @app.post("/v1/attention-patterns", summary="Extract attention patterns for circuit heads")
+    def attention_patterns(req: AttentionPatternRequest):
+        """
+        Extract full attention matrices for specified heads in a white-box model.
+
+        Returns per-head attention patterns ([seq, seq] arrays), entropy,
+        last-token attention, and automatic head type classification
+        (induction, previous-token, duplicate-token, uniform).
+
+        Requires model weights — only available on self-hosted deployments
+        with sufficient RAM (≥500 MB for GPT-2 small).
+        """
+        try:
+            from glassbox import GlassboxV2
+            import transformer_lens
+
+            model = transformer_lens.HookedTransformer.from_pretrained(
+                req.model_name,
+                center_unembed=True,
+                center_writing_weights=True,
+                fold_ln=True,
+                refactor_factored_attn_matrices=True,
+            )
+            gb     = GlassboxV2(model)
+            tokens = model.to_tokens(req.prompt)
+
+            # Parse head labels "L9H9" → (layer, head) tuples
+            head_tuples: Optional[List[tuple]] = None
+            if req.heads:
+                parsed = []
+                import re
+                for h in req.heads:
+                    m = re.match(r"L(\d+)H(\d+)", h)
+                    if m:
+                        parsed.append((int(m.group(1)), int(m.group(2))))
+                head_tuples = parsed if parsed else None
+
+            result = gb.attention_patterns(tokens, heads=head_tuples, top_k=req.top_k)
+
+            # Convert numpy arrays to lists for JSON serialisation
+            patterns_out: Dict[str, Any] = {}
+            for key, arr in (result.get("patterns") or {}).items():
+                try:
+                    patterns_out[key] = arr.tolist() if hasattr(arr, "tolist") else arr
+                except Exception:
+                    patterns_out[key] = []
+
+            return {
+                "heads":         result.get("heads", []),
+                "patterns":      patterns_out,
+                "entropy":       result.get("entropy", {}),
+                "last_tok_attn": {
+                    k: (v.tolist() if hasattr(v, "tolist") else v)
+                    for k, v in (result.get("last_tok_attn") or {}).items()
+                },
+                "head_types":    result.get("head_types", {}),
+                "token_strs":    result.get("token_strs", []),
+                "model_name":    req.model_name,
+                "prompt":        req.prompt,
+            }
+
+        except ImportError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"Model loading not available: {exc}. "
+                    "Attention patterns require a self-hosted deployment with model weights. "
+                    "Run: docker run -p 8000:8000 glassbox"
+                ),
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
     return app
 
 

@@ -1,0 +1,241 @@
+name: 'Glassbox EU AI Act Compliance Audit'
+description: 'Automatically audit your AI model for EU AI Act Annex IV compliance in CI/CD. Fails the build if explainability falls below your required grade.'
+author: 'Ajay Pravin Mahale <mahale.ajay01@gmail.com>'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  api_url:
+    description: 'Glassbox API endpoint. Use the public hosted API or your self-hosted instance.'
+    required: false
+    default: 'https://glassbox-ai-2-0-mechanistic.onrender.com'
+
+  model_name:
+    description: 'Model to audit (TransformerLens-compatible for white-box, e.g. gpt2, gpt2-medium)'
+    required: true
+
+  prompt:
+    description: 'Decision prompt for attribution analysis (the input your model makes decisions on)'
+    required: true
+
+  correct_token:
+    description: 'Expected correct output token (e.g. " Mary", " approved")'
+    required: true
+
+  incorrect_token:
+    description: 'Distractor / incorrect token (e.g. " John", " denied")'
+    required: true
+
+  provider_name:
+    description: 'Provider name for Annex IV Section 1 (your company/team name)'
+    required: false
+    default: 'CI Pipeline'
+
+  provider_address:
+    description: 'Provider address for Annex IV Section 1'
+    required: false
+    default: ''
+
+  system_purpose:
+    description: 'Purpose of the AI system (for Annex IV documentation)'
+    required: false
+    default: 'Automated decision-making system under EU AI Act review'
+
+  deployment_context:
+    description: |
+      Deployment context. One of:
+        financial_services | healthcare | hr_employment | legal |
+        critical_infrastructure | education | other_high_risk
+    required: false
+    default: 'other_high_risk'
+
+  method:
+    description: 'Attribution method. "taylor" (fast, default) or "integrated_gradients" (more accurate)'
+    required: false
+    default: 'taylor'
+
+  fail_below_grade:
+    description: |
+      Fail the CI step if the explainability grade is strictly below this.
+      A = best, D = worst. Set to "D" to never fail on grade.
+    required: false
+    default: 'C'
+
+  output_path:
+    description: 'File path to write the JSON compliance report'
+    required: false
+    default: 'glassbox-report.json'
+
+outputs:
+  grade:
+    description: 'Explainability grade: A (fully explainable) → D (not explainable)'
+    value: ${{ steps.run-audit.outputs.grade }}
+
+  f1_score:
+    description: 'Faithfulness F1 score (0.0–1.0)'
+    value: ${{ steps.run-audit.outputs.f1_score }}
+
+  compliance_status:
+    description: 'Compliance status: conditionally_compliant | incomplete | non_compliant'
+    value: ${{ steps.run-audit.outputs.compliance_status }}
+
+  report_id:
+    description: 'Glassbox report ID — use to download PDF/JSON from the API'
+    value: ${{ steps.run-audit.outputs.report_id }}
+
+  sufficiency:
+    description: 'Faithfulness sufficiency score'
+    value: ${{ steps.run-audit.outputs.sufficiency }}
+
+  comprehensiveness:
+    description: 'Faithfulness comprehensiveness score'
+    value: ${{ steps.run-audit.outputs.comprehensiveness }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Glassbox Compliance Audit
+      id: run-audit
+      shell: bash
+      env:
+        GB_API_URL:      ${{ inputs.api_url }}
+        GB_MODEL:        ${{ inputs.model_name }}
+        GB_PROMPT:       ${{ inputs.prompt }}
+        GB_CORRECT:      ${{ inputs.correct_token }}
+        GB_INCORRECT:    ${{ inputs.incorrect_token }}
+        GB_PROVIDER:     ${{ inputs.provider_name }}
+        GB_ADDRESS:      ${{ inputs.provider_address }}
+        GB_PURPOSE:      ${{ inputs.system_purpose }}
+        GB_CONTEXT:      ${{ inputs.deployment_context }}
+        GB_METHOD:       ${{ inputs.method }}
+        GB_FAIL_GRADE:   ${{ inputs.fail_below_grade }}
+        GB_OUTPUT_PATH:  ${{ inputs.output_path }}
+      run: |
+        echo ""
+        echo "╔══════════════════════════════════════════════════╗"
+        echo "║   Glassbox — EU AI Act Compliance Audit          ║"
+        echo "║   Regulation (EU) 2024/1689 · Annex IV           ║"
+        echo "╚══════════════════════════════════════════════════╝"
+        echo ""
+        echo "  API endpoint   : $GB_API_URL"
+        echo "  Model          : $GB_MODEL"
+        echo "  Context        : $GB_CONTEXT"
+        echo "  Fail threshold : Grade $GB_FAIL_GRADE or better"
+        echo ""
+
+        # Build JSON payload (use python3 for safe escaping)
+        PAYLOAD=$(python3 -c "
+        import json, os
+        print(json.dumps({
+            'model_name':         os.environ['GB_MODEL'],
+            'prompt':             os.environ['GB_PROMPT'],
+            'correct_token':      os.environ['GB_CORRECT'],
+            'incorrect_token':    os.environ['GB_INCORRECT'],
+            'provider_name':      os.environ['GB_PROVIDER'],
+            'provider_address':   os.environ['GB_ADDRESS'],
+            'system_purpose':     os.environ['GB_PURPOSE'],
+            'deployment_context': os.environ['GB_CONTEXT'],
+            'method':             os.environ['GB_METHOD'],
+            'generate_pdf':       False,
+        }))
+        ")
+
+        echo "  Sending audit request..."
+        HTTP_CODE=$(curl -s -o /tmp/gb_response.json -w "%{http_code}" \
+          -X POST "${GB_API_URL}/v1/audit/analyze" \
+          -H "Content-Type: application/json" \
+          -d "$PAYLOAD" \
+          --max-time 120)
+
+        if [ "$HTTP_CODE" != "200" ]; then
+          echo ""
+          echo "::error::Glassbox API returned HTTP $HTTP_CODE. Response:"
+          cat /tmp/gb_response.json 2>/dev/null || true
+          echo ""
+          echo "  Tip: check that the API is reachable at $GB_API_URL"
+          echo "  Self-host:  docker run -p 8000:8000 glassbox"
+          exit 1
+        fi
+
+        # Parse response
+        GRADE=$(python3 -c "
+        import json,sys
+        d=json.load(open('/tmp/gb_response.json'))
+        print((d.get('explainability_grade') or 'D ')[0].upper())
+        " 2>/dev/null || echo "D")
+
+        F1=$(python3 -c "
+        import json
+        d=json.load(open('/tmp/gb_response.json'))
+        print(d.get('faithfulness',{}).get('f1',0))
+        " 2>/dev/null || echo "0")
+
+        SUFF=$(python3 -c "
+        import json
+        d=json.load(open('/tmp/gb_response.json'))
+        print(d.get('faithfulness',{}).get('sufficiency',0))
+        " 2>/dev/null || echo "0")
+
+        COMP=$(python3 -c "
+        import json
+        d=json.load(open('/tmp/gb_response.json'))
+        print(d.get('faithfulness',{}).get('comprehensiveness',0))
+        " 2>/dev/null || echo "0")
+
+        STATUS=$(python3 -c "
+        import json
+        d=json.load(open('/tmp/gb_response.json'))
+        print(d.get('compliance_status','non_compliant'))
+        " 2>/dev/null || echo "non_compliant")
+
+        REPORT_ID=$(python3 -c "
+        import json
+        d=json.load(open('/tmp/gb_response.json'))
+        print(d.get('report_id',''))
+        " 2>/dev/null || echo "")
+
+        # Write outputs
+        echo "grade=$GRADE"             >> "$GITHUB_OUTPUT"
+        echo "f1_score=$F1"            >> "$GITHUB_OUTPUT"
+        echo "sufficiency=$SUFF"       >> "$GITHUB_OUTPUT"
+        echo "comprehensiveness=$COMP" >> "$GITHUB_OUTPUT"
+        echo "compliance_status=$STATUS" >> "$GITHUB_OUTPUT"
+        echo "report_id=$REPORT_ID"    >> "$GITHUB_OUTPUT"
+
+        # Copy report to output path
+        cp /tmp/gb_response.json "$GB_OUTPUT_PATH"
+
+        # Print results
+        echo ""
+        echo "  ─────────────────────────────────────────────"
+        echo "  Explainability Grade   : $GRADE"
+        echo "  Faithfulness F1        : $F1"
+        echo "  Sufficiency            : $SUFF"
+        echo "  Comprehensiveness      : $COMP"
+        echo "  Compliance Status      : $STATUS"
+        echo "  Report ID              : $REPORT_ID"
+        echo "  Report saved to        : $GB_OUTPUT_PATH"
+        echo "  ─────────────────────────────────────────────"
+        echo ""
+
+        # Grade comparison: A=0, B=1, C=2, D=3
+        GRADE_NUM=$(python3 -c "print({'A':0,'B':1,'C':2,'D':3}.get('$GRADE',3))")
+        FAIL_NUM=$(python3 -c "print({'A':0,'B':1,'C':2,'D':3}.get('$GB_FAIL_GRADE',2))")
+
+        if [ "$GRADE_NUM" -gt "$FAIL_NUM" ]; then
+          echo "::error title=Glassbox Compliance FAILED::Grade $GRADE is below required $GB_FAIL_GRADE. Faithfulness F1=$F1. Review the Annex IV report and improve model explainability before deployment."
+          echo ""
+          echo "  Next steps:"
+          echo "    1. Review report: ${GB_API_URL}/v1/audit/report/${REPORT_ID}"
+          echo "    2. Download PDF:  ${GB_API_URL}/v1/audit/pdf/${REPORT_ID}"
+          echo "    3. Address risk flags in Section 5 of the report"
+          echo "    4. Re-audit after improvements"
+          echo ""
+          exit 1
+        else
+          echo "::notice title=Glassbox Compliance PASSED::Grade $GRADE meets requirement of $GB_FAIL_GRADE or better. F1=$F1. Annex IV report saved to $GB_OUTPUT_PATH."
+          echo "  ✓ Compliance check passed."
+          echo ""
+        fi

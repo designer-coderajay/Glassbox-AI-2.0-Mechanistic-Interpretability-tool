@@ -37,6 +37,17 @@ Quick start
     scores = comp.all_composition_scores(result["circuit"])
     print(scores["combined_edges"][:5])
 
+    # Tamper-evident audit log (v2.9.0)
+    from glassbox import AuditLog
+    log = AuditLog("glassbox_audit.jsonl")
+    log.append_from_result(result, auditor="ajay@example.com")
+    print(log.summary())          # grade distribution, compliance rate, avg F1
+
+    # Jupyter widget (requires: pip install glassbox-mech-interp[jupyter])
+    from glassbox.widget import CircuitWidget
+    w = CircuitWidget.from_prompt(gb, "When Mary and John ...", " Mary", " John")
+    w.show()                      # renders inline in a notebook cell
+
 Package layout
 --------------
 glassbox/
@@ -48,6 +59,10 @@ glassbox/
                           of circuit components via sae-lens SAEs
   composition.py        ← HeadCompositionAnalyzer: Q/K/V composition scores
                           between attention heads (Elhage et al. 2021)
+  audit_log.py          ← AuditLog: append-only JSONL audit log with SHA-256
+                          hash chain for tamper detection (v2.9.0)
+  widget.py             ← CircuitWidget / HeatmapWidget: Jupyter notebook
+                          widgets with attribution heatmap (v2.9.0)
   cli.py                ← glassbox-ai CLI entry point
   alignment.py          ← DEPRECATED: thin shim kept for back-compat
   utils.py              ← shared utilities
@@ -56,7 +71,7 @@ glassbox/
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "2.8.0"
+__version__ = "2.9.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -140,6 +155,47 @@ from glassbox.audit import (
 )
 
 # ---------------------------------------------------------------------------
+# Tamper-evident Audit Log — SHA-256 hash chain, JSONL persistence (v2.9.0)
+# ---------------------------------------------------------------------------
+from glassbox.audit_log import AuditLog, AuditRecord
+
+# ---------------------------------------------------------------------------
+# Jupyter Notebook Widgets — CircuitWidget, HeatmapWidget (v2.9.0)
+# ---------------------------------------------------------------------------
+try:
+    from glassbox.widget import CircuitWidget, HeatmapWidget
+    _WIDGETS_AVAILABLE = True
+except ImportError:
+    # ipywidgets not installed; stubs so `from glassbox import CircuitWidget`
+    # succeeds with a clear message at instantiation time.
+    class CircuitWidget:  # type: ignore[no-redef]
+        """Stub: install ipywidgets first.
+
+        Run::
+
+            pip install 'glassbox-mech-interp[jupyter]'
+        """
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "CircuitWidget requires ipywidgets. "
+                "Install with:  pip install 'glassbox-mech-interp[jupyter]'"
+            )
+
+    class HeatmapWidget:  # type: ignore[no-redef]
+        """Stub: install ipywidgets first.
+
+        Run::
+
+            pip install 'glassbox-mech-interp[jupyter]'
+        """
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "HeatmapWidget requires ipywidgets. "
+                "Install with:  pip install 'glassbox-mech-interp[jupyter]'"
+            )
+    _WIDGETS_AVAILABLE = False
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
@@ -160,6 +216,12 @@ __all__ = [
     "ModelProvider",
     "BlackBoxResult",
     "black_box_from_env",
+    # Audit log — tamper-evident, hash-chained (v2.9.0)
+    "AuditLog",
+    "AuditRecord",
+    # Jupyter widgets (v2.9.0; requires ipywidgets)
+    "CircuitWidget",
+    "HeatmapWidget",
     # Type aliases
     "HeadTuple",
     "CircuitList",
