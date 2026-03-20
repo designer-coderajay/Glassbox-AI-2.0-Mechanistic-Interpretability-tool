@@ -175,10 +175,140 @@ class GlassboxV2:
     A null distribution (random circuit FCAS) is computed to give context.
     """
 
+    # ── Supported model families (TransformerLens model names or prefixes) ──
+    SUPPORTED_MODELS = [
+        # GPT-2 family
+        "gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl",
+        # GPT-Neo / GPT-J family
+        "EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-1.3B",
+        "EleutherAI/gpt-j-6B",
+        # Llama-3 family (via TransformerLens >=2.0)
+        "meta-llama/Llama-3-8B", "meta-llama/Llama-3-8B-Instruct",
+        "meta-llama/Llama-3-70B",
+        # Llama-2 family
+        "meta-llama/Llama-2-7b-hf", "meta-llama/Llama-2-13b-hf",
+        # Mistral family
+        "mistralai/Mistral-7B-v0.1", "mistralai/Mistral-7B-Instruct-v0.1",
+        # Gemma family
+        "google/gemma-2b", "google/gemma-7b",
+        # Pythia family
+        "EleutherAI/pythia-70m", "EleutherAI/pythia-160m",
+        "EleutherAI/pythia-410m", "EleutherAI/pythia-1b",
+    ]
+
+    # ── Approximate parameter counts for memory warnings ─────────────────
+    _LARGE_MODEL_THRESHOLD_PARAMS = 1_000_000_000   # 1B params → warn
+
     def __init__(self, model) -> None:
         self.model    = model
         self.n_layers = model.cfg.n_layers
         self.n_heads  = model.cfg.n_heads
+
+        # ── Detect model family and GQA (Grouped Query Attention) ─────────
+        cfg = model.cfg
+        self.model_name: str = getattr(cfg, "model_name", "unknown")
+
+        # TransformerLens exposes n_key_value_heads for GQA models
+        # (Llama-3-8B: 8 KV heads, 32 Q heads).  hook_z always has shape
+        # [batch, seq, n_heads, d_head] — TL expands KV before the hook —
+        # so attribution patching works unchanged on GQA models.
+        # getattr default is skipped when attr exists but is None (TL sets None for non-GQA models)
+        self.n_kv_heads: int = getattr(cfg, "n_key_value_heads", None) or self.n_heads
+        self.uses_gqa: bool  = (self.n_kv_heads != self.n_heads)
+
+        # ── Memory / device check for large models ─────────────────────────
+        d_model   = getattr(cfg, "d_model", 768)
+        n_params_approx = (
+            self.n_layers * self.n_heads * d_model * d_model * 4  # rough QKV+O
+        )
+        if n_params_approx > self._LARGE_MODEL_THRESHOLD_PARAMS:
+            logger.warning(
+                "GlassboxV2: large model detected (~%s parameters). "
+                "Attribution patching requires gradient computation — ensure "
+                "sufficient GPU VRAM (fp16: ~%.0fGB, fp32: ~%.0fGB). "
+                "Use model.eval() and torch.inference_mode(False) for backward passes. "
+                "For memory-constrained environments consider a quantised checkpoint.",
+                f"{n_params_approx / 1e9:.1f}B",
+                n_params_approx * 2 / 1e9,
+                n_params_approx * 4 / 1e9,
+            )
+
+    def model_info(self) -> Dict[str, object]:
+        """
+        Return a structured dict of model architecture metadata suitable for
+        embedding directly into an EU AI Act Annex IV technical documentation
+        report (Article 11 — technical documentation, Annex IV §1).
+
+        Usage
+        -----
+            gb = GlassboxV2(model)
+            info = gb.model_info()
+            # info["model_name"] == "meta-llama/Llama-3-8B"
+            # info["n_params_approx"] == "8.0B"
+            # info["uses_gqa"] == True
+
+        Returns
+        -------
+        dict with keys:
+            model_name          str    — TransformerLens model identifier
+            n_layers            int    — transformer depth
+            n_heads             int    — number of query attention heads
+            n_kv_heads          int    — KV heads (< n_heads for GQA models)
+            uses_gqa            bool   — True if Grouped Query Attention
+            d_model             int    — residual stream width
+            d_head              int    — per-head dimension
+            n_ctx               int    — max context length (tokens)
+            vocab_size          int    — vocabulary size
+            n_params_approx     str    — human-readable parameter count
+            device              str    — inferred device ("cpu" / "cuda" / …)
+            dtype               str    — model parameter dtype
+            glassbox_version    str    — glassbox-mech-interp package version
+        """
+        cfg = self.model.cfg
+        d_model   = getattr(cfg, "d_model", 768) or 768
+        d_head    = getattr(cfg, "d_head",  None) or (d_model // self.n_heads)
+        n_ctx     = getattr(cfg, "n_ctx",   getattr(cfg, "max_seq_len", 0))
+        vocab_sz  = getattr(cfg, "d_vocab", 0)
+
+        # Parameter count: approximate from architecture dimensions
+        emb   = vocab_sz * d_model
+        attn  = self.n_layers * (
+            d_model * (self.n_heads + 2 * self.n_kv_heads) * d_head   # QKV
+            + self.n_heads * d_head * d_model                          # W_O
+        )
+        mlp_mult = getattr(cfg, "d_mlp", d_model * 4) // d_model
+        mlp   = self.n_layers * 2 * d_model * (d_model * mlp_mult)
+        total = emb + attn + mlp
+
+        # Device and dtype from first parameter tensor
+        try:
+            p = next(self.model.parameters())
+            device_str = str(p.device)
+            dtype_str  = str(p.dtype).replace("torch.", "")
+        except StopIteration:
+            device_str, dtype_str = "unknown", "unknown"
+
+        def _fmt(n: int) -> str:
+            if n >= 1e12: return f"{n/1e12:.1f}T"
+            if n >= 1e9:  return f"{n/1e9:.1f}B"
+            if n >= 1e6:  return f"{n/1e6:.0f}M"
+            return str(n)
+
+        return {
+            "model_name":        self.model_name,
+            "n_layers":          self.n_layers,
+            "n_heads":           self.n_heads,
+            "n_kv_heads":        self.n_kv_heads,
+            "uses_gqa":          self.uses_gqa,
+            "d_model":           d_model,
+            "d_head":            d_head,
+            "n_ctx":             n_ctx,
+            "vocab_size":        vocab_sz,
+            "n_params_approx":   _fmt(total),
+            "device":            device_str,
+            "dtype":             dtype_str,
+            "glassbox_version":  _GLASSBOX_VERSION,
+        }
 
     # ──────────────────────────────────────────────────────────────────────
     # INTERNAL — name-swap corruption
