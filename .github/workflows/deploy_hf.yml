@@ -61,7 +61,7 @@ jobs:
             echo "matplotlib>=3.7.0"
             echo "Pillow>=9.0.0"
             echo "transformer-lens>=1.19.0"
-            echo "glassbox-mech-interp>=2.6.0"
+            echo "glassbox-mech-interp>=3.1.0"
             echo "torch>=2.0.0"
             echo "einops>=0.6.1"
           } > hf_space/requirements.txt
