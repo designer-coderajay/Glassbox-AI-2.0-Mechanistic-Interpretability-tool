@@ -15,7 +15,10 @@ name: Publish to PyPI
 
 on:
   push:
-    tags: ["v*"]
+    # Only trigger on versioned package tags (e.g. v3.0.0, v3.1.0)
+    # Excludes action-only tags like v1, v2 which don't carry a new package version
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   build:
@@ -69,3 +72,4 @@ jobs:
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           attestations: false
+          skip_existing: true   # gracefully skip if this version already exists on PyPI

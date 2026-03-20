@@ -1,10 +1,10 @@
 <div align="center">
 
-# Glassbox 2.9.0
+# Glassbox 3.0.0
 
 **The only open-source EU AI Act Annex IV compliance audit platform. Works on any LLM.**
 
-[![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%202.9.0)](https://pypi.org/project/glassbox-mech-interp/)
+[![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%20v3.0.0)](https://pypi.org/project/glassbox-mech-interp/)
 [![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
@@ -29,7 +29,7 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
-- [What's New in v2.9.0](#whats-new-in-v290)
+- [What's New in v3.0.0](#whats-new-in-v300)
 - [EU AI Act Compliance — Annex IV Reports](#eu-ai-act-compliance--annex-iv-reports)
 - [Black-Box Audit — Any Model via API](#black-box-audit--any-model-via-api)
 - [REST API (Hosted)](#rest-api-hosted)
@@ -59,7 +59,7 @@
 | **Compliance Dashboard** | [/dashboard](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard) | Web UI for compliance officers. No install needed. |
 | **REST API** | [glassbox-ai-2-0-mechanistic.onrender.com](https://glassbox-ai-2-0-mechanistic.onrender.com) | JSON API. See [/docs](https://glassbox-ai-2-0-mechanistic.onrender.com/docs) for Swagger UI. |
 | **White-Box Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) | Interactive circuit analysis on open-source models. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v2.9.0 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.0.0 |
 
 > Free tier spins down after 15 min inactivity — first request may take ~30s. For production, [self-host](#self-hosting).
 
@@ -96,9 +96,88 @@ No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/
 
 ---
 
-## What's New in v2.9.0
+## What's New in v3.0.0
 
-Glassbox v2.9.0 brings four major features for compliance teams and researchers:
+Glassbox v3.0.0 is the enterprise compliance release. Five new features ship on top of all v2.9.0 foundations:
+
+### 1. BiasAnalyzer — EU AI Act Article 10(2)(f)
+
+Three bias tests built for regulatory submission. Works offline (pre-computed logprobs) or online (live `model_fn`).
+
+```python
+from glassbox import BiasAnalyzer, BiasReport
+
+ba = BiasAnalyzer()
+
+# Counterfactual fairness — swap demographic attributes, measure probability gap
+result = ba.counterfactual_fairness_test(
+    prompt_template="The {attribute} applied for the loan",
+    groups={"gender": ["male applicant", "female applicant"]},
+    target_tokens=["approved", "denied"],
+    model_fn=my_model,
+)
+print(result.max_gap, result.flagged)   # 0.12, False
+
+# Demographic parity — outcome rate disparity across groups
+dp = ba.demographic_parity_test(
+    prompts_by_group={"male": [...], "female": [...]},
+    target_tokens=["approved"],
+    model_fn=my_model,
+)
+
+# Aggregate into Annex IV Section 5 report
+report = BiasReport()
+report.add_result(result)
+report.add_result(dp)
+print(report.to_markdown())
+```
+
+### 2. Webhooks — CI/CD callbacks
+
+Register a callback URL that fires when async jobs complete. HMAC-SHA256 signed payloads.
+
+```bash
+curl -X POST https://glassbox-ai-2-0-mechanistic.onrender.com/v1/webhooks \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://yourapp.com/hook","events":["job.completed","job.failed"],"secret":"mysecret"}'
+```
+
+### 3. RiskRegister — Article 9 persistent risk tracking
+
+Track compliance risks across audit sessions. Deduplication, severity ordering, status lifecycle.
+
+```python
+from glassbox import RiskRegister
+
+rr = RiskRegister("risks.json")
+rr.ingest_annex_report(annex, model_name="gpt2")  # auto-extracts Section 5 risks
+
+# Status lifecycle
+rr.set_status(risk_id, "mitigated", notes="Retrained with more data")
+
+# Compliance health
+print(rr.trend_summary())
+# {'compliance_health': 'amber', 'open': 2, 'mitigated': 1, 'total': 3}
+
+# For dashboards and PR comments
+print(rr.to_markdown())
+```
+
+Maps to EU AI Act **Article 9** (risk management system) and **Annex IV Section 5**.
+
+### 4. Multi-Audit History Dashboard
+
+F1 trend chart, grade distribution, audit table with grade trajectory. "Load from API" button connects to `GET /v1/audit/reports`. Toggle with the "Audit History" button in the compliance dashboard.
+
+### 5. Circuit SVG Export
+
+"Download SVG" button in the D3 circuit graph. Exports paper-ready `glassbox-circuit.svg` with inlined dark-mode styles.
+
+---
+
+## What's New in v2.9.0 (previous release)
+
+Glassbox v2.9.0 brought four major features for compliance teams and researchers:
 
 ### 1. Tamper-Evident Audit Log (AuditLog)
 
@@ -803,7 +882,7 @@ Black-box audit works on **any model with an OpenAI-compatible API**, including 
 | `audit(decision_prompt, expected_positive, expected_negative, ...)` | Full behavioural audit. Returns BlackBoxResult. |
 | `from_env(provider, model)` | Construct auditor from `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` env vars. |
 
-### `AuditLog` — append-only audit trail (v2.9.0)
+### `AuditLog` — append-only audit trail (v2.9.0+)
 
 | Method | Description |
 |--------|-------------|
@@ -815,7 +894,7 @@ Black-box audit works on **any model with an OpenAI-compatible API**, including 
 | `export_csv(path)` | Export all records as CSV for GRC/Excel import. |
 | `by_model(name)`, `by_grade(grade)`, `non_compliant()` | Query methods. |
 
-### `GlassboxClient` (TypeScript/JavaScript SDK) — v2.9.0
+### `GlassboxClient` (TypeScript/JavaScript SDK) — v2.9.0+
 
 ```typescript
 type DeploymentContext = 'financial_services' | 'healthcare' | 'hr_employment' | 'legal' | 'critical_infrastructure' | 'education' | 'other_high_risk'
