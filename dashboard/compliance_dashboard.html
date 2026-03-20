@@ -3,666 +3,907 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Glassbox — EU AI Act Compliance Dashboard</title>
+  <title>Glassbox — EU AI Act Compliance Audit Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <style>
+    /* ═══════════════════════════════════════════════════════
+       DESIGN SYSTEM
+       References: Linear, Vercel Dashboard, Stripe, Anthropic
+       Font: Inter · Mono: JetBrains Mono
+    ═══════════════════════════════════════════════════════ */
     :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --surface2:  #21262d;
-      --border:    #30363d;
-      --accent:    #1f6feb;
-      --accent2:   #388bfd;
-      --green:     #3fb950;
-      --yellow:    #d29922;
-      --red:       #f85149;
-      --orange:    #e3b341;
-      --text:      #e6edf3;
-      --muted:     #8b949e;
-      --code-bg:   #161b22;
+      --bg:         #07080d;
+      --surface:    #0d1017;
+      --surface2:   #131720;
+      --surface3:   #1a2030;
+      --border:     rgba(255,255,255,0.065);
+      --border-2:   rgba(255,255,255,0.11);
+      --border-3:   rgba(255,255,255,0.18);
+
+      --accent:         #6366f1;
+      --accent-light:   #818cf8;
+      --accent-dim:     rgba(99,102,241,0.14);
+      --accent-glow:    rgba(99,102,241,0.3);
+      --gradient:       linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);
+      --gradient-shine: linear-gradient(135deg,#818cf8 0%,#a78bfa 100%);
+
+      --green:      #22c55e;
+      --green-dim:  rgba(34,197,94,0.12);
+      --yellow:     #f59e0b;
+      --yellow-dim: rgba(245,158,11,0.1);
+      --red:        #ef4444;
+      --red-dim:    rgba(239,68,68,0.1);
+      --blue:       #60a5fa;
+      --blue-dim:   rgba(96,165,250,0.1);
+      --orange:     #f97316;
+
+      --text:   #f0f4ff;
+      --text-2: #8b92a5;
+      --text-3: #555e72;
+      --text-4: #2e3748;
+
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+      --r-xs: 4px;
+      --r-sm: 8px;
+      --r:    12px;
+      --r-lg: 16px;
+      --r-xl: 20px;
+
+      --shadow:    0 8px 40px rgba(0,0,0,0.6);
+      --shadow-sm: 0 2px 12px rgba(0,0,0,0.4);
+      --shadow-xs: 0 1px 4px rgba(0,0,0,0.3);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ---- NAV ---- */
+    /* ─────────────────────────────────────────────
+       NOISE TEXTURE OVERLAY (like Linear / Vercel)
+    ───────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+    body > * { position: relative; z-index: 1; }
+
+    /* ═══════════════════════════════════════════════
+       NAV — Vercel / Linear style
+    ═══════════════════════════════════════════════ */
     nav {
-      background: var(--surface);
+      position: sticky; top: 0; z-index: 500;
+      height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      background: rgba(7,8,13,0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--border);
-      padding: 0 32px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
     }
-    .nav-logo {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .nav-logo .logo-box {
-      background: var(--accent);
-      color: white;
-      font-size: 13px;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
-    }
-    .nav-badge {
-      background: rgba(31, 111, 235, 0.15);
-      border: 1px solid rgba(31, 111, 235, 0.4);
-      color: var(--accent2);
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-weight: 600;
-    }
-    .nav-links {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-    .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover { color: var(--text); }
 
-    /* ---- HERO ---- */
-    .hero {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 60px 32px 32px;
-      text-align: center;
+    .nav-left { display: flex; align-items: center; gap: 14px; }
+
+    .logo-mark {
+      width: 30px; height: 30px;
+      background: var(--gradient);
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: 12px; font-weight: 700;
+      color: white; letter-spacing: -0.5px;
+      box-shadow: 0 0 16px var(--accent-glow);
+      flex-shrink: 0;
     }
-    .hero-tag {
-      display: inline-block;
-      background: rgba(63, 185, 80, 0.1);
-      border: 1px solid rgba(63, 185, 80, 0.3);
+
+    .logo-name {
+      font-size: 15px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.3px;
+    }
+
+    .nav-sep { width: 1px; height: 16px; background: var(--border-2); }
+
+    .nav-tag {
+      background: var(--accent-dim);
+      border: 1px solid rgba(99,102,241,0.25);
+      color: var(--accent-light);
+      font-size: 11px; font-weight: 600;
+      padding: 3px 9px; border-radius: 20px;
+      letter-spacing: 0.2px;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 4px; }
+
+    .nav-link {
+      color: var(--text-2); text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      padding: 6px 12px; border-radius: var(--r-sm);
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-link:hover { background: var(--surface2); color: var(--text); }
+
+    .nav-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border-2);
+      color: var(--text); text-decoration: none;
+      font-size: 12px; font-weight: 600;
+      padding: 6px 14px; border-radius: var(--r-sm);
+      transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    }
+    .nav-btn:hover { border-color: var(--border-3); background: var(--surface3); }
+
+    /* ═══════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════ */
+    .hero {
+      max-width: 860px; margin: 0 auto;
+      padding: 80px 24px 52px; text-align: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--green-dim);
+      border: 1px solid rgba(34,197,94,0.22);
       color: var(--green);
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      letter-spacing: 0.5px;
+      font-size: 11px; font-weight: 700;
+      padding: 5px 14px; border-radius: 20px;
+      margin-bottom: 28px; letter-spacing: 0.6px;
       text-transform: uppercase;
     }
-    .hero h1 {
-      font-size: 42px;
-      font-weight: 800;
-      line-height: 1.2;
-      margin-bottom: 16px;
-      background: linear-gradient(135deg, #e6edf3, #8b949e);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: live-pulse 2s ease-in-out infinite;
     }
-    .hero p {
-      font-size: 17px;
-      color: var(--muted);
-      max-width: 640px;
-      margin: 0 auto 32px;
-    }
-    .deadline-banner {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(245, 82, 73, 0.1);
-      border: 1px solid rgba(245, 82, 73, 0.3);
-      color: #ff7b72;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 8px 16px;
-      border-radius: 8px;
-    }
-    .deadline-banner .dot {
-      width: 7px; height: 7px;
-      background: #f85149;
-      border-radius: 50%;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+    @keyframes live-pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.5; transform:scale(0.85); }
     }
 
-    /* ---- STATS BAR ---- */
+    .hero h1 {
+      font-size: 58px; font-weight: 900;
+      line-height: 1.05; letter-spacing: -2px;
+      margin-bottom: 22px;
+    }
+    .hero h1 .plain { color: var(--text); }
+    .hero h1 .grad {
+      background: var(--gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 16px; color: var(--text-2);
+      max-width: 580px; margin: 0 auto 36px;
+      line-height: 1.75;
+    }
+
+    .deadline-pill {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(239,68,68,0.07);
+      border: 1px solid rgba(239,68,68,0.22);
+      color: #fca5a5;
+      font-size: 13px; font-weight: 600;
+      padding: 10px 20px; border-radius: var(--r);
+    }
+    .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red); flex-shrink: 0;
+      animation: live-pulse 1.5s ease-in-out infinite;
+    }
+
+    /* ═══════════════════════════════════════════════
+       STATS BAR
+    ═══════════════════════════════════════════════ */
+    .stats-wrap {
+      max-width: 700px; margin: 44px auto 0;
+      padding: 0 24px;
+    }
     .stats-bar {
       display: flex;
-      justify-content: center;
-      gap: 0;
-      max-width: 700px;
-      margin: 40px auto 0;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
       background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
     }
     .stat-item {
-      flex: 1;
-      padding: 20px;
-      text-align: center;
+      flex: 1; padding: 22px 16px; text-align: center;
       border-right: 1px solid var(--border);
+      transition: background 0.2s;
+      cursor: default;
     }
     .stat-item:last-child { border-right: none; }
+    .stat-item:hover { background: var(--surface2); }
     .stat-value {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--accent2);
-      display: block;
+      display: block; font-size: 26px; font-weight: 800;
+      letter-spacing: -0.8px; color: var(--text);
+      font-family: var(--mono);
     }
     .stat-label {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
+      display: block; font-size: 11px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-top: 3px; font-weight: 500;
+    }
+    .stat-sub {
+      display: block; font-size: 9px; color: var(--text-4);
+      margin-top: 2px; font-style: italic;
     }
 
-    /* ---- MAIN LAYOUT ---- */
+    /* ═══════════════════════════════════════════════
+       MAIN LAYOUT
+    ═══════════════════════════════════════════════ */
     .main {
-      max-width: 1100px;
-      margin: 60px auto 0;
-      padding: 0 32px 80px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      align-items: start;
+      max-width: 1160px; margin: 60px auto 0;
+      padding: 0 24px 100px;
+      display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+      gap: 20px; align-items: start;
     }
 
-    /* ---- FORM PANEL ---- */
+    /* ═══════════════════════════════════════════════
+       PANEL
+    ═══════════════════════════════════════════════ */
     .panel {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--r-lg);
       overflow: hidden;
     }
     .panel-header {
-      padding: 20px 24px;
+      padding: 16px 22px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .panel-title {
-      font-size: 15px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .panel-title .icon {
-      font-size: 16px;
-    }
-    .panel-body { padding: 24px; }
-
-    .form-section {
-      margin-bottom: 24px;
-    }
-    .form-section-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--muted);
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .form-row { margin-bottom: 16px; }
-    .form-row label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: -0.2px;
+      display: flex; align-items: center; gap: 9px;
       color: var(--text);
-      margin-bottom: 6px;
     }
-    .form-row label .required {
-      color: var(--red);
-      margin-left: 3px;
-    }
-    .form-row label .hint {
-      color: var(--muted);
-      font-weight: 400;
+    .panel-title-icon {
+      width: 24px; height: 24px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: var(--r-xs);
+      display: flex; align-items: center; justify-content: center;
       font-size: 12px;
-      margin-left: 6px;
     }
+    .panel-body { padding: 22px; }
+
+    /* ═══════════════════════════════════════════════
+       MODE TOGGLE
+    ═══════════════════════════════════════════════ */
+    .mode-toggle {
+      display: flex; gap: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r); padding: 4px;
+      margin-bottom: 22px;
+    }
+    .mode-btn {
+      flex: 1; padding: 9px 12px; border: none;
+      background: transparent; color: var(--text-2);
+      cursor: pointer; font-size: 12px; font-weight: 600;
+      font-family: var(--font); border-radius: var(--r-sm);
+      transition: all 0.18s; display: flex; align-items: center;
+      justify-content: center; gap: 6px;
+    }
+    .mode-btn:hover { background: var(--surface2); color: var(--text); }
+    .mode-btn.active {
+      background: var(--accent); color: white;
+      box-shadow: 0 2px 10px var(--accent-glow);
+    }
+
+    /* ═══════════════════════════════════════════════
+       FORM
+    ═══════════════════════════════════════════════ */
+    .form-section { margin-bottom: 26px; }
+
+    .form-section-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-3);
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .form-section-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    .form-row { margin-bottom: 13px; }
+
+    .form-row label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500;
+      color: var(--text-2); margin-bottom: 6px;
+    }
+    .form-row label .required { color: var(--red); }
+    .form-row label .hint {
+      color: var(--text-3); font-weight: 400; font-size: 11px;
+    }
+    .form-row label .secure-tag {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: var(--green-dim);
+      border: 1px solid rgba(34,197,94,0.2);
+      color: var(--green); font-size: 10px; font-weight: 600;
+      padding: 1px 7px; border-radius: 20px;
+    }
+
     .form-row input,
     .form-row select,
     .form-row textarea {
       width: 100%;
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 13px;
+      border-radius: var(--r-sm); color: var(--text);
+      font-size: 13px; font-family: var(--font);
       padding: 9px 12px;
-      transition: border-color 0.2s;
-      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
     }
+    .form-row input::placeholder { color: var(--text-4); }
+    .form-row input:hover,
+    .form-row select:hover,
+    .form-row textarea:hover { border-color: var(--border-2); }
     .form-row input:focus,
     .form-row select:focus,
     .form-row textarea:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+      background: var(--surface);
     }
-    .form-row textarea { resize: vertical; min-height: 72px; }
-    .form-row select { cursor: pointer; }
-
+    .form-row textarea { resize: vertical; min-height: 76px; line-height: 1.6; }
+    .form-row select { cursor: pointer; appearance: none; }
     .form-row input[type="password"] {
-      font-family: monospace;
-      letter-spacing: 1px;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
     }
 
-    /* mode toggle */
-    .mode-toggle {
-      display: flex;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 20px;
+    .api-note {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 11px 14px;
+      font-size: 11px; color: var(--text-3); margin-bottom: 14px;
+      display: flex; align-items: flex-start; gap: 9px; line-height: 1.6;
     }
-    .mode-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
+    .api-note code {
+      font-family: var(--mono); color: var(--blue); font-size: 11px;
+    }
+    .api-note a { color: var(--blue); text-decoration: none; }
+
+    .key-note {
+      font-size: 11px; color: var(--text-3);
+      margin-top: 5px; line-height: 1.6;
+    }
+    .key-note code { font-family: var(--mono); color: var(--blue); font-size: 11px; }
+
+    /* ═══════════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════════ */
+    .btn-primary {
+      width: 100%; padding: 13px 20px;
+      background: var(--gradient); color: white;
+      border: none; border-radius: var(--r);
+      font-size: 14px; font-weight: 700; font-family: var(--font);
       cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      transition: opacity 0.15s, transform 0.12s, box-shadow 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 18px var(--accent-glow);
+      letter-spacing: -0.2px;
     }
-    .mode-btn.active {
-      background: var(--accent);
-      color: white;
+    .btn-primary:hover:not(:disabled) {
+      opacity: 0.9; transform: translateY(-1px);
+      box-shadow: 0 6px 24px var(--accent-glow);
+    }
+    .btn-primary:active:not(:disabled) { transform: translateY(0); }
+    .btn-primary:disabled {
+      opacity: 0.45; cursor: not-allowed;
+      transform: none; box-shadow: none;
     }
 
-    /* submit button */
-    .submit-btn {
-      width: 100%;
-      padding: 14px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 8px;
+    .btn-ghost {
+      width: 100%; padding: 11px 20px;
+      background: transparent; color: var(--text-3);
+      border: 1px solid var(--border); border-radius: var(--r);
+      font-size: 13px; font-weight: 600; font-family: var(--font);
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 10px;
     }
-    .submit-btn:hover:not(:disabled) {
-      background: #1158cc;
-      transform: translateY(-1px);
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent-light);
+      background: var(--accent-dim);
     }
-    .submit-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .submit-btn .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.25);
+      border-top-color: white; border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      display: none; flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ---- RESULT PANEL ---- */
+    /* ═══════════════════════════════════════════════
+       RESULTS PANEL
+    ═══════════════════════════════════════════════ */
     .result-panel {
-      grid-column: 2;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+      display: flex; flex-direction: column; gap: 14px;
     }
 
-    /* empty state */
+    /* Empty state */
     .empty-state {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 60px 32px;
-      text-align: center;
+      border-radius: var(--r-lg);
+      padding: 60px 28px; text-align: center;
     }
-    .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
-    .empty-state h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-    .empty-state p { color: var(--muted); font-size: 14px; max-width: 280px; margin: 0 auto; }
+    .empty-icon {
+      width: 52px; height: 52px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin: 0 auto 18px;
+    }
+    .empty-state h3 {
+      font-size: 15px; font-weight: 700;
+      letter-spacing: -0.3px; margin-bottom: 7px;
+    }
+    .empty-state p {
+      color: var(--text-2); font-size: 13px;
+      max-width: 260px; margin: 0 auto; line-height: 1.65;
+    }
 
-    /* grade card */
+    /* Progress */
+    .progress-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px; display: none;
+    }
+    .progress-panel h3 {
+      font-size: 13px; font-weight: 700;
+      margin-bottom: 18px; letter-spacing: -0.2px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 7px 0; font-size: 13px;
+      color: var(--text-4); transition: color 0.3s;
+    }
+    .step.active { color: var(--text); }
+    .step.done   { color: var(--green); }
+
+    .step-icon {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.3s; font-size: 10px;
+    }
+    .step-icon-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--text-4); transition: background 0.3s;
+    }
+    .step.active .step-icon { border-color: var(--accent); background: var(--accent-dim); }
+    .step.active .step-icon-dot { background: var(--accent); }
+    .step.done .step-icon { border-color: var(--green); background: var(--green-dim); }
+    .step.done .step-icon-dot { background: var(--green); }
+
+    /* Error */
+    .error-panel {
+      background: rgba(239,68,68,0.055);
+      border: 1px solid rgba(239,68,68,0.22);
+      border-radius: var(--r-lg); padding: 20px 22px; display: none;
+    }
+    .error-panel h3 {
+      color: #fca5a5; font-size: 13px; font-weight: 700;
+      margin-bottom: 7px; display: flex; align-items: center; gap: 7px;
+    }
+    .error-panel p { color: var(--text-2); font-size: 12px; line-height: 1.7; }
+
+    /* ═══════════════════════════════════════════════
+       GRADE CARD
+    ═══════════════════════════════════════════════ */
     .grade-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      display: none;
+      border-radius: var(--r-lg); overflow: hidden; display: none;
     }
+
     .grade-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
+      padding: 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 18px;
     }
     .grade-badge {
-      width: 72px; height: 72px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      font-weight: 900;
-      flex-shrink: 0;
+      width: 64px; height: 64px;
+      border-radius: var(--r-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 900; font-family: var(--mono);
+      flex-shrink: 0; letter-spacing: -1px;
     }
-    .grade-A { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 2px solid rgba(63, 185, 80, 0.4); }
-    .grade-B { background: rgba(56, 139, 253, 0.15); color: #388bfd; border: 2px solid rgba(56, 139, 253, 0.4); }
-    .grade-C { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 2px solid rgba(210, 153, 34, 0.4); }
-    .grade-D { background: rgba(248, 81, 73, 0.15); color: #f85149; border: 2px solid rgba(248, 81, 73, 0.4); }
+    .grade-A { background: rgba(34,197,94,0.1);  color: #4ade80; border: 1.5px solid rgba(34,197,94,0.3); }
+    .grade-B { background: rgba(96,165,250,0.1); color: #93c5fd; border: 1.5px solid rgba(96,165,250,0.3); }
+    .grade-C { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1.5px solid rgba(245,158,11,0.3); }
+    .grade-D { background: rgba(239,68,68,0.1);  color: #fca5a5; border: 1.5px solid rgba(239,68,68,0.3); }
 
-    .grade-info { flex: 1; margin-left: 16px; }
-    .grade-info h3 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
-    .grade-info .grade-sub { font-size: 13px; color: var(--muted); }
+    .grade-info h3 {
+      font-size: 17px; font-weight: 800;
+      letter-spacing: -0.5px; margin-bottom: 4px;
+    }
+    .grade-meta {
+      font-size: 11px; color: var(--text-3);
+      font-family: var(--mono); letter-spacing: 0.2px;
+    }
 
+    .grade-body {
+      padding: 18px 22px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    /* Metrics */
     .metrics-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
     }
     .metric-box {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-      text-align: center;
+      border-radius: var(--r); padding: 14px; text-align: center;
+      transition: border-color 0.18s;
     }
-    .metric-box .m-value {
-      font-size: 22px;
-      font-weight: 800;
+    .metric-box:hover { border-color: var(--border-2); }
+    .m-value {
+      font-size: 21px; font-weight: 800;
+      font-family: var(--mono); letter-spacing: -0.5px;
       font-variant-numeric: tabular-nums;
     }
-    .metric-box .m-label {
-      font-size: 10px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
+    .m-label {
+      font-size: 10px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-top: 4px; font-weight: 500;
     }
 
-    .circuit-row {
+    /* Status */
+    .status-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 15px; border-radius: var(--r-sm);
+      font-size: 13px; font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .status-CONDITIONALLY_COMPLIANT {
+      background: var(--blue-dim);
+      border-color: rgba(96,165,250,0.22); color: var(--blue);
+    }
+    .status-INCOMPLETE {
+      background: var(--yellow-dim);
+      border-color: rgba(245,158,11,0.22); color: var(--yellow);
+    }
+    .status-NON_COMPLIANT {
+      background: var(--red-dim);
+      border-color: rgba(239,68,68,0.22); color: var(--red);
+    }
+
+    /* Circuit chips */
+    .block-row {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-      margin-bottom: 12px;
+      border-radius: var(--r); padding: 14px 16px;
     }
-    .circuit-row h4 {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--muted);
-      margin-bottom: 10px;
-      font-weight: 700;
+    .block-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--text-3); margin-bottom: 10px;
     }
-    .circuit-heads {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+    .circuit-heads { display: flex; flex-wrap: wrap; gap: 5px; }
     .head-chip {
-      background: rgba(31, 111, 235, 0.12);
-      border: 1px solid rgba(31, 111, 235, 0.25);
-      color: var(--accent2);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 12px;
-      font-family: monospace;
+      background: var(--accent-dim);
+      border: 1px solid rgba(99,102,241,0.22);
+      color: var(--accent-light);
+      font-size: 11px; font-weight: 600;
+      padding: 3px 9px; border-radius: var(--r-xs);
+      font-family: var(--mono);
     }
 
-    /* risk flags */
-    .risk-list { display: flex; flex-direction: column; gap: 8px; }
+    /* Risk flags */
+    .risk-list { display: flex; flex-direction: column; gap: 7px; }
     .risk-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 7px;
-      font-size: 13px;
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; border-radius: var(--r-sm);
+      border: 1px solid transparent;
     }
-    .risk-high   { background: rgba(248, 81, 73, 0.08); border: 1px solid rgba(248, 81, 73, 0.2); }
-    .risk-medium { background: rgba(210, 153, 34, 0.08); border: 1px solid rgba(210, 153, 34, 0.2); }
-    .risk-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+    .risk-high   { background: var(--red-dim);    border-color: rgba(239,68,68,0.18); }
+    .risk-medium { background: var(--yellow-dim); border-color: rgba(245,158,11,0.18); }
+    .risk-icon { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
     .risk-text strong { display: block; font-size: 12px; font-weight: 700; margin-bottom: 2px; }
-    .risk-text span { color: var(--muted); font-size: 11px; }
+    .risk-text span   { color: var(--text-3); font-size: 11px; line-height: 1.5; }
 
-    /* compliance status */
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .status-CONDITIONALLY_COMPLIANT { background: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.25); }
-    .status-INCOMPLETE               { background: rgba(210, 153, 34, 0.1); border: 1px solid rgba(210, 153, 34, 0.25); }
-    .status-NON_COMPLIANT            { background: rgba(248, 81, 73, 0.1);  border: 1px solid rgba(248, 81, 73, 0.25); }
-
-    /* download buttons */
-    .download-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 16px;
-    }
+    /* Downloads */
+    .download-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
     .dl-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 11px;
-      border-radius: 7px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      border: 1px solid var(--border);
-      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 10px 14px; border-radius: var(--r-sm);
+      font-size: 12px; font-weight: 700; font-family: var(--font);
+      cursor: pointer; text-decoration: none;
+      border: 1px solid var(--border); transition: all 0.15s;
     }
-    .dl-pdf {
-      background: rgba(248, 81, 73, 0.1);
-      border-color: rgba(248, 81, 73, 0.3);
-      color: #ff7b72;
-    }
-    .dl-pdf:hover { background: rgba(248, 81, 73, 0.2); }
-    .dl-json {
-      background: rgba(63, 185, 80, 0.1);
-      border-color: rgba(63, 185, 80, 0.3);
-      color: #3fb950;
-    }
-    .dl-json:hover { background: rgba(63, 185, 80, 0.2); }
+    .dl-pdf  { background: var(--red-dim);   border-color: rgba(239,68,68,0.22); color: #fca5a5; }
+    .dl-pdf:hover  { background: rgba(239,68,68,0.16); }
+    .dl-json { background: var(--green-dim); border-color: rgba(34,197,94,0.22); color: #86efac; }
+    .dl-json:hover { background: rgba(34,197,94,0.16); }
 
-    /* progress steps */
-    .progress-panel {
-      background: var(--surface);
+    .elapsed-info {
+      text-align: center; font-size: 11px;
+      color: var(--text-4); font-family: var(--mono);
+    }
+    .elapsed-info a { color: var(--text-3); text-decoration: none; }
+
+    /* ═══════════════════════════════════════════════
+       HEATMAP  (Attribution Patching Visualization)
+    ═══════════════════════════════════════════════ */
+    .heatmap-section {
+      background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      display: none;
+      border-radius: var(--r); padding: 16px; overflow: hidden;
     }
-    .progress-panel h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
-    .step {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 0;
-      font-size: 13px;
-      color: var(--muted);
+    .heatmap-section h4 {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--text-3); margin-bottom: 12px;
     }
-    .step.active { color: var(--text); }
-    .step.done   { color: var(--green); }
-    .step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--border);
+    .heatmap-head-labels {
+      display: flex; margin-left: 28px; margin-bottom: 3px; gap: 2px;
+    }
+    .heatmap-head-label {
+      flex: 1; text-align: center; font-size: 9px;
+      color: var(--text-4); font-family: var(--mono);
+    }
+    .heatmap-grid { display: flex; flex-direction: column; gap: 2px; }
+    .heatmap-row  { display: flex; align-items: center; gap: 2px; }
+    .heatmap-layer-label {
+      width: 26px; font-size: 9px; color: var(--text-4);
+      font-family: var(--mono); text-align: right;
+      padding-right: 4px; flex-shrink: 0;
+    }
+    .heatmap-cell {
+      flex: 1; aspect-ratio: 1; border-radius: 2px; cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .heatmap-cell:hover { transform: scale(1.25); position: relative; z-index: 2; }
+    .heatmap-cell.circuit-member {
+      border: 1.5px solid rgba(240,180,41,0.85);
+      box-shadow: 0 0 5px rgba(240,180,41,0.25);
+    }
+    .heatmap-legend {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 10px; font-size: 10px; color: var(--text-4);
+      flex-wrap: wrap;
+    }
+    .legend-gradient {
+      width: 60px; height: 7px; border-radius: 4px;
+      background: linear-gradient(to right, #1a2332, #6366f1);
       flex-shrink: 0;
     }
-    .step.active .step-dot { background: var(--accent); animation: pulse 1.2s infinite; }
-    .step.done .step-dot   { background: var(--green); }
-
-    /* error panel */
-    .error-panel {
-      background: rgba(248, 81, 73, 0.08);
-      border: 1px solid rgba(248, 81, 73, 0.3);
-      border-radius: 10px;
-      padding: 20px;
-      display: none;
+    .legend-circuit-dot {
+      width: 10px; height: 10px; border-radius: 2px;
+      border: 1.5px solid rgba(240,180,41,0.85); flex-shrink: 0;
     }
-    .error-panel h3 { color: #ff7b72; font-size: 14px; margin-bottom: 8px; }
-    .error-panel p  { color: var(--muted); font-size: 13px; }
 
-    /* ---- HOW IT WORKS ---- */
+    /* Shared tooltip */
+    .heatmap-tooltip {
+      display: none; position: fixed; z-index: 9999;
+      background: var(--surface);
+      border: 1px solid var(--border-3);
+      border-radius: var(--r-sm); padding: 10px 14px;
+      font-size: 12px; line-height: 1.65; color: var(--text);
+      box-shadow: var(--shadow); pointer-events: none; max-width: 220px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       D3 CIRCUIT GRAPH
+    ═══════════════════════════════════════════════ */
+    .circuit-graph-section {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r); padding: 16px; overflow: hidden;
+    }
+    .circuit-graph-section h4 {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--text-3); margin-bottom: 10px;
+    }
+    #circuit-graph-svg { width: 100%; height: 250px; display: block; }
+    .graph-link { stroke: rgba(99,102,241,0.3); stroke-width: 1.5px; }
+    .graph-node text {
+      fill: rgba(240,244,255,0.8); font-size: 9px;
+      font-family: var(--mono); text-anchor: middle; pointer-events: none;
+    }
+    .graph-legend {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 8px; font-size: 10px; color: var(--text-3);
+    }
+    .graph-legend-item { display: flex; align-items: center; gap: 4px; }
+    .graph-legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ═══════════════════════════════════════════════
+       HOW IT WORKS
+    ═══════════════════════════════════════════════ */
     .how-section {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 32px 60px;
+      max-width: 1160px; margin: 0 auto;
+      padding: 0 24px 88px;
     }
-    .how-section h2 {
-      font-size: 24px;
-      font-weight: 800;
+    .section-eyebrow {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-3);
+      text-align: center; margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 28px; font-weight: 800;
+      letter-spacing: -0.8px; text-align: center;
       margin-bottom: 8px;
     }
-    .how-section p { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+    .section-sub {
+      font-size: 15px; color: var(--text-2);
+      text-align: center; max-width: 480px;
+      margin: 0 auto 44px; line-height: 1.7;
+    }
     .steps-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 16px;
     }
     .step-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
+      border-radius: var(--r-lg); padding: 22px;
+      transition: border-color 0.2s, transform 0.2s;
     }
+    .step-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
     .step-num {
-      width: 32px; height: 32px;
-      background: var(--accent);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 800;
-      margin-bottom: 12px;
+      width: 34px; height: 34px;
+      background: var(--gradient); border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; font-family: var(--mono);
+      color: white; margin-bottom: 14px;
+      box-shadow: 0 2px 10px var(--accent-glow);
     }
-    .step-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-    .step-card p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .step-card h4 {
+      font-size: 13px; font-weight: 700; margin-bottom: 7px;
+      letter-spacing: -0.2px;
+    }
+    .step-card p { font-size: 12px; color: var(--text-2); line-height: 1.65; }
 
-    /* ---- FOOTER ---- */
+    /* ═══════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════ */
     footer {
       border-top: 1px solid var(--border);
-      padding: 24px 32px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
+      padding: 24px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
     }
-    footer a { color: var(--muted); text-decoration: none; }
-    footer a:hover { color: var(--text); }
+    .footer-copy { font-size: 12px; color: var(--text-4); }
+    .footer-copy strong { color: var(--text-3); font-weight: 600; }
+    .footer-links { display: flex; gap: 16px; }
+    .footer-links a {
+      color: var(--text-4); text-decoration: none;
+      font-size: 12px; transition: color 0.15s;
+    }
+    .footer-links a:hover { color: var(--text-2); }
 
-    /* responsive */
-    @media (max-width: 900px) {
-      .main { grid-template-columns: 1fr; }
-      .result-panel { grid-column: 1; }
+    /* ═══════════════════════════════════════════════
+       DIVIDER / pulse animation
+    ═══════════════════════════════════════════════ */
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0 var(--accent-glow); }
+      70%  { box-shadow: 0 0 0 6px rgba(99,102,241,0); }
+      100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 960px) {
+      .main { grid-template-columns: 1fr; padding: 0 16px 72px; }
       .steps-grid { grid-template-columns: 1fr 1fr; }
-      .hero h1 { font-size: 28px; }
+      .hero h1 { font-size: 38px; letter-spacing: -1.2px; }
+      nav { padding: 0 16px; }
+      .hero { padding: 56px 16px 36px; }
+      .stats-wrap { padding: 0 16px; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 560px) {
+      .hero h1 { font-size: 30px; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .stats-bar { flex-wrap: wrap; }
+      .stat-item { min-width: 50%; }
+      .metrics-grid { grid-template-columns: repeat(3,1fr); }
+      .download-row { grid-template-columns: 1fr; }
     }
   </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
 <body>
 
-<!-- NAV -->
+<!-- ═══════════════════ NAV ═══════════════════ -->
 <nav>
-  <div class="nav-logo">
-    <span class="logo-box">GB</span>
-    Glassbox
-    <span class="nav-badge">EU AI Act v2.6.0</span>
+  <div class="nav-left">
+    <div class="logo-mark">GB</div>
+    <span class="logo-name">Glassbox</span>
+    <div class="nav-sep"></div>
+    <span class="nav-tag">v2.8.0 · EU AI Act</span>
   </div>
-  <div class="nav-links">
-    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">GitHub</a>
-    <a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI</a>
-    <a href="#how-it-works">Docs</a>
+  <div class="nav-right">
+    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="nav-link" target="_blank">GitHub</a>
+    <a href="https://pypi.org/project/glassbox-mech-interp/" class="nav-link" target="_blank">PyPI</a>
+    <a href="#how-it-works" class="nav-link">Docs</a>
+    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="nav-btn" target="_blank">
+      ★ Star on GitHub
+    </a>
   </div>
 </nav>
 
-<!-- HERO -->
+<!-- ═══════════════════ HERO ═══════════════════ -->
 <section class="hero">
-  <div class="hero-tag">Open Source. EU AI Act. Annex IV.</div>
-  <h1>AI compliance reports.<br>Automated. In seconds.</h1>
-  <p>The only tool that generates a legally-structured EU AI Act Annex IV technical documentation report from your model. Works on any LLM — open source or proprietary.</p>
-  <div class="deadline-banner">
-    <span class="dot"></span>
-    Enforcement deadline: 2 August 2026 — <strong style="margin-left:4px;">High-risk AI systems under Annex III</strong>
+  <div class="hero-eyebrow">
+    <div class="live-dot"></div>
+    Open Source · EU AI Act · Annex IV
+  </div>
+  <h1>
+    <span class="plain">Compliance reports.</span><br>
+    <span class="grad">Automated. In seconds.</span>
+  </h1>
+  <p class="hero-sub">
+    The only open-source platform that generates legally-structured EU AI Act
+    Annex IV technical documentation from any LLM — open weights or proprietary API.
+  </p>
+  <div class="deadline-pill">
+    <span class="pulse-dot"></span>
+    Enforcement deadline: 2 August 2026 — High-risk AI systems under Annex III
   </div>
 </section>
 
-<!-- STATS -->
-<div class="stats-bar">
-  <div class="stat-item">
-    <span class="stat-value">37×</span>
-    <span class="stat-label">Faster than ACDC</span>
-  </div>
-  <div class="stat-item">
-    <span class="stat-value">9</span>
-    <span class="stat-label">Annex IV Sections</span>
-  </div>
-  <div class="stat-item">
-    <span class="stat-value">100%</span>
-    <span class="stat-label">Model Coverage</span>
-  </div>
-  <div class="stat-item">
-    <span class="stat-value">A–D</span>
-    <span class="stat-label">Explainability Grade</span>
+<!-- ═══════════════════ STATS ═══════════════════ -->
+<div class="stats-wrap">
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-value">~37×</span>
+      <span class="stat-label">Faster than ACDC</span>
+      <span class="stat-sub">Preliminary · single-run · M2 Pro</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">9</span>
+      <span class="stat-label">Annex IV Sections</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">100%</span>
+      <span class="stat-label">Model Coverage</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">A–D</span>
+      <span class="stat-label">Explainability Grade</span>
+    </div>
   </div>
 </div>
 
-<!-- MAIN -->
+<!-- ═══════════════════ MAIN ═══════════════════ -->
 <section class="main">
 
   <!-- LEFT: FORM -->
   <div>
     <div class="panel">
       <div class="panel-header">
-        <div class="panel-title"><span class="icon">⚡</span> Generate Compliance Report</div>
+        <div class="panel-title">
+          <div class="panel-title-icon">⚡</div>
+          Generate Compliance Report
+        </div>
       </div>
       <div class="panel-body">
 
@@ -760,15 +1001,15 @@
               <input id="bb-model" type="text" value="gpt-4" placeholder="gpt-4, claude-3-opus-20240229, llama-3-70b" />
             </div>
             <div class="form-row">
-              <label>API Key <span class="required">*</span>
-                <span class="hint" title="Sent as HTTP header only. Never in request body, never logged, never stored. Zero-copy: cleared after request completes.">
-                  🔒 header-only, never logged
-                </span>
+              <label>
+                API Key <span class="required">*</span>
+                <span class="secure-tag">🔒 header-only, never logged</span>
               </label>
               <input id="bb-apikey" type="password" placeholder="sk-..." autocomplete="off" />
-              <small style="color:#aaa;font-size:11px;margin-top:4px;display:block;">
-                Your key is sent as an HTTP header (not in the request body). It is never logged, never stored, and never included in the compliance report. For production use, we recommend self-hosting: <code>docker run -p 8000:8000 glassbox</code>
-              </small>
+              <div class="key-note">
+                Sent as an HTTP header only — never in the request body, never stored, never in reports.
+                For production, self-host: <code>docker run -p 8000:8000 glassbox</code>
+              </div>
             </div>
           </div>
 
@@ -776,7 +1017,7 @@
             <div class="form-section-title">Behavioural Probe</div>
             <div class="form-row">
               <label>Decision Prompt <span class="required">*</span></label>
-              <textarea id="bb-prompt" placeholder="The applicant has a credit score of 620 and annual income of $45,000. Based on standard banking criteria, the loan application should be">The applicant has a credit score of 620 and annual income of $45,000. The loan application should be</textarea>
+              <textarea id="bb-prompt" placeholder="The applicant has a credit score of 620 and annual income of $45,000. The loan application should be">The applicant has a credit score of 620 and annual income of $45,000. The loan application should be</textarea>
             </div>
             <div class="form-row">
               <label>Expected Positive Output <span class="required">*</span></label>
@@ -788,7 +1029,7 @@
             </div>
             <div class="form-row">
               <label>Context Variables <span class="hint">JSON</span></label>
-              <textarea id="bb-vars" style="min-height:60px; font-family:monospace; font-size:12px">{"credit_score": 620, "annual_income": 45000, "loan_amount": 25000}</textarea>
+              <textarea id="bb-vars" style="min-height:60px;font-family:'JetBrains Mono',monospace;font-size:12px">{"credit_score": 620, "annual_income": 45000, "loan_amount": 25000}</textarea>
             </div>
           </div>
 
@@ -823,24 +1064,29 @@
           </div>
         </div>
 
-        <!-- API config note -->
-        <div style="background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:12px 14px; font-size:12px; color:var(--muted); margin-bottom:16px; display:flex; gap:8px; align-items:flex-start;">
+        <!-- API config -->
+        <div class="api-note">
           <span>ℹ️</span>
-          <span>API endpoint: <code style="color:var(--accent2);">https://glassbox-ai-2-0-mechanistic.onrender.com</code> — run <code style="color:var(--accent2);">uvicorn api.main:app</code> to start the backend. <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" style="color:var(--accent2);">Setup guide →</a></span>
+          <span>
+            API endpoint: <code>https://glassbox-ai-2-0-mechanistic.onrender.com</code>
+            &nbsp;·&nbsp; or run <code>uvicorn api.main:app</code> locally.
+            <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank"> Setup guide →</a>
+          </span>
         </div>
 
         <div class="form-row">
           <label>API Server URL</label>
-          <input id="api-url" type="text" value="https://glassbox-ai-2-0-mechanistic.onrender.com" placeholder="https://glassbox-ai-2-0-mechanistic.onrender.com" />
+          <input id="api-url" type="text" value="https://glassbox-ai-2-0-mechanistic.onrender.com" placeholder="https://..." />
         </div>
 
-        <button class="submit-btn" id="submit-btn" onclick="runAudit()">
+        <button class="btn-primary" id="submit-btn" onclick="runAudit()">
           <span class="spinner" id="spinner"></span>
           <span id="submit-label">⚡ Generate Annex IV Report</span>
         </button>
-        <button onclick="runDemo()" style="width:100%;margin-top:10px;padding:11px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        <button class="btn-ghost" onclick="runDemo()">
           👁 Preview with demo data (no backend needed)
         </button>
+
       </div>
     </div>
   </div>
@@ -858,17 +1104,17 @@
     <!-- Progress -->
     <div class="progress-panel" id="progress-panel">
       <h3>Generating Annex IV Report...</h3>
-      <div class="step" id="step-1"><div class="step-dot"></div> Loading model</div>
-      <div class="step" id="step-2"><div class="step-dot"></div> Running attribution patching</div>
-      <div class="step" id="step-3"><div class="step-dot"></div> Discovering minimum faithful circuit</div>
-      <div class="step" id="step-4"><div class="step-dot"></div> Computing faithfulness metrics</div>
-      <div class="step" id="step-5"><div class="step-dot"></div> Building Annex IV sections (1–9)</div>
-      <div class="step" id="step-6"><div class="step-dot"></div> Generating PDF + JSON report</div>
+      <div class="step" id="step-1"><div class="step-icon"><div class="step-icon-dot"></div></div> Loading model</div>
+      <div class="step" id="step-2"><div class="step-icon"><div class="step-icon-dot"></div></div> Running attribution patching</div>
+      <div class="step" id="step-3"><div class="step-icon"><div class="step-icon-dot"></div></div> Discovering minimum faithful circuit</div>
+      <div class="step" id="step-4"><div class="step-icon"><div class="step-icon-dot"></div></div> Computing faithfulness metrics</div>
+      <div class="step" id="step-5"><div class="step-icon"><div class="step-icon-dot"></div></div> Building Annex IV sections (1–9)</div>
+      <div class="step" id="step-6"><div class="step-icon"><div class="step-icon-dot"></div></div> Generating PDF + JSON report</div>
     </div>
 
     <!-- Error -->
     <div class="error-panel" id="error-panel">
-      <h3>⚠️ Error</h3>
+      <h3>⚠ Error</h3>
       <p id="error-msg">Something went wrong.</p>
     </div>
 
@@ -878,92 +1124,96 @@
         <div class="grade-badge" id="grade-badge">A</div>
         <div class="grade-info">
           <h3 id="grade-title">Grade A — Fully Explainable</h3>
-          <div class="grade-sub" id="grade-sub">Report ID: GB-XXXXXXXX</div>
+          <div class="grade-meta" id="grade-sub">Report ID: GB-XXXXXXXX</div>
         </div>
       </div>
 
-      <div class="metrics-grid">
-        <div class="metric-box">
-          <div class="m-value" id="m-suff" style="color:#3fb950">—</div>
-          <div class="m-label">Sufficiency</div>
+      <div class="grade-body">
+
+        <!-- Metrics -->
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="m-value" id="m-suff" style="color:#4ade80">—</div>
+            <div class="m-label">Sufficiency</div>
+          </div>
+          <div class="metric-box">
+            <div class="m-value" id="m-comp" style="color:#93c5fd">—</div>
+            <div class="m-label">Comprehensiveness</div>
+          </div>
+          <div class="metric-box">
+            <div class="m-value" id="m-f1" style="color:#fbbf24">—</div>
+            <div class="m-label">F1 Score</div>
+          </div>
         </div>
-        <div class="metric-box">
-          <div class="m-value" id="m-comp" style="color:#388bfd">—</div>
-          <div class="m-label">Comprehensiveness</div>
+
+        <!-- Status -->
+        <div class="status-row" id="status-row">
+          <span id="status-icon">✓</span>
+          <span id="status-text">Conditionally Compliant</span>
         </div>
-        <div class="metric-box">
-          <div class="m-value" id="m-f1" style="color:#d29922">—</div>
-          <div class="m-label">F1 Score</div>
+
+        <!-- Circuit heads -->
+        <div class="block-row">
+          <div class="block-label">Identified Circuit Components</div>
+          <div class="circuit-heads" id="circuit-heads"></div>
         </div>
-      </div>
 
-      <!-- Status -->
-      <div class="status-row" id="status-row">
-        <span id="status-icon">✓</span>
-        <span id="status-text">Conditionally Compliant</span>
-      </div>
-
-      <!-- Circuit -->
-      <div class="circuit-row" style="margin-top:16px">
-        <h4>Identified Circuit Components</h4>
-        <div class="circuit-heads" id="circuit-heads"></div>
-      </div>
-
-
-      <!-- Circuit Heatmap Visualization -->
-      <div class="heatmap-section" id="heatmap-section" style="display:none">
-        <h4>Attribution Heatmap — All Attention Heads</h4>
-        <div class="heatmap-head-labels" id="heatmap-head-labels"></div>
-        <div class="heatmap-grid" id="heatmap-grid"></div>
-        <div class="heatmap-legend">
-          <div class="legend-gradient"></div>
-          <span>Low → High attribution</span>
-          &nbsp;&nbsp;
-          <div class="legend-circuit-dot"></div>
-          <span>Circuit member</span>
+        <!-- Attribution Heatmap -->
+        <div class="heatmap-section" id="heatmap-section" style="display:none">
+          <h4>Attribution Heatmap — All Attention Heads</h4>
+          <div class="heatmap-head-labels" id="heatmap-head-labels"></div>
+          <div class="heatmap-grid" id="heatmap-grid"></div>
+          <div class="heatmap-legend">
+            <div class="legend-gradient"></div>
+            <span>Low → High attribution</span>
+            &nbsp;
+            <div class="legend-circuit-dot"></div>
+            <span>Circuit member</span>
+          </div>
         </div>
+
+        <!-- Tooltip (shared) -->
+        <div class="heatmap-tooltip" id="heatmap-tooltip"></div>
+
+        <!-- Risk flags -->
+        <div id="risks-section"></div>
+
+        <!-- D3 Circuit Graph -->
+        <div class="circuit-graph-section" id="circuit-graph-section" style="display:none">
+          <h4>Circuit Graph — Causal Head Connections</h4>
+          <svg id="circuit-graph-svg">
+            <defs>
+              <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="rgba(99,102,241,0.55)"/>
+              </marker>
+            </defs>
+          </svg>
+          <div class="graph-legend" id="graph-legend"></div>
+        </div>
+
+        <!-- Downloads -->
+        <div class="download-row">
+          <a class="dl-btn dl-pdf" id="dl-pdf-btn" href="#" target="_blank">
+            📄 Download PDF Report
+          </a>
+          <a class="dl-btn dl-json" id="dl-json-btn" href="#" target="_blank">
+            { } View JSON Report
+          </a>
+        </div>
+
+        <!-- Elapsed -->
+        <div class="elapsed-info" id="elapsed-info"></div>
       </div>
-      <div class="heatmap-tooltip" id="heatmap-tooltip"></div>
-
-      <!-- Risks -->
-      <div id="risks-section" style="margin-top:12px"></div>
-
-
-      <!-- D3 Force-Directed Circuit Graph -->
-      <div class="circuit-graph-section" id="circuit-graph-section" style="display:none">
-        <h4>Circuit Graph — Causal Head Connections</h4>
-        <svg id="circuit-graph-svg">
-          <defs>
-            <marker id="arrow" markerWidth="6" markerHeight="6"
-                    refX="5" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L6,3 z" fill="rgba(56,139,253,0.6)"/>
-            </marker>
-          </defs>
-        </svg>
-        <div class="graph-legend" id="graph-legend"></div>
-      </div>
-
-      <!-- Downloads -->
-      <div class="download-row">
-        <a class="dl-btn dl-pdf" id="dl-pdf-btn" href="#" target="_blank">
-          📄 Download PDF Report
-        </a>
-        <a class="dl-btn dl-json" id="dl-json-btn" href="#" target="_blank">
-          { } View JSON Report
-        </a>
-      </div>
-
-      <!-- Elapsed -->
-      <div style="text-align:center; margin-top:12px; font-size:11px; color:var(--muted)" id="elapsed-info"></div>
     </div>
 
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
+<!-- ═══════════════════ HOW IT WORKS ═══════════════════ -->
 <section class="how-section" id="how-it-works">
-  <h2>How it works</h2>
-  <p>Three steps from model to compliance report, fully automated.</p>
+  <div class="section-eyebrow">How it works</div>
+  <h2 class="section-title">Three steps from model to compliance</h2>
+  <p class="section-sub">Fully automated. No manual report writing. Works on any LLM.</p>
   <div class="steps-grid">
     <div class="step-card">
       <div class="step-num">1</div>
@@ -978,7 +1228,7 @@
     <div class="step-card">
       <div class="step-num">3</div>
       <h4>Report generated</h4>
-      <p>All 9 Annex IV sections are populated, risk flags identified, and explainability grade A–D assigned per the regulation.</p>
+      <p>All 9 Annex IV sections are populated, risk flags identified, and explainability grade A–D assigned per Regulation (EU) 2024/1689.</p>
     </div>
     <div class="step-card">
       <div class="step-num">4</div>
@@ -988,11 +1238,18 @@
   </div>
 </section>
 
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
 <footer>
-  <p>Glassbox v2.6.0 — Open Source — MIT License —
-    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">GitHub</a> ·
-    <a href="https://pypi.org/project/glassbox-mech-interp/">PyPI</a> ·
-    Built by Ajay Pravin Mahale · Regulation (EU) 2024/1689</p>
+  <div class="footer-copy">
+    <strong>Glassbox v2.8.0</strong> — Open Source · MIT License · Regulation (EU) 2024/1689 ·
+    Built by Ajay Pravin Mahale
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">GitHub</a>
+    <a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI</a>
+    <a href="https://arxiv.org/abs/2603.09988" target="_blank">Paper</a>
+    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/SECURITY.md" target="_blank">Security</a>
+  </div>
 </footer>
 
 <script>
@@ -1007,25 +1264,25 @@
   }
 
   function setLoading(loading) {
-    const btn = document.getElementById('submit-btn');
+    const btn     = document.getElementById('submit-btn');
     const spinner = document.getElementById('spinner');
-    const label = document.getElementById('submit-label');
-    btn.disabled = loading;
-    spinner.style.display = loading ? 'block' : 'none';
-    label.textContent = loading ? 'Generating...' : '⚡ Generate Annex IV Report';
+    const label   = document.getElementById('submit-label');
+    btn.disabled           = loading;
+    spinner.style.display  = loading ? 'block' : 'none';
+    label.textContent      = loading ? 'Generating...' : '⚡ Generate Annex IV Report';
   }
 
   function setStep(n) {
     for (let i = 1; i <= 6; i++) {
       const el = document.getElementById('step-' + i);
-      if (i < n)       el.className = 'step done';
+      if (i < n)        el.className = 'step done';
       else if (i === n) el.className = 'step active';
       else              el.className = 'step';
     }
   }
 
   function showProgress() {
-    document.getElementById('empty-state').style.display   = 'none';
+    document.getElementById('empty-state').style.display    = 'none';
     document.getElementById('progress-panel').style.display = 'block';
     document.getElementById('error-panel').style.display    = 'none';
     document.getElementById('grade-card').style.display     = 'none';
@@ -1043,30 +1300,27 @@
     document.getElementById('progress-panel').style.display = 'none';
     document.getElementById('grade-card').style.display     = 'block';
 
-    const faith = data.faithfulness || {};
-    const suff  = faith.sufficiency       || 0;
-    const comp  = faith.comprehensiveness || 0;
-    const f1    = faith.f1                || 0;
-    const grade = (data.explainability_grade || 'D')[0];
+    const faith   = data.faithfulness || {};
+    const suff    = faith.sufficiency       || 0;
+    const comp    = faith.comprehensiveness || 0;
+    const f1      = faith.f1                || 0;
+    const grade   = (data.explainability_grade || 'D')[0];
     const reportId = data.report_id || '?';
     const status   = data.compliance_status || '';
 
-    // Grade badge
     const badge = document.getElementById('grade-badge');
     badge.textContent = grade;
-    badge.className = 'grade-badge grade-' + grade;
+    badge.className   = 'grade-badge grade-' + grade;
 
     document.getElementById('grade-title').textContent = data.explainability_grade || 'Not assessed';
     document.getElementById('grade-sub').textContent   = 'Report ID: GB-' + reportId + ' · ' + data.analysis_mode;
 
-    // Metrics
-    const colour = f1 >= 0.70 ? '#3fb950' : f1 >= 0.50 ? '#d29922' : '#f85149';
+    const colour = f1 >= 0.70 ? '#4ade80' : f1 >= 0.50 ? '#fbbf24' : '#fca5a5';
     document.getElementById('m-suff').textContent = suff.toFixed(3);
     document.getElementById('m-comp').textContent = comp.toFixed(3);
     document.getElementById('m-f1').textContent   = f1.toFixed(3);
     document.getElementById('m-f1').style.color   = colour;
 
-    // Status row
     const statusRow = document.getElementById('status-row');
     statusRow.className = 'status-row status-' + status.toUpperCase();
     const statusMap = {
@@ -1078,21 +1332,18 @@
     document.getElementById('status-icon').textContent = icon;
     document.getElementById('status-text').textContent = text;
 
-    // Circuit heads
     const circuitEl = document.getElementById('circuit-heads');
-    const report = data.full_report || {};
-    const s2 = (report.sections || {})['2_development_design'] || {};
-    const heads = s2.circuit_heads || data.circuit || [];
+    const report    = data.full_report || {};
+    const s2        = (report.sections || {})['2_development_design'] || {};
+    const heads     = s2.circuit_heads || data.circuit || [];
     circuitEl.innerHTML = heads.length
       ? heads.map(h => `<span class="head-chip">${h}</span>`).join('')
-      : '<span style="color:var(--muted);font-size:12px;">No circuit identified</span>';
+      : '<span style="color:var(--text-3);font-size:12px;">No circuit identified</span>';
 
-    // Circuit graph + heatmap
     renderCircuitGraph(data);
     renderHeatmap(data);
 
-    // Risks
-    const s5 = (report.sections || {})['5_risk_management'] || {};
+    const s5    = (report.sections || {})['5_risk_management'] || {};
     const risks = s5.identified_risks || [];
     const risksEl = document.getElementById('risks-section');
     if (risks.length) {
@@ -1109,13 +1360,12 @@
       risksEl.innerHTML = '';
     }
 
-    // Downloads
     const base = document.getElementById('api-url').value;
     document.getElementById('dl-pdf-btn').href  = base + '/v1/audit/pdf/'    + reportId;
     document.getElementById('dl-json-btn').href = base + '/v1/audit/report/' + reportId;
 
-    // Elapsed
-    document.getElementById('elapsed-info').textContent = `Generated in ${elapsed.toFixed(1)}s · ${new Date().toLocaleString()}`;
+    document.getElementById('elapsed-info').textContent =
+      `Generated in ${elapsed.toFixed(1)}s · ${new Date().toLocaleString()}`;
   }
 
   async function runAudit() {
@@ -1123,7 +1373,6 @@
     setLoading(true);
     showProgress();
 
-    // Simulate step progression for UX
     const stepTimings = [0, 1000, 2500, 4000, 5500, 7000];
     stepTimings.forEach((t, i) => setTimeout(() => setStep(i + 1), t));
 
@@ -1132,50 +1381,47 @@
 
       if (currentMode === 'white') {
         endpoint = base + '/v1/audit/analyze';
-        payload = {
-          model_name:        document.getElementById('wb-model').value,
-          prompt:            document.getElementById('wb-prompt').value,
-          correct_token:     document.getElementById('wb-correct').value,
-          incorrect_token:   document.getElementById('wb-incorrect').value,
-          method:            document.getElementById('wb-method').value,
-          provider_name:     document.getElementById('wb-provider').value,
-          provider_address:  document.getElementById('wb-address').value,
-          system_purpose:    document.getElementById('wb-purpose').value,
+        payload  = {
+          model_name:         document.getElementById('wb-model').value,
+          prompt:             document.getElementById('wb-prompt').value,
+          correct_token:      document.getElementById('wb-correct').value,
+          incorrect_token:    document.getElementById('wb-incorrect').value,
+          method:             document.getElementById('wb-method').value,
+          provider_name:      document.getElementById('wb-provider').value,
+          provider_address:   document.getElementById('wb-address').value,
+          system_purpose:     document.getElementById('wb-purpose').value,
           deployment_context: document.getElementById('wb-context').value,
-          use_case:          document.getElementById('wb-usecase').value,
-          generate_pdf:      true,
+          use_case:           document.getElementById('wb-usecase').value,
+          generate_pdf:       true,
         };
-        // Use system name for model_name display if provided
         const sysName = document.getElementById('wb-sysname').value;
         if (sysName) payload.model_name = sysName;
       } else {
         endpoint = base + '/v1/audit/black-box';
         let contextVars = null;
-        try {
-          contextVars = JSON.parse(document.getElementById('bb-vars').value || '{}');
-        } catch(e) { /* ignore */ }
+        try { contextVars = JSON.parse(document.getElementById('bb-vars').value || '{}'); } catch(e) {}
         payload = {
-          target_provider:   document.getElementById('bb-provider-api').value,
-          target_model:      document.getElementById('bb-model').value,
-          decision_prompt:   document.getElementById('bb-prompt').value,
-          expected_positive: document.getElementById('bb-positive').value,
-          expected_negative: document.getElementById('bb-negative').value,
-          context_variables: contextVars,
-          n_rephrases:       3,
-          provider_name:     document.getElementById('bb-provider').value,
-          provider_address:  document.getElementById('bb-address').value,
-          system_purpose:    document.getElementById('bb-purpose').value,
+          target_provider:    document.getElementById('bb-provider-api').value,
+          target_model:       document.getElementById('bb-model').value,
+          decision_prompt:    document.getElementById('bb-prompt').value,
+          expected_positive:  document.getElementById('bb-positive').value,
+          expected_negative:  document.getElementById('bb-negative').value,
+          context_variables:  contextVars,
+          n_rephrases:        3,
+          provider_name:      document.getElementById('bb-provider').value,
+          provider_address:   document.getElementById('bb-address').value,
+          system_purpose:     document.getElementById('bb-purpose').value,
           deployment_context: document.getElementById('bb-context').value,
-          use_case:          document.getElementById('bb-model').value + ' compliance audit',
-          generate_pdf:      true,
+          use_case:           document.getElementById('bb-model').value + ' compliance audit',
+          generate_pdf:       true,
         };
         const sysName = document.getElementById('bb-sysname').value;
         if (sysName) payload.target_model = sysName;
       }
 
-      const t0 = Date.now();
+      const t0     = Date.now();
       const apiKey = document.getElementById('bb-apikey')?.value || '';
-      const resp = await fetch(endpoint, {
+      const resp   = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1189,95 +1435,70 @@
         throw new Error(err.detail || resp.statusText);
       }
 
-      const data = await resp.json();
+      const data    = await resp.json();
       const elapsed = (Date.now() - t0) / 1000;
-      setStep(7); // all done
+      setStep(7);
       setLoading(false);
       showResult(data, elapsed);
 
     } catch (err) {
       setLoading(false);
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        // Backend not running — offer demo mode automatically
         document.getElementById('progress-panel').style.display = 'none';
-        document.getElementById('empty-state').style.display = 'none';
-        document.getElementById('error-panel').style.display = 'block';
+        document.getElementById('empty-state').style.display    = 'none';
+        document.getElementById('error-panel').style.display    = 'block';
         document.getElementById('error-msg').innerHTML =
-          'API server not reachable at <code style="color:var(--accent2)">' + base + '</code>. ' +
-          'Run <code style="color:var(--accent2)">uvicorn api.main:app</code> to connect your model. ' +
-          '<br><br><button onclick="runDemo()" style="margin-top:8px;padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;">Preview with demo data instead</button>';
+          'API server not reachable at <code style="color:var(--blue)">' + base + '</code>. ' +
+          'Run <code style="color:var(--blue)">uvicorn api.main:app</code> to connect. ' +
+          '<br><br><button onclick="runDemo()" style="margin-top:8px;padding:8px 18px;background:var(--gradient);color:white;border:none;border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:700;font-family:var(--font)">Preview with demo data instead</button>';
       } else {
         showError(err.message || 'Unknown error occurred.');
       }
     }
   }
 
-  // Allow Enter in text inputs
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.ctrlKey) runAudit();
-  });
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.ctrlKey) runAudit(); });
 
-  // ---- DEMO MODE ----
-  // Hardcoded realistic result based on actual Glassbox output for IOI/GPT-2
-  // Lets anyone preview the full product with zero backend setup
-
-
-  // ---------------------------------------------------------------------------
-  // D3 Force-Directed Circuit Graph
-  // ---------------------------------------------------------------------------
+  // ─────────────────────────────────────────────
+  // D3 FORCE-DIRECTED CIRCUIT GRAPH
+  // ─────────────────────────────────────────────
   function renderCircuitGraph(data) {
-    const report  = data.full_report || {};
-    const s2      = (report.sections || {})['2_development_design'] || {};
+    const report       = data.full_report || {};
+    const s2           = (report.sections || {})['2_development_design'] || {};
     const circuitHeads = s2.circuit_heads || data.circuit || [];
     const attrScores   = s2.attribution_scores || {};
     if (circuitHeads.length === 0) return;
 
-    // Layer-colour palette (one colour per layer)
     const layerColours = [
-      '#6e7681','#3fb950','#388bfd','#d29922','#f85149',
-      '#bc8cff','#79c0ff','#56d364','#ffa657','#ff7b72',
-      '#a5d6ff','#7ee787',
+      '#6e7681','#3fb950','#6366f1','#f59e0b','#ef4444',
+      '#a78bfa','#60a5fa','#4ade80','#fb923c','#f87171',
+      '#818cf8','#34d399',
     ];
 
-    // Parse head labels like "L9H9" → {layer:9, head:9}
-    const parse = h => {
-      const m = h.match(/L(\d+)H(\d+)/);
-      return m ? { id: h, layer: +m[1], head: +m[2] } : null;
-    };
-
-    const nodes = circuitHeads.map(parse).filter(Boolean).map(n => ({
-      ...n,
-      score: attrScores[n.id] || 0.05,
-    }));
-
+    const parse = h => { const m = h.match(/L(\d+)H(\d+)/); return m ? { id: h, layer: +m[1], head: +m[2] } : null; };
+    const nodes = circuitHeads.map(parse).filter(Boolean).map(n => ({ ...n, score: attrScores[n.id] || 0.05 }));
     if (nodes.length === 0) return;
 
-    // Edges: connect heads in adjacent layers (heuristic — real EAP edges if available)
     const links = [];
     const byLayer = {};
     nodes.forEach(n => { (byLayer[n.layer] = byLayer[n.layer] || []).push(n); });
     const layers = Object.keys(byLayer).map(Number).sort((a,b) => a-b);
     for (let i = 0; i < layers.length - 1; i++) {
-      const src = byLayer[layers[i]];
-      const tgt = byLayer[layers[i+1]];
-      src.forEach(s => tgt.forEach(t => {
-        links.push({ source: s.id, target: t.id, value: 0.5 });
-      }));
+      byLayer[layers[i]].forEach(s => byLayer[layers[i+1]].forEach(t => links.push({ source: s.id, target: t.id })));
     }
 
     const svg = d3.select('#circuit-graph-svg');
     svg.selectAll('*').remove();
 
-    const el  = document.getElementById('circuit-graph-svg');
-    const W   = el.clientWidth || 420;
-    const H   = el.clientHeight || 260;
+    const el = document.getElementById('circuit-graph-svg');
+    const W  = el.clientWidth || 420;
+    const H  = el.clientHeight || 250;
 
-    // Arrowhead marker
     svg.append('defs').append('marker')
       .attr('id','cg-arrow').attr('markerWidth',6).attr('markerHeight',6)
       .attr('refX',14).attr('refY',3).attr('orient','auto')
       .append('path').attr('d','M0,0 L0,6 L6,3 z')
-      .attr('fill','rgba(56,139,253,0.55)');
+      .attr('fill','rgba(99,102,241,0.5)');
 
     const sim = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(links).id(d => d.id).distance(60).strength(0.4))
@@ -1306,21 +1527,21 @@
     nodeEl.append('circle')
       .attr('r', d => 10 + (d.score / maxScore) * 10)
       .attr('fill', d => layerColours[d.layer % layerColours.length])
+      .attr('fill-opacity', 0.85)
       .attr('stroke', '#f0b429')
-      .attr('stroke-opacity', d => d.score > 0.08 ? 1 : 0.2);
+      .attr('stroke-width', 1.5)
+      .attr('stroke-opacity', d => d.score > 0.08 ? 1 : 0.15);
 
-    nodeEl.append('text')
-      .attr('dy', 1)
-      .text(d => d.id);
+    nodeEl.append('text').attr('dy', 1).text(d => d.id);
 
-    // Tooltip
     const tip = document.getElementById('heatmap-tooltip');
-    nodeEl.on('mouseenter', (e,d) => {
-      tip.style.display = 'block';
-      tip.innerHTML = `<strong>${d.id}</strong><br>Layer ${d.layer}, Head ${d.head}<br>Attribution: ${d.score.toFixed(4)}<br><span style="color:#f0b429">★ Circuit member</span>`;
-    }).on('mousemove', e => {
-      tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-10)+'px';
-    }).on('mouseleave', () => { tip.style.display='none'; });
+    nodeEl
+      .on('mouseenter', (e,d) => {
+        tip.style.display = 'block';
+        tip.innerHTML = `<strong>${d.id}</strong><br>Layer ${d.layer}, Head ${d.head}<br>Attribution: ${d.score.toFixed(4)}<br><span style="color:#f0b429">★ Circuit member</span>`;
+      })
+      .on('mousemove', e => { tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY-10)+'px'; })
+      .on('mouseleave', () => { tip.style.display='none'; });
 
     sim.on('tick', () => {
       linkEl
@@ -1329,71 +1550,62 @@
       nodeEl.attr('transform', d => `translate(${Math.max(16,Math.min(W-16,d.x))},${Math.max(16,Math.min(H-16,d.y))})`);
     });
 
-    // Legend
-    const uniqueLayers = [...new Set(nodes.map(n=>n.layer))].sort((a,b)=>a-b);
+    const uniqueLayers = [...new Set(nodes.map(n => n.layer))].sort((a,b) => a-b);
     const leg = document.getElementById('graph-legend');
     leg.innerHTML = uniqueLayers.map(l =>
       `<div class="graph-legend-item">
         <div class="graph-legend-dot" style="background:${layerColours[l%layerColours.length]}"></div>
         Layer ${l}
       </div>`).join('') +
-      `<div class="graph-legend-item" style="margin-left:auto;">
-        <div class="graph-legend-dot" style="border:2px solid #f0b429;background:transparent;width:8px;height:8px"></div>
-        Gold border = high attribution
+      `<div class="graph-legend-item" style="margin-left:auto">
+        <div class="graph-legend-dot" style="border:1.5px solid #f0b429;background:transparent;width:8px;height:8px"></div>
+        Gold = high attribution
       </div>`;
 
     document.getElementById('circuit-graph-section').style.display = 'block';
   }
 
-  // ---------------------------------------------------------------------------
-  // Circuit Heatmap — Attribution Patching Visualization
-  // ---------------------------------------------------------------------------
+  // ─────────────────────────────────────────────
+  // ATTRIBUTION HEATMAP
+  // ─────────────────────────────────────────────
   function renderHeatmap(data) {
-    const report = data.full_report || {};
-    const s2 = (report.sections || {})['2_development_design'] || {};
+    const report       = data.full_report || {};
+    const s2           = (report.sections || {})['2_development_design'] || {};
     const circuitHeads = new Set(s2.circuit_heads || data.circuit || []);
-    const nLayers = s2.n_layers || 12;
-    const nHeads  = s2.n_heads  || 12;
+    const nLayers      = s2.n_layers || 12;
+    const nHeads       = s2.n_heads  || 12;
+    const attrScores   = s2.attribution_scores || {};
 
-    // Attribution scores: from report or DEMO
-    const attrScores = s2.attribution_scores || {};
-
-    // If no real scores, generate synthetic for demo
     const getScore = (l, h) => {
       const key = `L${l}H${h}`;
       if (attrScores[key] !== undefined) return attrScores[key];
-      if (circuitHeads.has(key)) return 0.10 + Math.abs(Math.sin(l * 13 + h * 7)) * 0.08;
-      return Math.abs(Math.sin(l * 7 + h * 3)) * 0.025;
+      if (circuitHeads.has(key)) return 0.10 + Math.abs(Math.sin(l*13+h*7)) * 0.08;
+      return Math.abs(Math.sin(l*7+h*3)) * 0.025;
     };
 
-    // Find max for normalization
     let maxScore = 0;
-    for (let l = 0; l < nLayers; l++)
-      for (let h = 0; h < nHeads; h++)
-        maxScore = Math.max(maxScore, getScore(l, h));
+    for (let l=0; l<nLayers; l++) for (let h=0; h<nHeads; h++) maxScore = Math.max(maxScore, getScore(l,h));
     if (maxScore === 0) maxScore = 1;
 
-    // Head labels
     const headLabels = document.getElementById('heatmap-head-labels');
-    headLabels.innerHTML = Array.from({length: nHeads}, (_, h) =>
+    headLabels.innerHTML = Array.from({length: nHeads}, (_,h) =>
       `<div class="heatmap-head-label">${h}</div>`).join('');
 
-    // Grid
-    const grid = document.getElementById('heatmap-grid');
-    grid.innerHTML = '';
+    const grid    = document.getElementById('heatmap-grid');
     const tooltip = document.getElementById('heatmap-tooltip');
+    grid.innerHTML = '';
 
-    for (let l = nLayers - 1; l >= 0; l--) {
+    for (let l = nLayers-1; l >= 0; l--) {
       const row = document.createElement('div');
       row.className = 'heatmap-row';
 
-      const label = document.createElement('div');
-      label.className = 'heatmap-layer-label';
-      label.textContent = `L${l}`;
-      row.appendChild(label);
+      const lbl = document.createElement('div');
+      lbl.className   = 'heatmap-layer-label';
+      lbl.textContent = `L${l}`;
+      row.appendChild(lbl);
 
-      for (let h = 0; h < nHeads; h++) {
-        const score  = getScore(l, h);
+      for (let h=0; h<nHeads; h++) {
+        const score  = getScore(l,h);
         const norm   = score / maxScore;
         const key    = `L${l}H${h}`;
         const inCirc = circuitHeads.has(key);
@@ -1401,25 +1613,25 @@
         const cell = document.createElement('div');
         cell.className = 'heatmap-cell' + (inCirc ? ' circuit-member' : '');
 
-        // Interpolate: dark (#1a2332) → accent (#388bfd)
-        const r = Math.round(26  + norm * (56  - 26));
-        const g = Math.round(35  + norm * (139 - 35));
-        const b = Math.round(50  + norm * (253 - 50));
+        // Interpolate: dark (#0d1017) → accent (#6366f1)
+        const r = Math.round(13  + norm * (99  - 13));
+        const g = Math.round(16  + norm * (102 - 16));
+        const b = Math.round(23  + norm * (241 - 23));
         cell.style.background = `rgb(${r},${g},${b})`;
 
-        cell.addEventListener('mouseenter', (e) => {
+        cell.addEventListener('mouseenter', () => {
           tooltip.style.display = 'block';
           tooltip.innerHTML =
             `<strong>Layer ${l}, Head ${h}</strong><br>` +
             `Attribution: <strong>${score.toFixed(4)}</strong><br>` +
-            `Normalized: ${(norm * 100).toFixed(1)}%<br>` +
-            (inCirc ? `<span style="color:#f0b429">★ Circuit member</span>` : '');
+            `Normalized: ${(norm*100).toFixed(1)}%` +
+            (inCirc ? `<br><span style="color:#f0b429">★ Circuit member</span>` : '');
         });
-        cell.addEventListener('mousemove', (e) => {
-          tooltip.style.left = (e.clientX + 14) + 'px';
-          tooltip.style.top  = (e.clientY - 10) + 'px';
+        cell.addEventListener('mousemove', e => {
+          tooltip.style.left = (e.clientX+14)+'px';
+          tooltip.style.top  = (e.clientY-10)+'px';
         });
-        cell.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+        cell.addEventListener('mouseleave', () => { tooltip.style.display='none'; });
         row.appendChild(cell);
       }
       grid.appendChild(row);
@@ -1428,6 +1640,9 @@
     document.getElementById('heatmap-section').style.display = 'block';
   }
 
+  // ─────────────────────────────────────────────
+  // DEMO DATA  — real IOI/GPT-2 circuit (Wang et al. 2022)
+  // ─────────────────────────────────────────────
   const DEMO_RESULT = {
     report_id: "2F906F6A",
     status: "completed",
@@ -1444,39 +1659,30 @@
       compliance_status: "conditionally_compliant",
       sections: {
         "2_development_design": {
-          circuit_heads: ["L9H9", "L9H6", "L10H0", "L3H0"],
+          circuit_heads: ["L9H9","L9H6","L10H0","L3H0"],
           n_circuit_heads_found: 4,
           n_analysis_heads_total: 144,
-          n_layers: 12,
-          n_heads: 12,
+          n_layers: 12, n_heads: 12,
           attribution_method: "taylor",
           attribution_scores: {
-            // IOI circuit — name movers, S-inhibition, induction heads (Wang et al. 2022)
-            "L9H9": 0.1742, "L9H6": 0.1231, "L10H0": 0.0987, "L3H0": 0.0671,
-            "L8H6": 0.0534, "L8H10": 0.0421, "L7H3": 0.0367, "L7H9": 0.0312,
-            "L5H5": 0.0298, "L6H9": 0.0267, "L4H4": 0.0198, "L5H8": 0.0187,
-            "L10H7": 0.0156, "L11H2": 0.0134, "L2H2": 0.0123, "L1H4": 0.0098,
-            "L0H1": 0.0067, "L3H6": 0.0054, "L6H3": 0.0048, "L4H11": 0.0034,
+            "L9H9":0.1742,"L9H6":0.1231,"L10H0":0.0987,"L3H0":0.0671,
+            "L8H6":0.0534,"L8H10":0.0421,"L7H3":0.0367,"L7H9":0.0312,
+            "L5H5":0.0298,"L6H9":0.0267,"L4H4":0.0198,"L5H8":0.0187,
+            "L10H7":0.0156,"L11H2":0.0134,"L2H2":0.0123,"L1H4":0.0098,
+            "L0H1":0.0067,"L3H6":0.0054,"L6H3":0.0048,"L4H11":0.0034,
           },
         },
         "3_monitoring_control": {
           explainability_grade: "A — Fully Explainable",
-          sufficiency: 0.921,
-          comprehensiveness: 0.634,
-          f1_score: 0.751,
+          sufficiency: 0.921, comprehensiveness: 0.634, f1_score: 0.751,
           faithfulness_category: "faithful",
-          explainability_rationale: "Grade A: The identified circuit comprehensively explains model behaviour. Sufficiency=0.921 (>0.80), Comprehensiveness=0.634 (>0.60), F1=0.751. Faithfulness category: faithful. This system meets the Article 13 transparency standard for EU AI Act compliance.",
+          explainability_rationale: "Grade A: sufficiency=0.921>0.80, comprehensiveness=0.634>0.60, F1=0.751. Meets Article 13 transparency standard.",
         },
         "5_risk_management": {
           identified_risks: [
             { risk: "Incomplete data governance documentation", severity: "high", rationale: "Training, validation, and test dataset fields require provider completion before regulatory submission.", article: "Article 10, Annex IV Section 4" },
-            { risk: "Declaration of conformity not executed", severity: "high", rationale: "Article 47 requires a written, signed declaration of conformity before placing high-risk AI on the market.", article: "Article 47" }
+            { risk: "Declaration of conformity not executed", severity: "high",   rationale: "Article 47 requires a written, signed declaration of conformity before placing high-risk AI on the market.", article: "Article 47" },
           ],
-          recommended_actions: [
-            "Complete all [PROVIDER TO COMPLETE] fields before submitting to national competent authority",
-            "Execute EU Declaration of Conformity (Article 47) before market deployment",
-            "Register system in EU AI Act database (Article 71) if applicable",
-          ]
         }
       }
     }
@@ -1485,15 +1691,14 @@
   function runDemo() {
     setLoading(true);
     showProgress();
-    const steps = [300, 700, 1200, 1700, 2100, 2500];
-    steps.forEach((t, i) => setTimeout(() => setStep(i + 1), t));
+    const steps = [280,640,1100,1600,2000,2400];
+    steps.forEach((t,i) => setTimeout(() => setStep(i+1), t));
     setTimeout(() => {
       setLoading(false);
       showResult(DEMO_RESULT, 1.2);
-      // Show demo notice
-      const elapsed = document.getElementById('elapsed-info');
-      elapsed.innerHTML = '⚡ Demo mode — <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" style="color:var(--accent2)">run the backend</a> for real analysis · ' + new Date().toLocaleString();
-    }, 2700);
+      const el = document.getElementById('elapsed-info');
+      el.innerHTML = '⚡ Demo mode — <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">run the backend</a> for real analysis · ' + new Date().toLocaleString();
+    }, 2600);
   }
 </script>
 </body>
