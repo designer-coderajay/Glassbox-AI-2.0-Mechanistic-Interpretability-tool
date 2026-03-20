@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "3.1.0"
-description = "Mechanistic interpretability + EU AI Act compliance. Bias analysis, multi-audit dashboard, webhooks, TypeScript SDK, GitHub Action, Jupyter widgets, tamper-evident audit log."
+version     = "3.2.1"
+description = "Mechanistic interpretability + EU AI Act compliance. Attribution patching, CircuitDiff, bias analysis, multi-audit dashboard, stability suite, tamper-evident audit log. Dual-licensed (MIT core + BSL 1.1 compliance engine)."
 readme      = "README.md"
-license     = { text = "MIT" }
+license     = { text = "MIT AND LicenseRef-BUSL-1.1" }
 authors     = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]
 requires-python = ">=3.8"
 

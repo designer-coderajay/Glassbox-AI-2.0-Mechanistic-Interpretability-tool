@@ -1760,6 +1760,189 @@ class GlassboxV2:
         }
 
     # ──────────────────────────────────────────────────────────────────────
+    # 5b. MULTI-PROMPT CIRCUIT STABILITY SUITE  (v3.2.0 — ICML 2026 §4.5)
+    # ──────────────────────────────────────────────────────────────────────
+
+    def stability_suite(
+        self,
+        prompt_variants: List[Tuple[str, str, str]],
+        seed:            int   = 42,
+        threshold:       float = 0.75,
+    ) -> Dict:
+        """
+        Measure circuit membership stability across paraphrases / variants of
+        the same underlying semantic task.
+
+        This is the key experimental result added in v3.2.0 and reported in
+        ICML 2026 §4.5: CircuitDiff Jaccard scores above ``threshold`` (default
+        0.75) correlate with stable behavioral benchmarks across fine-tuning
+        checkpoints.
+
+        Parameters
+        ----------
+        prompt_variants : List of (prompt, correct, incorrect) tuples that are
+                          semantically equivalent (e.g., paraphrases of the same
+                          indirect-object-identification task).  Minimum 5;
+                          recommended 20–50 for reliable statistics.
+        seed            : RNG seed (default 42) for any internal sampling.
+        threshold       : Jaccard threshold above which a circuit is considered
+                          "stable" (default 0.75). Circuits at or above this
+                          threshold count toward the stability_rate.
+
+        Returns
+        -------
+        dict with keys:
+
+            jaccard_mean     : float — mean pairwise Jaccard circuit similarity
+                               across all variant pairs
+            jaccard_std      : float — std of pairwise Jaccard scores
+            jaccard_min      : float — worst-case pair
+            jaccard_max      : float — best-case pair
+            stability_rate   : float — fraction of pairs with Jaccard ≥ threshold
+            consensus_circuit: List[HeadTuple] — heads present in ≥50% of circuits
+            per_variant      : List[dict] — per-variant circuit + attribution summary
+            n_pairs          : int — total pairwise comparisons made
+            meta             : dict — threshold, seed, n_variants, model_name
+
+        Notes
+        -----
+        A Jaccard score of 1.0 means identical circuits; 0.0 means no shared heads.
+        For robust ICML claims, run with ≥ 20 paraphrases (seed=42) and report
+        both jaccard_mean and stability_rate at threshold=0.75.
+
+        Circuit membership is defined by the minimum faithful circuit returned
+        by ``minimum_faithful_circuit()`` at the default threshold (0.6).
+        """
+        if len(prompt_variants) < 2:
+            raise ValueError("stability_suite requires at least 2 prompt variants.")
+
+        circuits: List[set] = []
+        per_variant: List[Dict] = []
+
+        for idx, (prompt, correct, incorrect) in enumerate(prompt_variants):
+            logger.info(
+                "stability_suite %d/%d: '%s'",
+                idx + 1, len(prompt_variants), prompt[:60],
+            )
+            try:
+                t_tok = self.model.to_single_token(correct)
+                d_tok = self.model.to_single_token(incorrect)
+            except Exception:
+                logger.warning(
+                    "stability_suite: skipping variant %d — multi-token correct token",
+                    idx,
+                )
+                per_variant.append({
+                    "idx": idx, "prompt": prompt[:80],
+                    "circuit": [], "n_heads": 0, "skipped": True,
+                })
+                continue
+
+            tokens_c    = self.model.to_tokens(prompt)
+            corr_prompt = self._name_swap(prompt, correct.strip(), incorrect.strip())
+            tokens_corr = self.model.to_tokens(corr_prompt)
+
+            try:
+                circuit, attrs, _ = self.minimum_faithful_circuit(
+                    tokens_c, tokens_corr, t_tok, d_tok
+                )
+            except Exception as exc:
+                logger.warning("stability_suite: variant %d failed: %s", idx, exc)
+                per_variant.append({
+                    "idx": idx, "prompt": prompt[:80],
+                    "circuit": [], "n_heads": 0, "error": str(exc),
+                })
+                continue
+
+            head_set: set = set()
+            for h in circuit:
+                layer = h[0] if isinstance(h, (tuple, list)) else h.get("layer", -1)
+                head  = h[1] if isinstance(h, (tuple, list)) else h.get("head",  -1)
+                head_set.add((int(layer), int(head)))
+
+            circuits.append(head_set)
+            per_variant.append({
+                "idx":        idx,
+                "prompt":     prompt[:80],
+                "circuit":    sorted(head_set),
+                "n_heads":    len(head_set),
+                "skipped":    False,
+            })
+
+        if len(circuits) < 2:
+            return {
+                "jaccard_mean":      0.0,
+                "jaccard_std":       0.0,
+                "jaccard_min":       0.0,
+                "jaccard_max":       0.0,
+                "stability_rate":    0.0,
+                "consensus_circuit": [],
+                "per_variant":       per_variant,
+                "n_pairs":           0,
+                "meta": {
+                    "threshold":    threshold,
+                    "seed":         seed,
+                    "n_variants":   len(prompt_variants),
+                    "model_name":   self.model_name,
+                    "warning":      "Fewer than 2 valid circuits — cannot compute Jaccard.",
+                },
+            }
+
+        # Pairwise Jaccard matrix
+        jaccard_scores: List[float] = []
+        n = len(circuits)
+        for i in range(n):
+            for j in range(i + 1, n):
+                a, b = circuits[i], circuits[j]
+                union_size = len(a | b)
+                if union_size == 0:
+                    jaccard_scores.append(0.0)
+                else:
+                    jaccard_scores.append(len(a & b) / union_size)
+
+        jaccard_arr   = np.array(jaccard_scores, dtype=float)
+        jaccard_mean  = float(np.mean(jaccard_arr))
+        jaccard_std   = float(np.std(jaccard_arr))
+        jaccard_min   = float(np.min(jaccard_arr))
+        jaccard_max   = float(np.max(jaccard_arr))
+        stability_rate = float(np.mean(jaccard_arr >= threshold))
+
+        # Consensus circuit: heads present in ≥ 50% of valid circuits
+        from collections import Counter
+        head_counts: Counter = Counter()
+        for c in circuits:
+            for h in c:
+                head_counts[h] += 1
+        consensus_threshold = n / 2.0
+        consensus_circuit = sorted(
+            [h for h, cnt in head_counts.items() if cnt >= consensus_threshold]
+        )
+
+        logger.info(
+            "stability_suite: jaccard_mean=%.3f ± %.3f  stability_rate=%.1f%%  "
+            "consensus_heads=%d  n_pairs=%d",
+            jaccard_mean, jaccard_std, stability_rate * 100,
+            len(consensus_circuit), len(jaccard_scores),
+        )
+
+        return {
+            "jaccard_mean":      jaccard_mean,
+            "jaccard_std":       jaccard_std,
+            "jaccard_min":       jaccard_min,
+            "jaccard_max":       jaccard_max,
+            "stability_rate":    stability_rate,
+            "consensus_circuit": consensus_circuit,
+            "per_variant":       per_variant,
+            "n_pairs":           len(jaccard_scores),
+            "meta": {
+                "threshold":   threshold,
+                "seed":        seed,
+                "n_variants":  len(prompt_variants),
+                "model_name":  self.model_name,
+            },
+        }
+
+    # ──────────────────────────────────────────────────────────────────────
     # 6. SINGLE-CALL ANALYZE API
     # ──────────────────────────────────────────────────────────────────────
 

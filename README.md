@@ -6,7 +6,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%20v3.0.0)](https://pypi.org/project/glassbox-mech-interp/)
 [![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](LICENSE-COMMERCIAL) [![Patents Pending](https://img.shields.io/badge/Patents-Pending-blue.svg)](PATENTS.md)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
 [![Live API](https://img.shields.io/badge/API-Live%20on%20Render-success)](https://glassbox-ai-2-0-mechanistic.onrender.com)
@@ -1195,7 +1195,20 @@ For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Glassbox AI uses a **dual-license model** to protect commercial IP while keeping the core attribution engine fully open source.
+
+| Component | Files | License |
+|---|---|---|
+| Core attribution engine | `core.py`, `composition.py`, `sae_attribution.py`, `utils.py`, `types.py`, `cli.py`, `widget.py` | **MIT** — free forever |
+| Compliance engine | `compliance.py`, `circuit_diff.py`, `risk_register.py`, `bias.py`, `audit_log.py` | **BSL 1.1** — free for non-commercial & internal use |
+
+**MIT License** (core): Free for any use, no restrictions. See [LICENSE](LICENSE).
+
+**Business Source License 1.1** (compliance engine): Free for non-commercial use, research, and internal production use (documenting your own AI systems). Commercial redistribution or SaaS use (offering compliance documentation as a service to third parties) requires a separate commercial license. Converts to Apache 2.0 in 2030. See [LICENSE-COMMERCIAL](LICENSE-COMMERCIAL).
+
+**Patent notice**: CircuitDiff and the attribution-to-Annex-IV pipeline are patent-pending. See [PATENTS.md](PATENTS.md).
+
+For commercial licensing inquiries: [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com)
 
 ---
 

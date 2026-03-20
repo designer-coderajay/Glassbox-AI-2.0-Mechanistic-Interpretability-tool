@@ -1,3 +1,10 @@
+# SPDX-License-Identifier: BUSL-1.1
+# Copyright (C) 2026 Ajay Pravin Mahale <mahale.ajay01@gmail.com>
+# Licensed under the Business Source License 1.1 (see LICENSE-COMMERCIAL).
+# Tamper-evident audit chain is patent-pending — see PATENTS.md.
+# Free for non-commercial and internal production use.
+# Commercial redistribution / SaaS use requires a separate license.
+# Contact: mahale.ajay01@gmail.com
 """
 glassbox.audit_log
 ==================
