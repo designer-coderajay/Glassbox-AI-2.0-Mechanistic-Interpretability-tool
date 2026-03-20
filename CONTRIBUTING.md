@@ -62,3 +62,24 @@ Please include:
 
 Open an issue with the `math` label. Include the relevant formula and what you believe
 the discrepancy is. We take mathematical accuracy seriously and will respond promptly.
+
+---
+
+## Legal and regulatory contributions
+
+If you add or modify functionality related to EU AI Act compliance documentation:
+
+1. **Cite the specific article(s)** of Regulation (EU) 2024/1689 in the module docstring
+   (e.g., `Article 9 — Risk management system`).
+2. **Include a LEGAL NOTICE block** in the docstring of any new compliance module,
+   following the pattern in `glassbox/compliance.py` and `glassbox/risk_register.py`.
+3. **Do not overstate.** Use language like "supports documentation of..." or "aids in
+   drafting..." rather than "certifies compliance with..." or "satisfies requirements of..."
+4. **Add appropriate hedges** to README examples and section headers when the feature
+   touches regulatory obligations. Examples are illustrative; they are not regulatory advice.
+
+By submitting a pull request you confirm that your contribution does not introduce any
+claim, representation, or warranty that Glassbox software outputs constitute legal
+compliance certifications, regulatory submissions, declarations of conformity, or
+legal advice of any kind.
+

@@ -1,18 +1,29 @@
 """
 glassbox.risk_register
 ======================
-Persistent risk register that tracks compliance risks identified across
-multiple AnnexIV reports and audit sessions.
+Persistent risk register that tracks compliance documentation risks identified
+across multiple AnnexIV report drafts and audit sessions.
 
 Stores risks in a JSON file. Each entry records which model produced the risk,
 which EU AI Act article it maps to, severity, status, and when it was last seen.
 Supports deduplication, status tracking (open/mitigated/accepted), and
 trend reporting so compliance officers can see whether risk is improving.
 
-References
-----------
-EU AI Act, Article 9  — Risk management system (obligation for high-risk AI)
-EU AI Act, Annex IV, Section 5 — Risk management documentation requirements
+LEGAL NOTICE — DOCUMENTATION AID ONLY
+---------------------------------------
+This module is a software tool for managing risk documentation drafts.
+It does not constitute legal advice, certify regulatory compliance, or
+establish any professional advisory relationship. Risk entries and severity
+classifications are internal documentation aids only — they are not
+official regulatory determinations. Whether identified items constitute
+actual legal risk under Regulation (EU) 2024/1689 or any other applicable
+law is a matter for qualified legal counsel.
+
+Regulatory References (informational only)
+------------------------------------------
+Regulation (EU) 2024/1689 — EU AI Act:
+  Article 9              — Risk management system (obligation for high-risk AI)
+  Annex IV, Section 5    — Risk management documentation requirements
 """
 
 from __future__ import annotations

@@ -1,30 +1,49 @@
 """
-glassbox/compliance.py — EU AI Act Annex IV Compliance Report Generator
-========================================================================
+glassbox/compliance.py — EU AI Act Annex IV Technical Documentation Generator
+==============================================================================
 
-Regulation: EU 2024/1689 (AI Act), enforced August 2026.
-Scope:      High-risk AI systems under Article 6 — any AI used in
-            financial services, healthcare, HR/employment, legal,
-            critical infrastructure, education, or law enforcement
-            deploying to EU customers/users.
+LEGAL NOTICE — DOCUMENTATION AID ONLY
+---------------------------------------
+This module is a software tool that drafts technical documentation structured
+in accordance with Annex IV of Regulation (EU) 2024/1689 ("EU AI Act").
+It is provided strictly as a documentation aid and research instrument.
 
-This module takes Glassbox analysis results and generates a
-legally-structured Annex IV technical documentation report, satisfying:
+Use of this module does NOT:
+  - constitute legal advice or a legal opinion;
+  - guarantee, certify, or represent regulatory compliance;
+  - constitute a Declaration of Conformity under EU AI Act Article 47;
+  - replace a conformity assessment by a notified body (Article 43);
+  - determine whether the subject AI system is "high-risk" under Article 6.
 
-    Annex IV — Technical Documentation (Article 11)
-    ├── Section 1  — General description of the AI system
-    ├── Section 2  — Development and design information
-    ├── Section 3  — Monitoring, functioning, and control
-    ├── Section 4  — Data governance
-    ├── Section 5  — Risk management
-    ├── Section 6  — Changes through the lifecycle
-    ├── Section 7  — Harmonised standards applied
-    ├── Section 8  — EU declaration of conformity (ref. Article 47)
-    └── Section 9  — Post-market monitoring plan (ref. Article 72)
+All generated reports must be reviewed, validated, and signed by the
+responsible persons within the deploying organisation before regulatory use.
+Consult qualified legal counsel for jurisdiction-specific guidance.
 
-    Article 13   — Transparency and provision of information
-    Article 9    — Risk management system
-    Article 72   — Post-market monitoring by providers
+Regulatory References (informational only)
+------------------------------------------
+Regulation (EU) 2024/1689 — EU AI Act, applicable from 2 August 2026:
+  Article 6 + Annex III  — Classification of high-risk AI systems
+  Article 9              — Risk management system obligations
+  Article 10             — Data and data governance requirements
+  Article 11 + Annex IV  — Technical documentation requirements
+  Article 13             — Transparency and provision of information
+  Article 15             — Accuracy, robustness, and cybersecurity
+  Article 43             — Conformity assessment procedures
+  Article 47             — EU declaration of conformity
+  Article 72             — Post-market monitoring by providers
+  Article 99(4)          — Penalties for non-compliance
+
+Annex IV Section Structure (Article 11)
+----------------------------------------
+    Section 1  — General description of the AI system
+    Section 2  — Development and design information
+    Section 3  — Monitoring, functioning, and control
+    Section 4  — Data governance
+    Section 5  — Risk management
+    Section 6  — Changes through the lifecycle
+    Section 7  — Harmonised standards applied
+    Section 8  — EU declaration of conformity reference (Article 47)
+    Section 9  — Post-market monitoring plan (Article 72)
 
 Usage
 -----

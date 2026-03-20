@@ -1,19 +1,35 @@
 """
 glassbox.audit_log
 ==================
-Append-only audit trail for Glassbox compliance analyses.
+Append-only audit trail for Glassbox compliance documentation sessions.
 
 Every audit run (white-box or black-box) can be recorded here with a
 tamper-evident hash chain so governance teams have a complete, verifiable
 history of which models were audited, by whom, when, and what the outcome was.
 
-Exportable as JSON or CSV for submission to national competent authorities
-and internal risk registers.
+Exportable as JSON or CSV to support technical documentation obligations and
+internal risk registers.
 
-References
-----------
-EU AI Act, Article 12 — Record-keeping obligations for high-risk AI systems.
-EU AI Act, Annex IV, Section 6 — Lifecycle changes and version control.
+LEGAL NOTICE — DOCUMENTATION AID ONLY
+---------------------------------------
+This module generates and stores audit trail records as a documentation aid.
+It is provided strictly for informational and record-keeping support purposes.
+
+  - Audit records are NOT official regulatory submissions. Whether records
+    satisfy record-keeping obligations under EU AI Act Article 12 depends
+    on the deployer's full compliance programme and applicable implementing
+    acts — consult qualified legal counsel.
+  - "Tamper-evident" hash chains detect unintended modification within the
+    local file; they do not constitute a certified audit system under any
+    regulatory standard (e.g., ISO 27001, SOC 2).
+  - Exportable records are documentation starting points and must be reviewed
+    and supplemented before submission to a competent authority.
+
+Regulatory References (informational only)
+------------------------------------------
+Regulation (EU) 2024/1689 — EU AI Act:
+  Article 12       — Logging and record-keeping for high-risk AI systems
+  Annex IV, Sec. 6 — Lifecycle changes and version control documentation
 """
 
 from __future__ import annotations

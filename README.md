@@ -2,7 +2,7 @@
 
 # Glassbox 3.0.0
 
-**The only open-source EU AI Act Annex IV compliance audit platform. Works on any LLM.**
+**Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 
 [![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%20v3.0.0)](https://pypi.org/project/glassbox-mech-interp/)
 [![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
@@ -19,7 +19,7 @@
 
 ---
 
-**For compliance teams:** Regulation (EU) 2024/1689 (AI Act) requires Annex IV technical documentation for every high-risk AI system. Enforcement starts August 2026. Glassbox generates the full 9-section report automatically — from open-source models (white-box) or any proprietary API like GPT-4 and Claude (black-box). No other open-source tool does this.
+**For compliance teams:** Regulation (EU) 2024/1689 (AI Act) requires Annex IV technical documentation for every high-risk AI system (Article 11). Enforcement begins August 2026. Glassbox automates generation of the full 9-section Annex IV draft — from open-source models (white-box) or any proprietary API like GPT-4 and Claude (black-box). Outputs are structured documentation aids; they do not constitute legal advice, a declaration of conformity, or a guarantee of regulatory compliance. See [Legal Notices](#legal-notices--regulatory-disclaimer).
 
 **For researchers:** one function call discovers the minimum faithful circuit in a transformer — the smallest subgraph of attention heads causally responsible for a prediction. Preliminary benchmarks show 15–37× faster than ACDC on GPT-2 (single-run, Apple M2 Pro — see [Benchmarks](#benchmarks)). Every approximation is disclosed.
 
@@ -48,6 +48,7 @@
 - [Citation](#citation)
 - [Related Tools](#related-tools)
 - [Security & Privacy](#security--privacy)
+- [Legal Notices & Regulatory Disclaimer](#legal-notices--regulatory-disclaimer)
 - [License](#license)
 
 ---
@@ -333,9 +334,11 @@ print(attn["headTypes"])    # {'L9H9': 'focused', ...}
 
 ## EU AI Act Compliance — Annex IV Reports
 
-[Regulation (EU) 2024/1689](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) requires Annex IV technical documentation (Article 11) for high-risk AI systems in finance, healthcare, HR, legal, and critical infrastructure. Enforcement starts August 2026. Non-compliance: up to €15M or 3% of global annual turnover, whichever is higher (Article 99(4)).
+[Regulation (EU) 2024/1689](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) requires Annex IV technical documentation (Article 11) for high-risk AI systems in finance, healthcare, HR, legal, and critical infrastructure. Enforcement begins August 2026. Non-compliance penalties: up to €15 million or 3% of global annual turnover, whichever is higher (Article 99(4)).
 
-Glassbox generates all 9 required sections as a signed PDF + machine-readable JSON from a single function call:
+> **Documentation aid, not legal certification.** Glassbox-generated reports are structured documentation drafts intended to support — not replace — the legal and technical review process required under EU AI Act Article 11. Whether your system qualifies as high-risk under Article 6 and Annex III, and whether generated documentation satisfies applicable obligations, must be determined by qualified legal counsel and/or a notified body (Article 43). See [Legal Notices](#legal-notices--regulatory-disclaimer).
+
+Glassbox generates all 9 Annex IV sections as a structured PDF + machine-readable JSON from a single function call:
 
 ```python
 pip install "glassbox-mech-interp[compliance]"
@@ -361,7 +364,7 @@ report = AnnexIVReport(
     deployment_context = DeploymentContext.FINANCIAL_SERVICES,
 )
 report.add_analysis(result)
-report.to_pdf("annex_iv_report.pdf")   # legally-structured PDF
+report.to_pdf("annex_iv_report.pdf")   # Annex IV-structured PDF (documentation aid — not a legal certification)
 report.to_json("annex_iv_report.json") # machine-readable JSON
 ```
 
@@ -1002,6 +1005,87 @@ If you use Glassbox 2.0 in your research, please cite:
 See [SECURITY.md](SECURITY.md) for full details on API key handling, self-hosting recommendation, and GDPR/German law compliance notes.
 
 **TL;DR:** API keys go in the `X-Provider-Api-Key` header — never in the request body. A logging filter scrubs any accidental key leakage. Keys are never stored. For production compliance audits, run Glassbox locally or on your own infrastructure.
+
+---
+
+## Legal Notices & Regulatory Disclaimer
+
+> **PLEASE READ THIS SECTION CAREFULLY BEFORE USING GLASSBOX FOR REGULATORY OR COMPLIANCE PURPOSES.**
+
+### 1. Nature of the Software — Documentation Aid Only
+
+Glassbox is a software toolkit that automates the *drafting* of technical documentation structured in accordance with Annex IV of Regulation (EU) 2024/1689 ("EU AI Act"). It is provided strictly as a **documentation aid and research instrument**, not as a legal, regulatory, or compliance service.
+
+**Use of Glassbox does not:**
+- constitute legal advice or a legal opinion of any kind;
+- establish an attorney-client, auditor-client, or any other professional relationship;
+- guarantee, certify, or represent that your AI system is compliant with the EU AI Act, GDPR, or any other applicable law or regulation;
+- replace the obligation to obtain a conformity assessment from a notified body where required under EU AI Act Article 43;
+- constitute or substitute for a Declaration of Conformity under EU AI Act Article 47;
+- determine whether your AI system qualifies as "high-risk" under EU AI Act Article 6 and Annex III — that is a legal determination requiring qualified counsel.
+
+### 2. Regulatory Guidance — Key References
+
+All regulation references in this codebase and documentation cite the following instruments. Citations are provided for informational accuracy only:
+
+| Instrument | Reference | Scope |
+|------------|-----------|-------|
+| EU AI Act | Regulation (EU) 2024/1689 | Risk management (Art. 9), Technical documentation (Art. 11, Annex IV), Transparency (Art. 13), Data governance (Art. 10), Accuracy & robustness (Art. 15), Post-market monitoring (Art. 72), Conformity assessment (Art. 43), Declaration of conformity (Art. 47), Penalties (Art. 99) |
+| GDPR | Regulation (EU) 2016/679 | Personal data processed through or about the AI system |
+| EU AI Act Implementing Acts | To be adopted by European Commission | Technical harmonised standards (Art. 40), common specifications (Art. 41) — **not yet finalised as of March 2026** |
+
+> **Important:** The EU AI Act entered into force 1 August 2024. Most obligations for high-risk AI providers apply from **2 August 2026**. Implementing acts, harmonised standards, and guidance from the European AI Office are still being developed. The regulatory landscape will evolve before enforcement. Regulatory interpretations in Glassbox's output reflect publicly available text as of the tool's release date and may not reflect subsequent guidance. Always consult the [EU AI Act official text](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) and current European AI Office guidance.
+
+### 3. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, REGULATORY ADEQUACY, OR NON-INFRINGEMENT. THE AUTHORS AND CONTRIBUTORS MAKE NO REPRESENTATION THAT USE OF THIS SOFTWARE WILL SATISFY ANY OBLIGATION UNDER ANY LAW OR REGULATION, INCLUDING THE EU AI ACT OR GDPR.
+
+### 4. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE AUTHORS, CONTRIBUTORS, OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, REGULATORY SANCTIONS, FINES, PENALTIES, REPUTATIONAL HARM, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR RELIANCE ON THE SOFTWARE'S OUTPUTS FOR REGULATORY COMPLIANCE PURPOSES.
+
+This limitation applies regardless of whether the authors have been advised of the possibility of such damages, and applies to the fullest extent permitted by Regulation (EU) 2024/1689 and applicable national law.
+
+### 5. Your Obligations as Deployer / Provider
+
+If you deploy an AI system that is subject to the EU AI Act as a **provider** (Article 2(1)(a)), **deployer** (Article 2(1)(b)), or **importer/distributor** (Article 2(1)(c)-(d)), you are responsible for:
+
+- Independently determining whether your system is high-risk under Article 6 and Annex III;
+- Conducting a conformity assessment as required by Article 43 (self-assessment or notified body, depending on Annex III category);
+- Completing and signing a Declaration of Conformity under Article 47;
+- Registering your system in the EU database under Article 71;
+- Maintaining technical documentation under Article 11 and Annex IV — Glassbox outputs are a *starting point* for this documentation, not a finished regulatory submission;
+- Implementing a post-market monitoring plan under Article 72;
+- Appointing an EU representative if you are a non-EU provider (Article 22).
+
+Glassbox automates the *drafting* of Annex IV section content. All outputs must be reviewed, validated, completed, and signed by responsible persons within your organisation before regulatory use.
+
+### 6. Explainability Grades — Informational Only
+
+The A–D explainability grades produced by Glassbox are derived from mechanistic interpretability metrics (faithfulness F1 score) defined in the [accompanying research paper](https://arxiv.org/abs/2603.09988). These grades:
+
+- are **not** official EU AI Act classifications, nor do they map to any officially defined grading scale in Regulation (EU) 2024/1689;
+- represent internal research-defined thresholds intended to aid documentation and prioritisation;
+- do **not** determine whether your AI system meets the "appropriate level of accuracy, robustness and cybersecurity" required under Article 15;
+- are based on a single test prompt; real-world compliance assessment requires comprehensive evaluation across representative inputs.
+
+### 7. Bias Analysis — Article 10(2)(f) Guidance
+
+The `BiasAnalyzer` module is designed to support documentation of data governance practices relevant to EU AI Act Article 10(2)(f) (examination for possible biases). Its outputs:
+
+- are intended to surface potential bias signals, not to certify absence of discrimination or bias;
+- do **not** constitute an equality impact assessment, human rights due diligence report, or any assessment required under national anti-discrimination law (e.g., General Equal Treatment Act (AGG) in Germany, Equality Act 2010 in the UK);
+- should be complemented by domain-expert review and, where the AI system makes decisions affecting natural persons, a Data Protection Impact Assessment (DPIA) under GDPR Article 35.
+
+### 8. Jurisdiction and Governing Law
+
+This project is developed under the laws of the Federal Republic of Germany. The EU AI Act and GDPR are directly applicable EU regulations. Nothing in this notice limits the application of mandatory consumer protection or regulatory law. If a provision of this notice is unenforceable in your jurisdiction, the remaining provisions continue in full force.
+
+### 9. Contact for Legal Inquiries
+
+For questions regarding the legal scope of Glassbox, please contact: [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com)
+
+For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 ---
 

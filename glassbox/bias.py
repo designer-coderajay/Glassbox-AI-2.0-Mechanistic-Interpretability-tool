@@ -1,10 +1,10 @@
 """
 glassbox.bias
 =============
-Bias analysis module for EU AI Act compliance (Articles 10, 15, Annex IV).
+Bias analysis module — documentation support for EU AI Act Articles 10 and 15.
 
-This module provides comprehensive fairness and bias detection for AI models
-through three main analysis methods:
+This module provides fairness and bias detection for AI models through three
+main analysis methods:
 
 1. **Counterfactual Fairness Testing**: Swaps demographic attributes in prompts
    and measures whether output probabilities change (Article 10(2)(f)).
@@ -19,16 +19,31 @@ All methods work in both **online mode** (with a live model/tokenizer) and
 **offline mode** (with pre-computed logprobs), enabling testing, auditing,
 and compliance documentation without model access.
 
-Results are mapped to EU AI Act Articles 10 (data governance), 15 (accuracy/
-robustness/cybersecurity), and Annex IV Section 5 (human oversight).
+LEGAL NOTICE — DOCUMENTATION AID ONLY
+---------------------------------------
+This module is provided as a documentation aid to support data governance
+practices described in EU AI Act Article 10(2)(f). Its outputs:
 
-References
-----------
-EU AI Act 2024/1689, Articles:
-  - Article 10(2)(f): Bias examination and mitigation measures
-  - Article 15(2): Accuracy, robustness, cybersecurity requirements
-  - Article 13(2)(c): Transparency and information to end-users
-  - Annex IV, Section 5: Risk management and human oversight
+  - are intended to surface potential bias signals, not to certify absence
+    of discrimination or establish fitness-for-purpose under anti-discrimination
+    law (e.g., Allgemeines Gleichbehandlungsgesetz (AGG) in Germany);
+  - do NOT constitute an equality impact assessment, human rights due
+    diligence report, or any assessment required under applicable national
+    anti-discrimination legislation;
+  - should be complemented by domain-expert review and, where the system
+    makes decisions affecting natural persons, a Data Protection Impact
+    Assessment (DPIA) under GDPR Article 35;
+  - do NOT determine whether the AI system meets "appropriate levels of
+    accuracy, robustness and cybersecurity" under Article 15 — that requires
+    comprehensive evaluation across representative inputs.
+
+Regulatory References (informational only)
+------------------------------------------
+Regulation (EU) 2024/1689 — EU AI Act:
+  Article 10(2)(f)  — Bias examination and mitigation measures
+  Article 13(2)(c)  — Transparency and information to end-users
+  Article 15(2)     — Accuracy, robustness, cybersecurity requirements
+  Annex IV, Sec. 5  — Risk management and human oversight documentation
 
 Examples
 --------
