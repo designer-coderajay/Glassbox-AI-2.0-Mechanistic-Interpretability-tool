@@ -1,0 +1,69 @@
+Glassbox AI — Mechanistic Interpretability for EU AI Act Compliance
+====================================================================
+
+Copyright (C) 2026 Ajay Pravin Mahale <mahale.ajay01@gmail.com>
+All rights reserved.
+
+DUAL LICENSE NOTICE
+-------------------
+
+This software is distributed under a dual-license model:
+
+  1. MIT License (see LICENSE)
+     Applies to the core attribution engine and utilities:
+       glassbox/core.py
+       glassbox/composition.py
+       glassbox/sae_attribution.py
+       glassbox/telemetry.py
+       glassbox/types.py
+       glassbox/utils.py
+       glassbox/cli.py
+       glassbox/widget.py
+       glassbox/audit.py
+       glassbox/__init__.py
+
+  2. Business Source License 1.1 (see LICENSE-COMMERCIAL)
+     Applies to the commercial compliance engine:
+       glassbox/compliance.py       — EU AI Act Annex IV report generation
+       glassbox/circuit_diff.py     — CircuitDiff mechanistic diff (Article 72)
+       glassbox/risk_register.py    — Persistent risk tracking (Article 9)
+       glassbox/bias.py             — Bias/fairness analysis (Articles 10, 15)
+       glassbox/audit_log.py        — Tamper-evident audit chain
+
+     BSL Summary: Free for non-commercial and internal production use.
+     Commercial redistribution or SaaS use requires a separate license.
+     Contact: mahale.ajay01@gmail.com
+
+THIRD-PARTY COMPONENTS
+-----------------------
+
+This software builds upon the following open-source works:
+
+  TransformerLens
+    Author: Neel Nanda and contributors
+    License: MIT
+    URL: https://github.com/neelnanda-io/TransformerLens
+
+  PyTorch
+    Copyright (c) Facebook, Inc. (Meta Platforms, Inc.) and its affiliates.
+    License: BSD-3-Clause (with additional terms)
+    URL: https://pytorch.org
+
+ACADEMIC ATTRIBUTION
+---------------------
+
+If you use Glassbox AI in academic research, please cite:
+
+  Mahale, A. P. (2026). Glassbox: Causal Circuit Analysis for EU AI Act
+  Annex IV Technical Documentation. ICML 2026.
+
+  Wang, K., et al. (2022). Interpretability in the Wild: a Circuit for
+  Indirect Object Identification in GPT-2 small. arXiv:2211.00593.
+
+  Nanda, N., et al. (2023). Attribution Patching: Activation Patching At
+  Industrial Scale. arXiv:2310.10348.
+
+PATENT NOTICE
+--------------
+See PATENTS.md for patent-pending disclosures relating to methods
+implemented in this software.
