@@ -1121,11 +1121,20 @@
     <!-- Grade card -->
     <div class="grade-card" id="grade-card">
       <div class="grade-header">
-        <div class="grade-badge" id="grade-badge">A</div>
-        <div class="grade-info">
-          <h3 id="grade-title">Grade A — Fully Explainable</h3>
-          <div class="grade-meta" id="grade-sub">Report ID: GB-XXXXXXXX</div>
+        <div style="display:flex; gap:8px; align-items:center; flex:1;">
+          <div class="grade-badge" id="grade-badge">A</div>
+          <div class="grade-info">
+            <h3 id="grade-title">Grade A — Fully Explainable</h3>
+            <div class="grade-meta" id="grade-sub">Report ID: GB-XXXXXXXX</div>
+          </div>
         </div>
+        <button id="toggle-audit-history-btn" onclick="toggleAuditHistory()" style="padding:8px 14px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); cursor:pointer; font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; transition:all 0.2s; font-family:var(--font);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          Audit History
+        </button>
       </div>
 
       <div class="grade-body">
@@ -1180,7 +1189,17 @@
 
         <!-- D3 Circuit Graph -->
         <div class="circuit-graph-section" id="circuit-graph-section" style="display:none">
-          <h4>Circuit Graph — Causal Head Connections</h4>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h4 style="margin:0;">Circuit Graph — Causal Head Connections</h4>
+            <button id="download-svg-btn" onclick="downloadCircuitSVG()" style="display:flex; align-items:center; gap:6px; padding:8px 14px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s; font-family:var(--font);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download SVG
+            </button>
+          </div>
           <svg id="circuit-graph-svg">
             <defs>
               <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
@@ -1190,6 +1209,45 @@
           </svg>
           <div class="graph-legend" id="graph-legend"></div>
         </div>
+
+        <!-- Audit History Panel -->
+        <section id="audit-history-section" class="audit-history-section" style="display:none; margin-top:24px; padding:16px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r-md);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h4 style="margin:0; display:flex; align-items:center; gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Audit History
+            </h4>
+            <button id="load-audits-api-btn" onclick="loadAuditsFromAPI()" style="padding:6px 12px; background:var(--accent); color:white; border:none; border-radius:var(--r-sm); cursor:pointer; font-size:12px; font-weight:600; font-family:var(--font);">Load from API</button>
+          </div>
+
+          <div id="audit-charts-container" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div style="background:var(--surface); padding:12px; border-radius:var(--r-sm); border:1px solid var(--border);">
+              <canvas id="audit-f1-chart"></canvas>
+            </div>
+            <div style="background:var(--surface); padding:12px; border-radius:var(--r-sm); border:1px solid var(--border);">
+              <canvas id="audit-grade-chart"></canvas>
+            </div>
+          </div>
+
+          <div style="background:var(--surface); border-radius:var(--r-sm); border:1px solid var(--border); overflow:hidden;">
+            <table id="audit-history-table" style="width:100%; border-collapse:collapse; font-size:13px;">
+              <thead style="background:var(--surface2); border-bottom:1px solid var(--border);">
+                <tr>
+                  <th style="padding:10px 12px; text-align:left; color:var(--text-2); font-weight:600;">Date</th>
+                  <th style="padding:10px 12px; text-align:left; color:var(--text-2); font-weight:600;">Model</th>
+                  <th style="padding:10px 12px; text-align:center; color:var(--text-2); font-weight:600;">Grade</th>
+                  <th style="padding:10px 12px; text-align:center; color:var(--text-2); font-weight:600;">F1 Score</th>
+                  <th style="padding:10px 12px; text-align:left; color:var(--text-2); font-weight:600;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="audit-history-tbody">
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <!-- Downloads -->
         <div class="download-row">
@@ -1366,6 +1424,11 @@
 
     document.getElementById('elapsed-info').textContent =
       `Generated in ${elapsed.toFixed(1)}s · ${new Date().toLocaleString()}`;
+
+    // Initialize audit history with first demo record on page load
+    if (auditHistoryData.length === 0) {
+      initAuditHistory();
+    }
   }
 
   async function runAudit() {
@@ -1687,6 +1750,198 @@
       }
     }
   };
+
+  // ─────────────────────────────────────────────
+  // AUDIT HISTORY FUNCTIONS
+  // ─────────────────────────────────────────────
+  let auditHistoryData = [];
+  let auditF1Chart = null;
+  let auditGradeChart = null;
+
+  function initAuditHistory() {
+    // Initialize with 5 synthetic demo records showing progression from D to B
+    auditHistoryData = [
+      { date: new Date(Date.now() - 4*24*60*60*1000).toISOString().split('T')[0], model: 'gpt2', grade: 'D', f1: 0.35, status: 'Non-Compliant' },
+      { date: new Date(Date.now() - 3*24*60*60*1000).toISOString().split('T')[0], model: 'gpt2-medium', grade: 'C', f1: 0.48, status: 'Incomplete' },
+      { date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0], model: 'gpt2-large', grade: 'C', f1: 0.54, status: 'Incomplete' },
+      { date: new Date(Date.now() - 1*24*60*60*1000).toISOString().split('T')[0], model: 'EleutherAI/gpt-neo-125m', grade: 'B', f1: 0.72, status: 'Conditionally Compliant' },
+      { date: new Date().toISOString().split('T')[0], model: 'EleutherAI/gpt-neo-350m', grade: 'B', f1: 0.78, status: 'Conditionally Compliant' },
+    ];
+    populateAuditHistory();
+  }
+
+  function populateAuditHistory() {
+    // Populate table
+    const tbody = document.getElementById('audit-history-tbody');
+    tbody.innerHTML = auditHistoryData.map((audit, idx) => {
+      const gradeColors = { 'A': '#22c55e', 'B': '#6366f1', 'C': '#f59e0b', 'D': '#ef4444' };
+      return `
+        <tr style="border-bottom:1px solid var(--border); transition:background 0.2s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+          <td style="padding:10px 12px;">${audit.date}</td>
+          <td style="padding:10px 12px;">${audit.model}</td>
+          <td style="padding:10px 12px; text-align:center;">
+            <span style="display:inline-block; width:24px; height:24px; border-radius:4px; background:${gradeColors[audit.grade]}; color:white; font-weight:700; font-size:12px; line-height:24px;">
+              ${audit.grade}
+            </span>
+          </td>
+          <td style="padding:10px 12px; text-align:center; font-weight:600;">${audit.f1.toFixed(2)}</td>
+          <td style="padding:10px 12px;">${audit.status}</td>
+        </tr>
+      `;
+    }).join('');
+
+    // Initialize charts if Chart.js is available
+    if (typeof Chart !== 'undefined') {
+      renderAuditCharts();
+    } else {
+      loadChartJS();
+    }
+  }
+
+  function loadChartJS() {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+    script.onload = () => renderAuditCharts();
+    document.head.appendChild(script);
+  }
+
+  function renderAuditCharts() {
+    // F1 Score line chart
+    const f1Ctx = document.getElementById('audit-f1-chart')?.getContext('2d');
+    if (f1Ctx) {
+      if (auditF1Chart) auditF1Chart.destroy();
+      auditF1Chart = new Chart(f1Ctx, {
+        type: 'line',
+        data: {
+          labels: auditHistoryData.map((a, i) => `Audit ${i+1}`),
+          datasets: [
+            {
+              label: 'F1 Score',
+              data: auditHistoryData.map(a => a.f1),
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              tension: 0.4,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: '#6366f1',
+              pointBorderColor: 'white',
+              pointBorderWidth: 2,
+            },
+            {
+              label: 'Grade C Threshold (F1=0.5)',
+              data: Array(auditHistoryData.length).fill(0.5),
+              borderColor: '#f59e0b',
+              borderDash: [5, 5],
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { labels: { color: 'var(--text-2)', font: { size: 11 } } } },
+          scales: {
+            y: { min: 0, max: 1, ticks: { color: 'var(--text-3)', font: { size: 11 } }, grid: { color: 'var(--border)' } },
+            x: { ticks: { color: 'var(--text-3)', font: { size: 11 } }, grid: { color: 'var(--border)' } },
+          },
+        },
+      });
+    }
+
+    // Grade distribution bar chart
+    const gradeCtx = document.getElementById('audit-grade-chart')?.getContext('2d');
+    if (gradeCtx) {
+      if (auditGradeChart) auditGradeChart.destroy();
+      const gradeCounts = { 'A': 0, 'B': 0, 'C': 0, 'D': 0 };
+      auditHistoryData.forEach(a => gradeCounts[a.grade]++);
+      auditGradeChart = new Chart(gradeCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Grade A', 'Grade B', 'Grade C', 'Grade D'],
+          datasets: [{
+            label: 'Count',
+            data: [gradeCounts['A'], gradeCounts['B'], gradeCounts['C'], gradeCounts['D']],
+            backgroundColor: ['#22c55e', '#6366f1', '#f59e0b', '#ef4444'],
+          }],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: 'var(--text-3)', font: { size: 11 } }, grid: { color: 'var(--border)' } },
+            y: { ticks: { color: 'var(--text-3)', font: { size: 11 } }, grid: { display: false } },
+          },
+        },
+      });
+    }
+  }
+
+  function toggleAuditHistory() {
+    const section = document.getElementById('audit-history-section');
+    const isHidden = section.style.display === 'none';
+    section.style.display = isHidden ? 'block' : 'none';
+    if (isHidden && auditHistoryData.length === 0) {
+      initAuditHistory();
+    }
+  }
+
+  async function loadAuditsFromAPI() {
+    const base = (document.getElementById('api-url')?.value || 'http://localhost:8000').replace(/\/$/, '');
+    try {
+      const resp = await fetch(base + '/v1/audit/reports');
+      if (!resp.ok) throw new Error('Failed to fetch audit reports');
+      const data = await resp.json();
+      if (Array.isArray(data)) {
+        auditHistoryData = data.map(d => ({
+          date: d.date || new Date().toISOString().split('T')[0],
+          model: d.model_name || 'Unknown',
+          grade: d.explainability_grade?.[0] || '?',
+          f1: d.f1 || 0,
+          status: d.compliance_status || 'Unknown',
+        }));
+        populateAuditHistory();
+      }
+    } catch (err) {
+      alert('Error loading audits from API: ' + err.message);
+    }
+  }
+
+  function downloadCircuitSVG() {
+    const svg = document.querySelector('#circuit-graph-section svg');
+    if (!svg) { alert('No circuit graph loaded yet.'); return; }
+
+    // Serialize SVG with proper namespace and styles
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+    // Inline the dark background so the SVG looks right when opened standalone
+    clone.style.background = '#07080d';
+
+    // Get computed styles for nodes and links and inline them
+    // (so SVG renders correctly outside browser)
+    const nodes = clone.querySelectorAll('.graph-node circle');
+    const links = clone.querySelectorAll('.graph-link');
+    nodes.forEach(n => { if(!n.style.fill) n.style.fill = '#6366f1'; });
+    links.forEach(l => { if(!l.style.stroke) l.style.stroke = 'rgba(99,102,241,0.3)'; });
+
+    const serializer = new XMLSerializer();
+    const svgStr = '<?xml version="1.0" encoding="utf-8"?>\n' + serializer.serializeToString(clone);
+    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'glassbox-circuit.svg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   function runDemo() {
     setLoading(true);

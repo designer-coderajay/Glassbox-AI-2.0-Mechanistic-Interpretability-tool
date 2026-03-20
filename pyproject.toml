@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "2.9.0"
-description = "Mechanistic interpretability toolkit + EU AI Act Annex IV compliance report generator. Circuit analysis, black-box audit, audit log, Jupyter widgets, GitHub Action, TypeScript SDK."
+version     = "3.0.0"
+description = "Mechanistic interpretability + EU AI Act compliance. Bias analysis, multi-audit dashboard, webhooks, TypeScript SDK, GitHub Action, Jupyter widgets, tamper-evident audit log."
 readme      = "README.md"
 license     = { text = "MIT" }
 authors     = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]

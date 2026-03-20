@@ -61,6 +61,8 @@ glassbox/
                           between attention heads (Elhage et al. 2021)
   audit_log.py          ← AuditLog: append-only JSONL audit log with SHA-256
                           hash chain for tamper detection (v2.9.0)
+  bias.py               ← BiasAnalyzer: demographic parity, counterfactual
+                          fairness, token bias probing (v3.0.0)
   widget.py             ← CircuitWidget / HeatmapWidget: Jupyter notebook
                           widgets with attribution heatmap (v2.9.0)
   cli.py                ← glassbox-ai CLI entry point
@@ -71,7 +73,7 @@ glassbox/
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "2.9.0"
+__version__ = "3.0.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -160,6 +162,17 @@ from glassbox.audit import (
 from glassbox.audit_log import AuditLog, AuditRecord
 
 # ---------------------------------------------------------------------------
+# Bias Analysis — demographic parity, counterfactual fairness (v3.0.0)
+# ---------------------------------------------------------------------------
+from glassbox.bias import (
+    BiasAnalyzer,
+    BiasReport,
+    CounterfactualFairnessResult,
+    DemographicParityResult,
+    TokenBiasResult,
+)
+
+# ---------------------------------------------------------------------------
 # Jupyter Notebook Widgets — CircuitWidget, HeatmapWidget (v2.9.0)
 # ---------------------------------------------------------------------------
 try:
@@ -219,6 +232,12 @@ __all__ = [
     # Audit log — tamper-evident, hash-chained (v2.9.0)
     "AuditLog",
     "AuditRecord",
+    # Bias analysis — demographic parity, counterfactual fairness (v3.0.0)
+    "BiasAnalyzer",
+    "BiasReport",
+    "CounterfactualFairnessResult",
+    "DemographicParityResult",
+    "TokenBiasResult",
     # Jupyter widgets (v2.9.0; requires ipywidgets)
     "CircuitWidget",
     "HeatmapWidget",

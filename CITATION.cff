@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use Glassbox in your research, please cite it as below."
 type: software
-title: "Glassbox 2.9: Mechanistic Interpretability, EU AI Act Compliance, Tamper-Evident Audit Log, TypeScript SDK, and Jupyter Widgets"
-version: 2.9.0
+title: "Glassbox 3.0: Mechanistic Interpretability, EU AI Act Compliance, Bias Analysis, and Enterprise Audit Infrastructure"
+version: 3.0.0
 date-released: "2026-03-20"
 license: MIT
 repository-code: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
@@ -26,7 +26,10 @@ abstract: >
   provides a tamper-evident SHA-256 hash-chained audit log,
   a GitHub Actions composite action for CI/CD compliance gating,
   a zero-dependency TypeScript SDK (Node/Deno/Bun/browser),
-  and Jupyter notebook widgets for interactive circuit visualization.
+  Jupyter notebook widgets for interactive circuit visualization,
+  a BiasAnalyzer for demographic parity and counterfactual fairness testing
+  per EU AI Act Article 10(2)(f), a webhook system for async job delivery,
+  and a multi-audit history dashboard for compliance trend analysis.
 keywords:
   - mechanistic-interpretability
   - attribution-patching
@@ -69,10 +72,10 @@ references:
     url: "https://arxiv.org/abs/2406.04093"
 preferred-citation:
   type: software
-  title: "Glassbox 2.9: Mechanistic Interpretability and EU AI Act Compliance Toolkit"
+  title: "Glassbox 3.0: Mechanistic Interpretability and EU AI Act Enterprise Compliance Toolkit"
   authors:
     - family-names: Mahale
       given-names: Ajay
   year: 2026
-  version: 2.9.0
+  version: 3.0.0
   url: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"

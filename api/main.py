@@ -38,6 +38,7 @@ Dependencies
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import tempfile
@@ -151,9 +152,76 @@ class AuditResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # In-memory report store (replace with Redis/DB in production)
 # ---------------------------------------------------------------------------
-_REPORT_STORE: Dict[str, Dict[str, Any]] = {}
-_PDF_STORE:    Dict[str, Path]          = {}
-_JOB_STORE:    Dict[str, Dict[str, Any]] = {}   # async job status: {id: {status, result, error, created_at}}
+_REPORT_STORE:   Dict[str, Dict[str, Any]] = {}
+_PDF_STORE:      Dict[str, Path]          = {}
+_JOB_STORE:      Dict[str, Dict[str, Any]] = {}   # async job status: {id: {status, result, error, created_at}}
+_WEBHOOK_STORE:  Dict[str, Dict[str, Any]] = {}   # webhook_id -> {url, events, secret, created_at, active}
+
+
+# ---------------------------------------------------------------------------
+# Webhook delivery helper (fire-and-forget, best-effort)
+# ---------------------------------------------------------------------------
+
+def _fire_webhooks(event: str, data: Dict[str, Any]) -> None:
+    """
+    POST `data` to every active webhook registered for `event`.
+
+    Runs synchronously but is called from a background thread (inside a
+    BackgroundTask), so it won't block the API response.  Failures are
+    logged but never raise — webhooks are best-effort delivery.
+
+    HMAC-SHA256 signing
+    -------------------
+    If a webhook was registered with a `secret`, the outgoing request includes:
+        X-Glassbox-Signature: sha256=<hex>
+    where <hex> = HMAC-SHA256(secret, request_body_bytes).
+    The receiver should validate this header to verify payload authenticity.
+    """
+    import hashlib
+    import hmac
+
+    try:
+        import urllib.request as _urllib_req
+    except ImportError:
+        return   # shouldn't happen in Python 3
+
+    payload = {
+        "event":         event,
+        "timestamp_utc": time.time(),
+        "glassbox_version": _get_version(),
+        "data":          data,
+    }
+    body_bytes = json.dumps(payload, separators=(",", ":")).encode()
+
+    for wh_id, wh in list(_WEBHOOK_STORE.items()):
+        if not wh.get("active"):
+            continue
+        if event not in wh.get("events", []):
+            continue
+        try:
+            headers = {
+                "Content-Type":    "application/json",
+                "User-Agent":      f"Glassbox/{_get_version()} WebhookDelivery",
+                "X-Glassbox-Event": event,
+                "X-Glassbox-Webhook-Id": wh_id,
+            }
+            secret = wh.get("secret", "")
+            if secret:
+                sig = hmac.new(secret.encode(), body_bytes, hashlib.sha256).hexdigest()  # type: ignore[attr-defined]
+                headers["X-Glassbox-Signature"] = f"sha256={sig}"
+
+            req = _urllib_req.Request(
+                wh["url"], data=body_bytes, headers=headers, method="POST"
+            )
+            with _urllib_req.urlopen(req, timeout=10) as resp:
+                status = resp.status
+            _WEBHOOK_STORE[wh_id]["delivery_count"]        = wh.get("delivery_count", 0) + 1
+            _WEBHOOK_STORE[wh_id]["last_delivery_at"]      = time.time()
+            _WEBHOOK_STORE[wh_id]["last_delivery_status"]  = status
+            logger.info("Webhook delivered: %s → %s (HTTP %s)", wh_id, wh["url"], status)
+        except Exception as exc:
+            _WEBHOOK_STORE[wh_id]["last_delivery_status"] = f"error: {exc}"
+            logger.warning("Webhook delivery failed: %s → %s: %s", wh_id, wh["url"], exc)
 
 
 # ---------------------------------------------------------------------------
@@ -509,9 +577,11 @@ def create_app() -> "FastAPI":
                     annex.to_pdf(str(pdf_path))
                     _PDF_STORE[report_id] = pdf_path
                 _JOB_STORE[job_id].update({"status": "completed", "report_id": report_id})
+                _fire_webhooks("job.completed", {"job_id": job_id, "report_id": report_id, "status": "completed"})
             except Exception as exc:
                 logger.error("[JOB:%s] failed: %s", job_id, exc)
                 _JOB_STORE[job_id].update({"status": "failed", "error": str(exc)[:300]})
+                _fire_webhooks("job.failed", {"job_id": job_id, "error": str(exc)[:300], "status": "failed"})
 
         background_tasks.add_task(_run_job)
         return {
@@ -556,6 +626,106 @@ def create_app() -> "FastAPI":
             ],
             "total": len(_JOB_STORE),
         }
+
+    # ── Webhooks ─────────────────────────────────────────────────────────────
+
+    @app.post("/v1/webhooks", status_code=201)
+    def register_webhook(body: Dict[str, Any]):
+        """
+        Register a webhook URL to receive POST callbacks on job completion.
+
+        Body
+        ----
+        {
+          "url":    "https://your-server.example.com/glassbox-events",
+          "events": ["job.completed", "job.failed"],   // optional, defaults to both
+          "secret": "optional-hmac-signing-secret"     // optional
+        }
+
+        Returns
+        -------
+        { "webhook_id": "...", "url": "...", "events": [...], "active": true }
+
+        Callbacks
+        ---------
+        When a matching event fires, Glassbox sends a POST to your URL with:
+        {
+          "event": "job.completed",
+          "webhook_id": "...",
+          "timestamp_utc": 1234567890.0,
+          "data": { "job_id": "...", "report_id": "...", "status": "completed" }
+        }
+        Headers include X-Glassbox-Event: job.completed and (if secret set)
+        X-Glassbox-Signature: sha256=<hmac-sha256-hex-of-body>.
+        """
+        url = body.get("url", "").strip()
+        if not url or not url.startswith("http"):
+            raise HTTPException(status_code=400, detail="'url' must be a valid http/https URL")
+        events = body.get("events", ["job.completed", "job.failed"])
+        if not isinstance(events, list) or not events:
+            raise HTTPException(status_code=400, detail="'events' must be a non-empty list")
+        valid_events = {"job.completed", "job.failed", "audit.completed"}
+        unknown = [e for e in events if e not in valid_events]
+        if unknown:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown event(s): {unknown}. Valid: {sorted(valid_events)}",
+            )
+        webhook_id = uuid.uuid4().hex[:10].upper()
+        _WEBHOOK_STORE[webhook_id] = {
+            "webhook_id":   webhook_id,
+            "url":          url,
+            "events":       events,
+            "secret":       body.get("secret", ""),
+            "created_at":   time.time(),
+            "active":       True,
+            "delivery_count": 0,
+            "last_delivery_at": None,
+            "last_delivery_status": None,
+        }
+        logger.info("Webhook registered: %s → %s (events=%s)", webhook_id, url, events)
+        return {"webhook_id": webhook_id, "url": url, "events": events, "active": True}
+
+    @app.get("/v1/webhooks")
+    def list_webhooks():
+        """List all registered webhooks for this session."""
+        return {
+            "webhooks": [
+                {k: v for k, v in wh.items() if k != "secret"}
+                for wh in _WEBHOOK_STORE.values()
+            ],
+            "total": len(_WEBHOOK_STORE),
+        }
+
+    @app.delete("/v1/webhooks/{webhook_id}", status_code=204)
+    def delete_webhook(webhook_id: str):
+        """Deactivate and remove a registered webhook."""
+        if webhook_id not in _WEBHOOK_STORE:
+            raise HTTPException(status_code=404, detail=f"Webhook {webhook_id} not found")
+        del _WEBHOOK_STORE[webhook_id]
+        logger.info("Webhook deleted: %s", webhook_id)
+        return None
+
+    @app.patch("/v1/webhooks/{webhook_id}")
+    def update_webhook(webhook_id: str, body: Dict[str, Any]):
+        """
+        Update a registered webhook (URL, events, secret, active flag).
+        Only provided fields are updated.
+        """
+        if webhook_id not in _WEBHOOK_STORE:
+            raise HTTPException(status_code=404, detail=f"Webhook {webhook_id} not found")
+        wh = _WEBHOOK_STORE[webhook_id]
+        if "url" in body:
+            if not str(body["url"]).startswith("http"):
+                raise HTTPException(status_code=400, detail="Invalid URL")
+            wh["url"] = body["url"]
+        if "events" in body:
+            wh["events"] = body["events"]
+        if "secret" in body:
+            wh["secret"] = body["secret"]
+        if "active" in body:
+            wh["active"] = bool(body["active"])
+        return {k: v for k, v in wh.items() if k != "secret"}
 
     @app.get("/v1/audit/reports")
     def list_reports():

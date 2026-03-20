@@ -1,10 +1,10 @@
 <div align="center">
 
-# Glassbox 2.0
+# Glassbox 2.9.0
 
 **The only open-source EU AI Act Annex IV compliance audit platform. Works on any LLM.**
 
-[![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI)](https://pypi.org/project/glassbox-mech-interp/)
+[![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%202.9.0)](https://pypi.org/project/glassbox-mech-interp/)
 [![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
@@ -29,6 +29,7 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
+- [What's New in v2.9.0](#whats-new-in-v290)
 - [EU AI Act Compliance — Annex IV Reports](#eu-ai-act-compliance--annex-iv-reports)
 - [Black-Box Audit — Any Model via API](#black-box-audit--any-model-via-api)
 - [REST API (Hosted)](#rest-api-hosted)
@@ -58,7 +59,7 @@
 | **Compliance Dashboard** | [/dashboard](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard) | Web UI for compliance officers. No install needed. |
 | **REST API** | [glassbox-ai-2-0-mechanistic.onrender.com](https://glassbox-ai-2-0-mechanistic.onrender.com) | JSON API. See [/docs](https://glassbox-ai-2-0-mechanistic.onrender.com/docs) for Swagger UI. |
 | **White-Box Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) | Interactive circuit analysis on open-source models. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v2.7.0 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v2.9.0 |
 
 > Free tier spins down after 15 min inactivity — first request may take ~30s. For production, [self-host](#self-hosting).
 
@@ -92,6 +93,159 @@ print(result["faithfulness"])
 ```
 
 No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) — no install required.
+
+---
+
+## What's New in v2.9.0
+
+Glassbox v2.9.0 brings four major features for compliance teams and researchers:
+
+### 1. Tamper-Evident Audit Log (AuditLog)
+
+Record and verify every audit run with SHA-256 hash chain integrity. Perfect for governance, risk, and compliance (GRC) teams.
+
+```python
+from glassbox.audit_log import AuditLog
+
+log = AuditLog("glassbox_audit.jsonl")
+
+# Log any analysis result
+log.append_from_result(
+    result_dict,
+    auditor="compliance@mybank.com",
+    notes="Q1 2026 risk review"
+)
+
+# Verify chain integrity (tamper detection)
+is_valid = log.verify_chain()  # True if no modifications detected
+
+# Export for GRC tools
+log.export_csv("audit_export.csv")
+json_export = log.export_json("audit_full.json")
+
+# Analytics
+summary = log.summary()
+# {'total_audits': 42, 'avg_f1': 0.67, 'chain_valid': True, ...}
+```
+
+**Key features:** Append-only JSON Lines persistence, per-record SHA-256 hashing, chain validation, CSV/JSON export for audit trails.
+
+### 2. TypeScript / JavaScript SDK (zero-dependency)
+
+Official SDK for Node.js 18+, Deno, Bun, and browsers. Works with the REST API.
+
+```bash
+npm install glassbox-sdk
+```
+
+```typescript
+import { GlassboxClient } from 'glassbox-sdk'
+
+const gb = new GlassboxClient({
+  baseUrl: 'https://glassbox-ai-2-0-mechanistic.onrender.com'
+})
+
+const report = await gb.auditWhiteBox({
+  modelName: 'gpt2',
+  prompt: 'When Mary and John went to the store, John gave a drink to',
+  correctToken: ' Mary',
+  incorrectToken: ' John',
+  providerName: 'Acme Bank NV',
+  deploymentContext: 'financial_services'
+})
+
+console.log(report.grade)  // 'A' | 'B' | 'C' | 'D'
+console.log(report.faithfulness.f1)  // 0.0–1.0
+
+// Background jobs (async)
+const job = await gb.startBlackBoxJob({ ... })
+const completed = await gb.waitForJob(job.jobId)
+```
+
+**Supported:** auditWhiteBox, auditBlackBox, async jobs, attentionPatterns, report retrieval.
+
+### 3. GitHub Action glassbox-audit@v1
+
+Embed compliance audits directly in your CI/CD pipeline. Fails the build if explainability falls below your required grade.
+
+```yaml
+name: Compliance
+on: [pull_request]
+jobs:
+  glassbox:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: designer-coderajay/glassbox-audit@v1
+        with:
+          model_name: 'gpt2'
+          prompt: 'The loan should be'
+          correct_token: ' approved'
+          incorrect_token: ' denied'
+          provider_name: 'Acme Bank NV'
+          deployment_context: 'financial_services'
+          fail_below_grade: 'B'  # Fail if grade is C or D
+          output_path: 'glassbox-report.json'
+```
+
+**Output:** Grade, F1 score, compliance status, report ID, and full JSON report artifact.
+
+### 4. Jupyter Widgets (CircuitWidget, HeatmapWidget)
+
+Interactive visualization of circuit analysis inside notebooks.
+
+```bash
+pip install "glassbox-mech-interp[jupyter]"
+```
+
+```python
+from glassbox import GlassboxV2
+from glassbox.widget import CircuitWidget, HeatmapWidget
+
+# Option 1: Run analysis and render inline
+widget = CircuitWidget.from_prompt(
+    gb,
+    prompt="When Mary and John went to the store, John gave a drink to",
+    correct=" Mary",
+    incorrect=" John"
+)
+widget.show()  # Renders in cell
+
+# Option 2: Visualize pre-computed result
+heatmap = HeatmapWidget(result_dict)
+heatmap.show()
+
+# Export to HTML
+html_str = widget.to_html()
+```
+
+**Features:** Attribution heatmaps, circuit member highlights, faithfulness metrics, grade badges, responsive dark theme.
+
+### 5. Attention Patterns API Endpoint
+
+New `/v1/attention-patterns` REST endpoint to visualize what each circuit head is attending to.
+
+```bash
+curl -X POST https://glassbox-ai-2-0-mechanistic.onrender.com/v1/attention-patterns \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model_name": "gpt2",
+    "prompt": "When Mary and John went to the store, John gave a drink to",
+    "heads": ["L9H9", "L9H6"],
+    "top_k": 10
+  }'
+```
+
+```python
+# Via Python SDK
+attn = gb.attention_patterns(
+    "gpt2",
+    "When Mary and John ...",
+    heads=["L9H9"],
+    topK=5
+)
+print(attn["entropy"])      # {'L9H9': 0.71, ...}
+print(attn["headTypes"])    # {'L9H9': 'focused', ...}
+```
 
 ---
 
@@ -503,23 +657,39 @@ glassbox analyze \
 
 ## Installation
 
-```bash
-# Core — circuit analysis only (no extra deps beyond PyTorch + TransformerLens)
-pip install glassbox-mech-interp
+### Core Install
 
-# With EU AI Act compliance report generation
+```bash
+# Minimal — circuit analysis only
+pip install glassbox-mech-interp
+```
+
+### Optional Dependency Groups
+
+```bash
+# Jupyter widgets (CircuitWidget, HeatmapWidget)
+pip install "glassbox-mech-interp[jupyter]"
+
+# EU AI Act compliance reports (AnnexIVReport, BlackBoxAuditor)
 pip install "glassbox-mech-interp[compliance]"
 
-# With full REST API stack
-pip install "glassbox-mech-interp[api]"
+# SAE feature attribution (requires sae-lens)
+pip install "glassbox-mech-interp[sae]"
 
-# With SAE feature attribution
-pip install glassbox-mech-interp sae-lens
+# REST API stack (FastAPI, ClickHouse, Docker)
+pip install "glassbox-mech-interp[api]"
 
 # Full development install
 git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
 cd Glassbox-AI-2.0-Mechanistic-Interpretability-tool
 pip install -e ".[dev]"
+```
+
+### TypeScript / JavaScript SDK
+
+```bash
+npm install glassbox-sdk    # Node.js, Deno, Bun
+# or <script src="https://cdn.jsdelivr.net/npm/glassbox-sdk/dist/glassbox.js"></script>  (browser)
 ```
 
 **Requirements:** Python ≥ 3.8, PyTorch ≥ 2.0, TransformerLens ≥ 1.0
@@ -632,6 +802,46 @@ Black-box audit works on **any model with an OpenAI-compatible API**, including 
 |--------|-------------|
 | `audit(decision_prompt, expected_positive, expected_negative, ...)` | Full behavioural audit. Returns BlackBoxResult. |
 | `from_env(provider, model)` | Construct auditor from `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` env vars. |
+
+### `AuditLog` — append-only audit trail (v2.9.0)
+
+| Method | Description |
+|--------|-------------|
+| `append(model_name, analysis_mode, prompt, ...)` | Append a single audit record with SHA-256 hash chain. |
+| `append_from_result(result, auditor, notes)` | Append from a GlassboxV2 or BlackBoxAuditor result. |
+| `verify_chain()` | Returns True if hash chain is intact (no tampering). |
+| `summary()` | Analytics dict: total_audits, grade_distribution, compliance_rate, avg_f1, chain_valid. |
+| `export_json(path)` | Export all records as JSON array with metadata. |
+| `export_csv(path)` | Export all records as CSV for GRC/Excel import. |
+| `by_model(name)`, `by_grade(grade)`, `non_compliant()` | Query methods. |
+
+### `GlassboxClient` (TypeScript/JavaScript SDK) — v2.9.0
+
+```typescript
+type DeploymentContext = 'financial_services' | 'healthcare' | 'hr_employment' | 'legal' | 'critical_infrastructure' | 'education' | 'other_high_risk'
+type ExplainabilityGrade = 'A' | 'B' | 'C' | 'D'
+type ComplianceStatus = 'conditionally_compliant' | 'incomplete' | 'non_compliant'
+
+class GlassboxClient {
+  // Audits
+  auditWhiteBox(req: WhiteBoxRequest): Promise<AuditReport>
+  auditBlackBox(req: BlackBoxRequest): Promise<AuditReport>
+  startBlackBoxJob(req: BlackBoxRequest): Promise<AsyncJobResponse>
+  waitForJob(jobId: string, intervalMs?, maxWaitMs?): Promise<AsyncJobResponse>
+  pollJob(jobId: string): Promise<AsyncJobResponse>
+
+  // Reports & data
+  getReport(reportId: string): Promise<AuditReport>
+  listReports(): Promise<{ reports: unknown[], total: number }>
+  pdfUrl(reportId: string): string
+
+  // Patterns
+  attentionPatterns(modelName: string, prompt: string, heads?: string[], topK?: number): Promise<AttentionPatternsResponse>
+
+  // Health
+  health(): Promise<{ status: string, glassbox_version: string, timestamp: string }>
+}
+```
 
 ---
 

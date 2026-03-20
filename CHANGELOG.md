@@ -6,6 +6,41 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [3.0.0] — 2026-03-20
+
+### Added
+- **Bias Analysis Module** (`glassbox/bias.py`): `BiasAnalyzer` class with three EU AI Act
+  Article 10(2)(f)-compliant tests. `counterfactual_fairness_test()` swaps demographic
+  attributes in prompt templates to measure probability shift (parity gap). `demographic_parity_test()`
+  computes positive outcome rates across groups and flags disparity above threshold.
+  `token_bias_probe()` detects stereotypical associations between demographic and role tokens.
+  All methods work offline (pre-computed logprobs dicts) or online (live `model_fn`).
+  `BiasReport` aggregates results into an Annex IV Section 5 markdown report.
+  Exported from top-level: `from glassbox import BiasAnalyzer, BiasReport`.
+- **Webhooks** (`api/main.py`): Full webhook registration system. `POST /v1/webhooks`
+  registers a callback URL with event filters (`job.completed`, `job.failed`) and optional
+  HMAC-SHA256 signing secret. `GET /v1/webhooks` lists registered webhooks. `DELETE /v1/webhooks/{id}`
+  and `PATCH /v1/webhooks/{id}` manage them. Payloads include `X-Glassbox-Event` and
+  `X-Glassbox-Signature` headers. Delivery tracked per webhook (`delivery_count`,
+  `last_delivery_status`).
+- **Circuit SVG Export** (`dashboard/compliance_dashboard.html`): "Download SVG" button
+  in the D3 circuit graph panel. Exports `glassbox-circuit.svg` with inlined styles
+  and dark background — ready for paper figures.
+- **Multi-Audit History Panel** (`dashboard/compliance_dashboard.html`): Toggleable
+  "Audit History" panel with F1-over-time Chart.js line chart (grade C threshold line),
+  grade distribution bar chart, and audit table. "Load from API" button fetches
+  `GET /v1/audit/reports`. Demo data shows D→C→C→B→B grade trajectory.
+- **Test suites** (`tests/test_audit_log.py`, `tests/test_widget.py`): 76 passing tests.
+  Full offline coverage of AuditLog hash chain, CircuitWidget/HeatmapWidget HTML rendering.
+
+### Changed
+- `glassbox/__init__.py`: Version 3.0.0. `BiasAnalyzer`, `BiasReport`, result dataclasses
+  added to public API and `__all__`.
+- `pyproject.toml`: Version 3.0.0. Description updated.
+- `api/main.py`: `_WEBHOOK_STORE` added. `_fire_webhooks()` wired into async job completion.
+
+---
+
 ## [2.9.0] — 2026-03-20
 
 ### Added

@@ -1,5 +1,5 @@
 # Glassbox — Department Coverage & Roadmap
-**As of v2.9.0 — March 2026**
+**As of v3.0.0 — March 2026**
 
 ---
 
@@ -142,7 +142,7 @@ People responsible for regulatory submissions and model governance policy.
 | v2.7.0 | Compliance + API + Attribution heatmap | Live API, Dashboard, Heatmap viz | ✅ SHIPPED |
 | v2.8.0 | Engineering + Research + UI redesign | Async jobs, D3 graph, model card, dashboard redesign | ✅ SHIPPED |
 | v2.9.0 | Governance + SDK + DX | AuditLog, TS SDK, GH Action, Jupyter widget, attention API | ✅ SHIPPED |
-| v3.0.0 | Enterprise | Multi-audit dashboard, SVG export, bias analysis, webhooks, SLA | 🔜 Next |
+| v3.0.0 | Enterprise | Multi-audit dashboard, SVG export, bias analysis, webhooks, SLA | ✅ SHIPPED |
 
 ---
 
