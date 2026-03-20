@@ -660,7 +660,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
 
     def to_pdf(self, path: str) -> Path:
         """
-        Generate a legally-structured Annex IV PDF report.
+        Generate an Annex IV-structured PDF documentation draft.
 
         Requires: pip install reportlab
 
