@@ -1,5 +1,5 @@
 name: 'Glassbox EU AI Act Compliance Audit'
-description: 'Automatically audit your AI model for EU AI Act Annex IV compliance in CI/CD. Fails the build if explainability falls below your required grade.'
+description: 'EU AI Act Annex IV compliance gate for CI/CD. Fails the build if model explainability grade falls below your threshold.'
 author: 'Ajay Pravin Mahale <mahale.ajay01@gmail.com>'
 
 branding:
