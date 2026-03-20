@@ -173,6 +173,11 @@ from glassbox.bias import (
 )
 
 # ---------------------------------------------------------------------------
+# Risk Register — persistent cross-audit risk tracking (v3.0.0)
+# ---------------------------------------------------------------------------
+from glassbox.risk_register import RiskEntry, RiskRegister
+
+# ---------------------------------------------------------------------------
 # Jupyter Notebook Widgets — CircuitWidget, HeatmapWidget (v2.9.0)
 # ---------------------------------------------------------------------------
 try:
@@ -238,6 +243,9 @@ __all__ = [
     "CounterfactualFairnessResult",
     "DemographicParityResult",
     "TokenBiasResult",
+    # Risk register — persistent cross-audit risk tracking (v3.0.0)
+    "RiskEntry",
+    "RiskRegister",
     # Jupyter widgets (v2.9.0; requires ipywidgets)
     "CircuitWidget",
     "HeatmapWidget",

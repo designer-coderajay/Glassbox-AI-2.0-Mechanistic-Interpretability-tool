@@ -30,6 +30,13 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   "Audit History" panel with F1-over-time Chart.js line chart (grade C threshold line),
   grade distribution bar chart, and audit table. "Load from API" button fetches
   `GET /v1/audit/reports`. Demo data shows D→C→C→B→B grade trajectory.
+- **Risk Register** (`glassbox/risk_register.py`): `RiskRegister` class persists compliance
+  risks across audit sessions to a JSON file. `ingest_annex_report()` auto-extracts risks from
+  any `AnnexIVReport`. Deduplication by description+model, occurrence counting, severity
+  ordering, status tracking (`open | mitigated | accepted | escalated`), `trend_summary()`
+  for dashboards, `to_markdown()` for PR comments and report embedding. Maps to EU AI Act
+  Article 9 (risk management system) and Annex IV Section 5.
+  Exported from top-level: `from glassbox import RiskRegister, RiskEntry`.
 - **Test suites** (`tests/test_audit_log.py`, `tests/test_widget.py`): 76 passing tests.
   Full offline coverage of AuditLog hash chain, CircuitWidget/HeatmapWidget HTML rendering.
 
