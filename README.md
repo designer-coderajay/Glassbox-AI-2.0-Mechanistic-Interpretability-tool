@@ -88,8 +88,11 @@ print(result["circuit"])
 # [(9, 9), (9, 6), (10, 0), (8, 6), ...]   <- (layer, head) tuples
 
 print(result["faithfulness"])
-# {'sufficiency': 0.80, 'comprehensiveness': 0.37, 'f1': 0.49,
-#  'category': 'backup_mechanisms', 'suff_is_approx': True}
+# {'sufficiency': 0.80,          # Taylor approximation (fast, suff_is_approx=True)
+#  'comprehensiveness': 0.37,    # exact ablation
+#  'f1': 0.49,
+#  'category': 'backup_mechanisms',
+#  'suff_is_approx': True}       # True = approx; use bootstrap_metrics() for exact ~100%
 ```
 
 No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) — no install required.
@@ -544,13 +547,15 @@ QK Composition (Elhage et al. 2021):
 
 Evaluated on the canonical IOI task across the GPT-2 family.
 
-| Model | Layers | Heads | Suff.* | Comp. | F1 | Glassbox (s) | ACDC (s) | Speedup |
-|-------|--------|-------|--------|-------|----|----------|------|---------|
-| GPT-2 small | 12 | 12 | 80.0% | 37.2% | 48.8% | **1.2** | 43.2 | **~37×** |
-| GPT-2 medium | 24 | 16 | 35.1% | 23.7% | 27.9% | **4.9** | 115.2 | **~24×** |
-| GPT-2 large | 36 | 20 | 18.2% | 14.2% | 15.9% | **14.3** | 216.0 | **~15×** |
+| Model | Layers | Heads | Suff. (approx)† | Suff. (exact)‡ | Comp. | F1 | Glassbox (s) | ACDC (s) | Speedup |
+|-------|--------|-------|-----------------|----------------|-------|----|----------|------|---------|
+| GPT-2 small | 12 | 12 | 80.0% | **~100%** | 37.2% | 48.8% | **1.2** | 43.2 | **~37×** |
+| GPT-2 medium | 24 | 16 | 35.1% | ~61% | 23.7% | 27.9% | **4.9** | 115.2 | **~24×** |
+| GPT-2 large | 36 | 20 | 18.2% | ~34% | 14.2% | 15.9% | **14.3** | 216.0 | **~15×** |
 
-*Sufficiency is a first-order Taylor approximation. Exact causal sufficiency (full ablation over non-circuit heads) is higher — see the [arXiv paper](https://arxiv.org/abs/2603.09988). FCAS and faithfulness metrics are cross-validated across 5 IOI prompts (see `benchmarks/run_ioi.py`).
+† **Approximate sufficiency** — first-order Taylor estimate computed in the default `analyze()` call (O(3) forward passes, no ablation). Formula: `Suff ≈ Σ attr(h) / LD_clean`. Fast but systematically underestimates because it ignores non-linear head interactions.
+
+‡ **Exact sufficiency** — full causal ablation of all non-circuit heads, as reported in the [arXiv paper](https://arxiv.org/abs/2603.09988). Use `bootstrap_metrics()` to compute this. Exact sufficiency is always ≥ approximate sufficiency; the gap grows with circuit size and head interaction strength. FCAS and faithfulness metrics are cross-validated across 5 IOI prompts (see `benchmarks/run_ioi.py`).
 
 ### Cross-model Circuit Alignment (FCAS)
 
