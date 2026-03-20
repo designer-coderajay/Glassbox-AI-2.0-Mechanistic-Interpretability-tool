@@ -54,9 +54,8 @@ jobs:
           cp dashboard/app.py hf_space/app.py
 
           # ── Write requirements.txt (Space needs all deps at root) ────────────
-          # NOTE: written with echo to avoid heredoc indentation issues
           {
-            echo "gradio>=4.0.0"
+            echo "gradio>=4.44.0"
             echo "numpy>=1.24.0"
             echo "matplotlib>=3.7.0"
             echo "Pillow>=9.0.0"
@@ -66,6 +65,33 @@ jobs:
             echo "einops>=0.6.1"
           } > hf_space/requirements.txt
 
+          # ── Write Dockerfile (Python 3.10 + Gradio on port 7860) ─────────────
+          # Python 3.13 has no PyTorch wheels yet — must use 3.10.
+          # Entrypoint: python app.py (Gradio, not Streamlit).
+          cat > hf_space/Dockerfile << 'DOCKERFILE'
+FROM python:3.10-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+COPY app.py ./
+
+EXPOSE 7860
+
+ENV GRADIO_SERVER_NAME="0.0.0.0"
+ENV GRADIO_SERVER_PORT=7860
+
+CMD ["python", "app.py"]
+DOCKERFILE
+
           # ── Commit and push only if something changed ────────────────────────
           cd hf_space
           git config user.email "github-actions@github.com"
@@ -73,7 +99,7 @@ jobs:
 
           SHORT_SHA=$(git -C .. rev-parse --short HEAD)
 
-          git add app.py requirements.txt
+          git add app.py requirements.txt Dockerfile
           if git diff --staged --quiet; then
             echo "No changes — HF Space already up to date."
           else
