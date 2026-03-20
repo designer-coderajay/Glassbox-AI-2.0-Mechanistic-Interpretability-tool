@@ -49,6 +49,7 @@
 - [Related Tools](#related-tools)
 - [Security & Privacy](#security--privacy)
 - [Legal Notices & Regulatory Disclaimer](#legal-notices--regulatory-disclaimer)
+- [Project & Privacy Notice](#project--privacy-notice)
 - [License](#license)
 
 ---
@@ -1086,6 +1087,23 @@ This project is developed under the laws of the Federal Republic of Germany. The
 For questions regarding the legal scope of Glassbox, please contact: [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com)
 
 For security vulnerabilities, see [SECURITY.md](SECURITY.md).
+
+---
+
+## Project & Privacy Notice
+
+**Academic research project.** Glassbox AI is an open-source MSc research project developed by Ajay Pravin Mahale as part of postgraduate studies in Germany. It is not a commercial product, not operated by a registered company, and not offered as a professional compliance or legal service. There is no registered business entity behind this project.
+
+**Privacy / GDPR (Regulation (EU) 2016/679).**
+
+- The hosted demo API at `glassbox-ai-2-0-mechanistic.onrender.com` is provided strictly for **evaluation and testing** of the research tool.
+- **No personal data is intentionally collected, stored, or processed.** Prompt text submitted via the API is processed in-memory to return a result and is not logged, retained, or shared.
+- Standard server access logs (IP address, timestamp, request path) may be recorded automatically by the hosting platform (Render.com). These are not controlled by the project author. See [Render's privacy policy](https://render.com/privacy) for details.
+- If you submit prompts containing personal data (e.g., names, financial details), you do so at your own risk. Do not send real personal data to the hosted API. For sensitive work, [self-host](#self-hosting).
+- **Contact for data inquiries:** [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com)
+- **Responsible person (§5 TMG / Impressum):** Ajay Pravin Mahale, student, Germany. Contact: mahale.ajay01@gmail.com
+
+**Trademark notice.** "Glassbox AI" and the full project name "Glassbox-AI-2.0-Mechanistic-Interpretability-tool" are used as academic project identifiers only. The unrelated commercial company Glassbox Ltd (digital customer experience analytics) may hold trademark registrations for "Glassbox" in certain jurisdictions. This academic project has no affiliation with, and makes no claim against, any trademarks held by Glassbox Ltd or any affiliated entities. If you are Glassbox Ltd and have a trademark concern, please contact [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com) before taking legal action.
 
 ---
 
