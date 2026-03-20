@@ -19,7 +19,7 @@ on:
 
 jobs:
   deploy:
-    name: Sync dashboard → HuggingFace Space
+    name: Sync dashboard to HuggingFace Space
     runs-on: ubuntu-latest
 
     steps:
@@ -37,7 +37,7 @@ jobs:
             echo "available=true" >> $GITHUB_OUTPUT
           else
             echo "available=false" >> $GITHUB_OUTPUT
-            echo "::notice::HF_TOKEN secret not configured — skipping HuggingFace deployment. Add HF_TOKEN in repo Settings → Secrets to enable auto-sync."
+            echo "::notice::HF_TOKEN not set - skipping HuggingFace deploy. Add it in repo Settings > Secrets."
           fi
 
       - name: Push to HuggingFace Space
@@ -45,65 +45,38 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # ── Clone the HF Space (every Space is a git repo) ──────────────────
-          git clone \
-            "https://user:${HF_TOKEN}@huggingface.co/spaces/designer-coderajay/Glassbox-ai" \
-            hf_space
+          git clone "https://user:${HF_TOKEN}@huggingface.co/spaces/designer-coderajay/Glassbox-ai" hf_space
 
-          # ── Copy updated app.py to Space root ───────────────────────────────
           cp dashboard/app.py hf_space/app.py
 
-          # ── Write requirements.txt (Space needs all deps at root) ────────────
-          {
-            echo "gradio>=4.44.0"
-            echo "numpy>=1.24.0"
-            echo "matplotlib>=3.7.0"
-            echo "Pillow>=9.0.0"
-            echo "transformer-lens>=1.19.0"
-            echo "glassbox-mech-interp>=3.1.0"
-            echo "torch>=2.0.0"
-            echo "einops>=0.6.1"
-          } > hf_space/requirements.txt
+          printf '%s\n' \
+            "gradio>=4.44.0" \
+            "numpy>=1.24.0" \
+            "matplotlib>=3.7.0" \
+            "Pillow>=9.0.0" \
+            "transformer-lens>=1.19.0" \
+            "glassbox-mech-interp>=3.1.0" \
+            "torch>=2.0.0" \
+            "einops>=0.6.1" \
+            > hf_space/requirements.txt
 
-          # ── Write Dockerfile (Python 3.10 + Gradio on port 7860) ─────────────
-          # Python 3.13 has no PyTorch wheels yet — must use 3.10.
-          # Entrypoint: python app.py (Gradio, not Streamlit).
-          cat > hf_space/Dockerfile << 'DOCKERFILE'
-FROM python:3.10-slim
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-COPY app.py ./
-
-EXPOSE 7860
-
-ENV GRADIO_SERVER_NAME="0.0.0.0"
-ENV GRADIO_SERVER_PORT=7860
-
-CMD ["python", "app.py"]
-DOCKERFILE
-
-          # ── Commit and push only if something changed ────────────────────────
           cd hf_space
+
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
 
           SHORT_SHA=$(git -C .. rev-parse --short HEAD)
 
-          git add app.py requirements.txt Dockerfile
+          git rm --cached --ignore-unmatch Dockerfile
+          rm -f Dockerfile
+
+          git add app.py requirements.txt
+          git add -u
+
           if git diff --staged --quiet; then
-            echo "No changes — HF Space already up to date."
+            echo "No changes - HF Space already up to date."
           else
             git commit -m "Auto-sync from GitHub @ ${SHORT_SHA}"
             git push
-            echo "✅ HF Space updated from commit ${SHORT_SHA}"
+            echo "HF Space updated from commit ${SHORT_SHA}"
           fi
