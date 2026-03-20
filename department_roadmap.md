@@ -33,10 +33,10 @@ People publishing on circuits, superposition, feature geometry.
 - **[v2.9.0] Jupyter widget** (`CircuitWidget`, `HeatmapWidget`) with live attribution heatmap ✅
 - **[v2.9.0] `POST /v1/attention-patterns`** — per-head attention matrix API ✅
 
-**Remaining gaps.**
-- Paper-ready figure export: "Download circuit as SVG" button (dashboard, next)
-- Circuit diff: compare circuits across model versions (v3.0)
-- Custom SAE upload to `SAEFeatureAttributor` (v3.0)
+**Remaining gaps (v3.1 target).**
+- ~~Paper-ready figure export: "Download circuit as SVG" button~~ ✅ DONE v3.0
+- Circuit diff: compare circuits across model versions
+- Custom SAE upload to `SAEFeatureAttributor`
 
 ---
 
@@ -61,9 +61,9 @@ People who need to integrate compliance checks into CI/CD pipelines.
 - **[v2.9.0] GitHub Action** `glassbox-audit@v1` (action.yml) — drop-in CI compliance gate ✅
 - **[v2.9.0] TypeScript SDK** (`sdk/glassbox.ts`) — Node.js/Deno/Bun/browser ✅
 
-**Remaining gaps.**
-- Webhook support: POST callback when async job completes (v3.0)
-- OpenTelemetry tracing for self-hosted deployments (v3.0)
+**Remaining gaps (v3.1 target).**
+- ~~Webhook support: POST callback when async job completes~~ ✅ DONE v3.0
+- OpenTelemetry tracing for self-hosted deployments
 
 ---
 
@@ -86,10 +86,10 @@ People who translate interpretability results into decisions. Non-technical stak
 - **[v2.9.0] Jupyter heatmap widget** (`CircuitWidget`) — inline notebook rendering ✅
 - HF Space: Gradio with basic attention viz ⚠️ (needs refresh)
 
-**Remaining gaps.**
+**Remaining gaps (v3.1 target).**
 - Attention pattern click-through: click a circuit head chip → full attention matrix overlay
-- "Download circuit as SVG" button for the D3 graph
-- HF Space refresh to match v2.9.0 UI quality
+- ~~"Download circuit as SVG" button for the D3 graph~~ ✅ DONE v3.0
+- ~~HF Space refresh to match v2.9.0 UI quality~~ ✅ DONE v3.0
 
 ---
 
@@ -115,10 +115,10 @@ People responsible for regulatory submissions and model governance policy.
   - `verify_chain()`, `export_csv()`, `export_json()`, `summary()` all implemented
   - Exported from top-level: `from glassbox import AuditLog`
 
-**Remaining gaps.**
-- Bias analysis module: demographic parity, counterfactual fairness (v3.0)
-- Multi-audit comparison dashboard: compliance trajectory across model versions (v3.0)
-- Risk register persistence (v3.0)
+**Remaining gaps (v3.1 target).**
+- ~~Bias analysis module: demographic parity, counterfactual fairness~~ ✅ DONE v3.0 (`BiasAnalyzer`)
+- ~~Multi-audit comparison dashboard: compliance trajectory across model versions~~ ✅ DONE v3.0
+- ~~Risk register persistence~~ ✅ DONE v3.0 (`RiskRegister` — persistent JSON, Article 9)
 
 ---
 
@@ -142,7 +142,8 @@ People responsible for regulatory submissions and model governance policy.
 | v2.7.0 | Compliance + API + Attribution heatmap | Live API, Dashboard, Heatmap viz | ✅ SHIPPED |
 | v2.8.0 | Engineering + Research + UI redesign | Async jobs, D3 graph, model card, dashboard redesign | ✅ SHIPPED |
 | v2.9.0 | Governance + SDK + DX | AuditLog, TS SDK, GH Action, Jupyter widget, attention API | ✅ SHIPPED |
-| v3.0.0 | Enterprise | Multi-audit dashboard, SVG export, bias analysis, webhooks, SLA | ✅ SHIPPED |
+| v3.0.0 | Enterprise | BiasAnalyzer, webhooks, SVG export, multi-audit dashboard, RiskRegister | ✅ SHIPPED |
+| v3.1.0 | Research + Infra | Circuit diff, custom SAE upload, attention click-through, OpenTelemetry | 🔜 Next |
 
 ---
 
