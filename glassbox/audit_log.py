@@ -251,33 +251,80 @@ class AuditLog:
         auditor : Who triggered the audit (free text, e.g. email or username).
         notes   : Optional notes for the audit record.
         """
-        faith = result.get("faithfulness") or {}
+        faith  = result.get("faithfulness") or {}
+        meta   = result.get("metadata") or {}           # GlassboxV2.analyze() output
         report = result.get("full_report") or {}
         s1 = (report.get("sections") or {}).get("1_general_description") or {}
         s2 = (report.get("sections") or {}).get("2_development_design") or {}
         s3 = (report.get("sections") or {}).get("3_monitoring_control") or {}
 
-        grade_raw = (
-            result.get("explainability_grade")
-            or s3.get("explainability_grade")
-            or "D — Unknown"
+        # ── Grade ─────────────────────────────────────────────────────────────
+        # Priority: explicit key → section 3 → derive from F1 score.
+        # Raw GlassboxV2.analyze() output never contains "explainability_grade",
+        # so we compute it from the faithfulness F1 rather than defaulting to D.
+        grade_raw = result.get("explainability_grade") or s3.get("explainability_grade")
+        if grade_raw:
+            grade = grade_raw[0].upper()
+        else:
+            f1 = float(faith.get("f1") or s3.get("f1_score") or 0.0)
+            if   f1 >= 0.70: grade = "A"
+            elif f1 >= 0.50: grade = "B"
+            elif f1 >= 0.30: grade = "C"
+            else:            grade = "D"
+
+        # ── model_name ────────────────────────────────────────────────────────
+        # GlassboxV2.analyze() returns metadata.model_name; REST API returns
+        # model_name at top level; black-box returns target_model.
+        model_name = (
+            result.get("model_name")
+            or result.get("target_model")
+            or meta.get("model_name")
+            or s1.get("model_name")
+            or "unknown"
         )
-        grade = grade_raw[0] if grade_raw else "D"
+
+        # ── analysis_mode ─────────────────────────────────────────────────────
+        # GlassboxV2 uses metadata.method ("taylor"|"ig"|"eap"); API uses
+        # analysis_mode ("white_box"|"black_box").
+        raw_mode = result.get("analysis_mode") or meta.get("method") or ""
+        if "black" in raw_mode:
+            analysis_mode = "black_box"
+        elif raw_mode in ("white_box", "taylor", "ig", "eap", "integrated_gradients"):
+            analysis_mode = "white_box"
+        else:
+            analysis_mode = raw_mode or "white_box"
+
+        # ── circuit heads ─────────────────────────────────────────────────────
+        # GlassboxV2 returns result["circuit"] as a list of (layer, head) tuples.
+        n_circuit = (
+            result.get("n_circuit_components")
+            or len(result.get("circuit") or [])
+            or len(s2.get("circuit_heads") or [])
+        )
+
+        # ── compliance_status ─────────────────────────────────────────────────
+        # Derive from grade when not explicitly provided.
+        raw_status = result.get("compliance_status") or report.get("compliance_status") or ""
+        if not raw_status:
+            raw_status = (
+                "conditionally_compliant" if grade in ("A", "B")
+                else "non_compliant"
+            )
 
         return self.append(
-            model_name=result.get("model_name") or result.get("target_model") or "unknown",
-            analysis_mode=result.get("analysis_mode") or "unknown",
+            model_name=model_name,
+            analysis_mode=analysis_mode,
             prompt=result.get("prompt") or result.get("decision_prompt") or "",
             correct_token=result.get("correct_token") or "",
             incorrect_token=result.get("incorrect_token") or "",
             provider_name=s1.get("provider_name") or report.get("provider_name") or "",
             deployment_context=s1.get("deployment_context") or result.get("deployment_context") or "other_high_risk",
             explainability_grade=grade,
-            compliance_status=result.get("compliance_status") or report.get("compliance_status") or "non_compliant",
-            faithfulness_f1=faith.get("f1") or s3.get("f1_score") or 0.0,
-            faithfulness_sufficiency=faith.get("sufficiency") or s3.get("sufficiency") or 0.0,
-            faithfulness_comprehensiveness=faith.get("comprehensiveness") or s3.get("comprehensiveness") or 0.0,
-            n_circuit_heads=result.get("n_circuit_components") or len(s2.get("circuit_heads") or []),
+            compliance_status=raw_status,
+            faithfulness_f1=float(faith.get("f1") or s3.get("f1_score") or 0.0),
+            faithfulness_sufficiency=float(faith.get("sufficiency") or s3.get("sufficiency") or 0.0),
+            faithfulness_comprehensiveness=float(faith.get("comprehensiveness") or s3.get("comprehensiveness") or 0.0),
+            n_circuit_heads=n_circuit,
             report_id=result.get("report_id") or report.get("report_id") or "",
             auditor=auditor,
             notes=notes,
