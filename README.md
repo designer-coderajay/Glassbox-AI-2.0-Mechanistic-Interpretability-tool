@@ -29,6 +29,7 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
+- [What's New in v3.1.0](#whats-new-in-v310)
 - [What's New in v3.0.0](#whats-new-in-v300)
 - [EU AI Act Compliance — Annex IV Reports](#eu-ai-act-compliance--annex-iv-reports)
 - [Black-Box Audit — Any Model via API](#black-box-audit--any-model-via-api)
@@ -61,9 +62,9 @@
 | **Compliance Dashboard** | [/dashboard](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard) | Web UI for compliance officers. No install needed. |
 | **REST API** | [glassbox-ai-2-0-mechanistic.onrender.com](https://glassbox-ai-2-0-mechanistic.onrender.com) | JSON API. See [/docs](https://glassbox-ai-2-0-mechanistic.onrender.com/docs) for Swagger UI. |
 | **White-Box Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) | Interactive circuit analysis on open-source models. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.0.0 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.1.0 |
 
-> Free tier spins down after 15 min inactivity — first request may take ~30s. For production, [self-host](#self-hosting).
+> **Hosted API disclaimer.** The REST API at `glassbox-ai-2-0-mechanistic.onrender.com` runs on Render's free tier. It spins down after 15 min inactivity (first request may take ~30s) and offers no SLA, uptime guarantee, or data persistence. It is provided for **evaluation and demo purposes only** — not production compliance workflows. For production use, [self-host](#self-hosting).
 
 ---
 
@@ -177,6 +178,87 @@ F1 trend chart, grade distribution, audit table with grade trajectory. "Load fro
 ### 5. Circuit SVG Export
 
 "Download SVG" button in the D3 circuit graph. Exports paper-ready `glassbox-circuit.svg` with inlined dark-mode styles.
+
+---
+
+## What's New in v3.1.0
+
+### 1. CircuitDiff — Post-Market Model Monitoring (Article 72)
+
+Mechanistic diff between two model versions. Tells you exactly which attention heads entered or left the circuit — not just that performance changed, but *why* it changed.
+
+```python
+from glassbox import GlassboxV2
+from glassbox.circuit_diff import CircuitDiff
+from transformer_lens import HookedTransformer
+
+gb_base = GlassboxV2(HookedTransformer.from_pretrained("gpt2"))
+gb_ft   = GlassboxV2(HookedTransformer.from_pretrained("my-org/gpt2-finetuned"))
+
+differ = CircuitDiff(gb_base, gb_ft, label_a="gpt2-base", label_b="gpt2-ft")
+diff   = differ.diff(
+    prompt    = "The loan applicant has a credit score of 620. The decision is",
+    correct   = " approved",
+    incorrect = " denied",
+)
+
+print(diff.change_summary)
+# STABLE — circuits are nearly identical. Jaccard=0.87. 7 shared heads, 1 added, 0 removed.
+
+print(diff.to_markdown())  # PR comment / audit report ready
+```
+
+Batch mode + `summary_stats()` for multi-prompt stability reports. Maps to **Article 72** (post-market monitoring) and **Annex IV Section 6** (lifecycle changes).
+
+### 2. Custom SAE Upload
+
+Load your own trained Sparse Autoencoder weights — no sae-lens hub required. Works for fine-tuned or non-public models.
+
+```python
+from glassbox.sae_attribution import SAEFeatureAttributor
+
+# Single checkpoint applied to all queried layers
+sfa = SAEFeatureAttributor(model, sae_path="./my_sae.pt")
+
+# Per-layer checkpoints
+sfa = SAEFeatureAttributor(model, sae_path={9: "./sae_l9.pt", 10: "./sae_l10.pt"})
+
+# Checkpoint format: .pt dict with keys:
+# encoder_weight (n_features × d_model), encoder_bias (n_features,)
+# decoder_weight (d_model × n_features), decoder_bias (d_model,)
+result = sfa.attribute(tokens, " approved", " denied", layers=[9, 10, 11])
+```
+
+### 3. OpenTelemetry Tracing
+
+Pipe every analysis call into your existing observability stack (Datadog, Honeycomb, Jaeger, Grafana Tempo). Self-hosted → traces never leave your infrastructure.
+
+```python
+from glassbox.telemetry import setup_telemetry, instrument_glassbox
+
+setup_telemetry(service_name="glassbox-prod", endpoint="http://localhost:4317")
+instrument_glassbox(gb)   # wraps analyze() with OTel spans
+
+result = gb.analyze(...)  # → span: "glassbox.analyze" with grade, F1, circuit_heads
+```
+
+Each span carries: `glassbox.model`, `glassbox.grade`, `glassbox.f1`, `glassbox.circuit_heads`, `glassbox.duration_ms`. Supports Jaeger, Honeycomb, Datadog OTLP, and any OTel-compatible backend.
+
+### 4. Exact Sufficiency in `bootstrap_metrics()`
+
+`bootstrap_metrics()` now computes **exact** sufficiency by default (`exact_suff=True`) — proper positive ablation (keep circuit, corrupt rest) instead of the Taylor approximation. This is the method that produces the ~100% sufficiency figure in the arXiv paper.
+
+```python
+# Default: exact sufficiency (2 extra passes per prompt)
+result = gb.bootstrap_metrics(prompts, seed=42)
+# result["meta"]["exact_suff"] = True
+# result["meta"]["suff_is_approx"] = False
+
+# Fast mode: Taylor approximation (0 extra passes)
+result = gb.bootstrap_metrics(prompts, exact_suff=False)
+```
+
+The paper benchmark: `seed=42`, GPT-2 small (12L/12H/768d), Apple M2 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
 
 ---
 
@@ -392,11 +474,15 @@ report.to_json("annex_iv_report.json") # machine-readable JSON
 | C | >0.40 | >0.20 | >0.30 | Limited explanation — human oversight required |
 | D | ≤0.40 | ≤0.20 | ≤0.30 | Insufficient — consider model change |
 
+> **Grade scale note.** These thresholds are research-defined, based on the faithfulness F1 score from mechanistic interpretability literature (Conmy et al., 2023; Wang et al., 2022). They are **not** an officially validated regulatory scale under Regulation (EU) 2024/1689. No EU regulatory body has endorsed these specific thresholds. They are intended as internal documentation prioritisation aids, not as pass/fail compliance criteria. The grading scale and thresholds may be updated in future releases as interpretability research matures.
+
 ---
 
 ## Black-Box Audit — Any Model via API
 
-No model weights needed. Works on GPT-4, Claude, Llama via any API endpoint. Uses counterfactual probing + sensitivity analysis + consistency testing to produce Article 13-compatible explainability metrics.
+No model weights needed. Works on GPT-4, Claude, Llama via any API endpoint. Uses counterfactual probing + sensitivity analysis + consistency testing to produce Article 13-relevant explainability metrics.
+
+> **Black-box explainability note.** Black-box metrics (counterfactual probing, sensitivity analysis, consistency testing) are *behavioural proxies* — they measure the model's input-output behaviour, not its internal causal structure. They are fundamentally softer than white-box circuit analysis and will not achieve the same faithfulness scores. This is inherent to black-box analysis, not a limitation of Glassbox specifically: without weight access, structural causal attribution is not possible. Use white-box analysis for the highest-confidence explainability documentation; use black-box for models where weights are unavailable.
 
 ```python
 pip install "glassbox-mech-interp[compliance]"

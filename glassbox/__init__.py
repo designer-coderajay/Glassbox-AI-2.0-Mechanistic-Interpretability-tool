@@ -53,16 +53,23 @@ Package layout
 glassbox/
   __init__.py           ← you are here — re-exports the public API
   core.py               ← GlassboxV2 class: attribution patching, MFC, FCAS,
-                          bootstrap, logit lens, EAP, attribution stability,
-                          token attribution, attention patterns
+                          bootstrap (exact_suff=True), logit lens, EAP,
+                          attribution stability, token attribution,
+                          attention patterns, _suff_exact (v3.1.0)
+  circuit_diff.py       ← CircuitDiff: mechanistic diff between model versions
+                          (v3.1.0 — Article 72 post-market monitoring)
   sae_attribution.py    ← SAEFeatureAttributor: sparse feature decomposition
-                          of circuit components via sae-lens SAEs
+                          via sae-lens hub SAEs or custom .pt checkpoints (v3.1.0)
+  telemetry.py          ← OpenTelemetry tracing for self-hosted deployments
+                          (v3.1.0 — setup_telemetry, instrument_glassbox)
   composition.py        ← HeadCompositionAnalyzer: Q/K/V composition scores
                           between attention heads (Elhage et al. 2021)
   audit_log.py          ← AuditLog: append-only JSONL audit log with SHA-256
                           hash chain for tamper detection (v2.9.0)
   bias.py               ← BiasAnalyzer: demographic parity, counterfactual
                           fairness, token bias probing (v3.0.0)
+  risk_register.py      ← RiskRegister: persistent cross-audit risk tracking
+                          (v3.0.0 — Article 9 EU AI Act)
   widget.py             ← CircuitWidget / HeatmapWidget: Jupyter notebook
                           widgets with attribution heatmap (v2.9.0)
   cli.py                ← glassbox-ai CLI entry point
@@ -73,7 +80,7 @@ glassbox/
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -178,6 +185,23 @@ from glassbox.bias import (
 from glassbox.risk_register import RiskEntry, RiskRegister
 
 # ---------------------------------------------------------------------------
+# Circuit Diff — mechanistic diff between model versions (v3.1.0)
+# ---------------------------------------------------------------------------
+from glassbox.circuit_diff import CircuitDiff, CircuitDiffResult
+
+# ---------------------------------------------------------------------------
+# OpenTelemetry Tracing — self-hosted deployments (v3.1.0)
+# ---------------------------------------------------------------------------
+from glassbox.telemetry import (
+    setup_telemetry,
+    teardown_telemetry,
+    trace_span,
+    is_telemetry_enabled,
+    instrument_glassbox,
+    TelemetryConfig,
+)
+
+# ---------------------------------------------------------------------------
 # Jupyter Notebook Widgets — CircuitWidget, HeatmapWidget (v2.9.0)
 # ---------------------------------------------------------------------------
 try:
@@ -246,6 +270,16 @@ __all__ = [
     # Risk register — persistent cross-audit risk tracking (v3.0.0)
     "RiskEntry",
     "RiskRegister",
+    # Circuit diff — model version comparison (v3.1.0)
+    "CircuitDiff",
+    "CircuitDiffResult",
+    # OpenTelemetry tracing (v3.1.0)
+    "setup_telemetry",
+    "teardown_telemetry",
+    "trace_span",
+    "is_telemetry_enabled",
+    "instrument_glassbox",
+    "TelemetryConfig",
     # Jupyter widgets (v2.9.0; requires ipywidgets)
     "CircuitWidget",
     "HeatmapWidget",

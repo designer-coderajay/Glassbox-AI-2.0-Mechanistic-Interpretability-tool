@@ -102,6 +102,57 @@ _SAE_RELEASES: Dict[str, str] = {
 _HOOK_TEMPLATE = "blocks.{layer}.hook_resid_post"
 
 
+class _CustomSAE:
+    """
+    Lightweight SAE wrapper for custom checkpoints (no sae-lens dependency).
+
+    Mirrors the encode/decode interface used by sae-lens SAE objects so that
+    the rest of SAEFeatureAttributor can treat both modes identically.
+
+    Attributes
+    ----------
+    W_enc : Tensor (n_features, d_model)
+    b_enc : Tensor (n_features,)
+    W_dec : Tensor (d_model, n_features)
+    b_dec : Tensor (d_model,)
+    """
+
+    def __init__(
+        self,
+        W_enc: "torch.Tensor",
+        b_enc: "torch.Tensor",
+        W_dec: "torch.Tensor",
+        b_dec: "torch.Tensor",
+    ) -> None:
+        self.W_enc = W_enc
+        self.b_enc = b_enc
+        self.W_dec = W_dec
+        self.b_dec = b_dec
+
+    def encode(self, x: "torch.Tensor") -> "torch.Tensor":
+        """
+        Encode residual stream → feature activations.
+
+        x : (..., d_model)
+        returns: (..., n_features)  — ReLU(x @ W_enc.T + b_enc)
+        """
+        return torch.relu(x @ self.W_enc.T + self.b_enc)
+
+    def decode(self, f: "torch.Tensor") -> "torch.Tensor":
+        """
+        Decode feature activations → reconstructed residual stream.
+
+        f : (..., n_features)
+        returns: (..., d_model)
+        """
+        return f @ self.W_dec.T + self.b_dec
+
+    @property
+    def W_dec_tensor(self) -> "torch.Tensor":
+        """W_dec as (n_features, d_model) for dot-product scoring."""
+        return self.W_dec.T
+
+
 class SAEFeatureAttributor:
     """
     Attributes transformer circuit components to sparse autoencoder features.
@@ -110,6 +161,26 @@ class SAEFeatureAttributor:
     their SAE feature basis, then scores each feature by its contribution
     to the target vs. distractor logit difference.
 
+    Supports two SAE loading modes:
+
+    **Mode 1 — Hub release (default):** Downloads a pre-trained SAE from the
+    sae-lens hub. Requires ``pip install sae-lens``. Works out-of-the-box for
+    GPT-2 small (gpt2, gpt2-small). Pass ``sae_release="..."`` for other models.
+
+    **Mode 2 — Custom checkpoint (v3.1.0):** Load your own trained SAE weights
+    from a ``.pt`` file. Pass ``sae_path="/path/to/sae.pt"``. The file must
+    contain a dict with keys::
+
+        encoder_weight  : (n_features, d_model)   — W_enc
+        encoder_bias    : (n_features,)            — b_enc
+        decoder_weight  : (d_model, n_features)    — W_dec
+        decoder_bias    : (d_model,)               — b_dec
+
+    This mode does NOT require sae-lens. Useful for:
+      - Fine-tuned or custom model SAEs
+      - SAEs trained with non-standard architectures
+      - SAEs from non-public releases
+
     Parameters
     ----------
     model : HookedTransformer
@@ -117,25 +188,34 @@ class SAEFeatureAttributor:
     sae_release : str, optional
         SAE release name on the sae-lens hub (e.g. "gpt2-small-res-jb").
         Auto-detected from the model name if not specified.
+        Mutually exclusive with ``sae_path``.
+    sae_path : str or Path, optional
+        Path to a custom SAE checkpoint ``.pt`` file.
+        If supplied, ``sae_release`` is ignored and sae-lens is not required.
+        A single checkpoint is applied to ALL queried layers; for per-layer
+        checkpoints, pass a dict ``{layer: path}`` to ``sae_path``.
     device : str or torch.device, optional
         Device to run the SAE on.  Defaults to the model's device.
 
     Raises
     ------
     ImportError
-        If ``sae-lens`` is not installed.
+        If Mode 1 is used and ``sae-lens`` is not installed.
     ValueError
-        If no SAE release is available for the specified model.
+        If neither a valid release nor a valid sae_path is provided.
+    FileNotFoundError
+        If ``sae_path`` does not exist on disk.
 
     Examples
     --------
-    >>> from transformer_lens import HookedTransformer
-    >>> from glassbox import GlassboxV2
-    >>> from glassbox.sae_attribution import SAEFeatureAttributor
+    >>> # Mode 1 — hub release
+    >>> sfa = SAEFeatureAttributor(model)
     >>>
-    >>> model = HookedTransformer.from_pretrained("gpt2")
-    >>> gb    = GlassboxV2(model)
-    >>> sfa   = SAEFeatureAttributor(model)
+    >>> # Mode 2 — custom checkpoint (single .pt for all layers)
+    >>> sfa = SAEFeatureAttributor(model, sae_path="./my_sae_layer9.pt")
+    >>>
+    >>> # Mode 2 — per-layer checkpoints
+    >>> sfa = SAEFeatureAttributor(model, sae_path={9: "./sae_l9.pt", 10: "./sae_l10.pt"})
     >>>
     >>> tokens = model.to_tokens("When Mary and John went to the store, John gave a drink to")
     >>> result = sfa.attribute(tokens, " Mary", " John", layers=[9, 10, 11])
@@ -146,19 +226,53 @@ class SAEFeatureAttributor:
         self,
         model,
         sae_release: Optional[str] = None,
+        sae_path = None,          # str | Path | Dict[int, str|Path] | None
         device: Optional[str] = None,
     ) -> None:
+        import os
+        from pathlib import Path
+
+        self.model  = model
+        self.device = device or str(next(model.parameters()).device)
+        self._sae_cache: Dict[int, object] = {}
+
+        # ── Mode 2: custom checkpoint ──────────────────────────────────────
+        if sae_path is not None:
+            # Normalise to Dict[int, Path]
+            if isinstance(sae_path, dict):
+                self._custom_paths: Optional[Dict] = {
+                    int(k): Path(v) for k, v in sae_path.items()
+                }
+                self._custom_path_single: Optional["Path"] = None
+            else:
+                self._custom_paths = None
+                self._custom_path_single = Path(sae_path)
+                if not self._custom_path_single.exists():
+                    raise FileNotFoundError(
+                        f"SAE checkpoint not found: {self._custom_path_single}\n"
+                        "Expected keys: encoder_weight, encoder_bias, "
+                        "decoder_weight, decoder_bias"
+                    )
+
+            self.sae_release   = None
+            self._use_custom   = True
+            logger.info("SAEFeatureAttributor: using custom checkpoint(s) from %s", sae_path)
+            return
+
+        # ── Mode 1: hub release ────────────────────────────────────────────
+        self._use_custom = False
+        self._custom_paths = None
+        self._custom_path_single = None
+
         if not _check_saelens():
             raise ImportError(
                 "sae-lens is required for SAE feature attribution.\n"
                 "Install it with:  pip install sae-lens\n"
-                "See https://github.com/jbloomAus/SAELens"
+                "See https://github.com/jbloomAus/SAELens\n"
+                "Or pass sae_path='.../my_sae.pt' to use a custom checkpoint "
+                "(no sae-lens required)."
             )
 
-        self.model   = model
-        self.device  = device or str(next(model.parameters()).device)
-
-        # Determine SAE release -------------------------------------------------
         model_name_lower = getattr(model.cfg, "model_name", "").lower()
         if sae_release is None:
             sae_release = _SAE_RELEASES.get(model_name_lower)
@@ -166,31 +280,66 @@ class SAEFeatureAttributor:
                 raise ValueError(
                     f"No default SAE release found for model '{model_name_lower}'.\n"
                     f"Supported models: {list(_SAE_RELEASES.keys())}\n"
-                    f"Or pass sae_release='...' explicitly.\n"
+                    f"Pass sae_release='...' explicitly, or sae_path='...' for a "
+                    f"custom checkpoint.\n"
                     f"See https://github.com/jbloomAus/SAELens for available releases."
                 )
-        self.sae_release  = sae_release
-        self._sae_cache: Dict[int, object] = {}   # layer -> SAE
+        self.sae_release = sae_release
 
     # -----------------------------------------------------------------------
-    # INTERNAL — lazy SAE loading
+    # INTERNAL — SAE loading (hub or custom)
     # -----------------------------------------------------------------------
 
     def _get_sae(self, layer: int):
         """Load (and cache) the SAE for a given layer."""
         if layer not in self._sae_cache:
-            from sae_lens import SAE
-            hook_point = _HOOK_TEMPLATE.format(layer=layer)
-            logger.info(
-                "Loading SAE: release=%s  hook_point=%s", self.sae_release, hook_point
-            )
-            sae, _cfg, _sparsity = SAE.from_pretrained(
-                release=self.sae_release,
-                sae_id=hook_point,
-                device=self.device,
-            )
-            self._sae_cache[layer] = sae
+            if self._use_custom:
+                self._sae_cache[layer] = self._load_custom_sae(layer)
+            else:
+                from sae_lens import SAE
+                hook_point = _HOOK_TEMPLATE.format(layer=layer)
+                logger.info(
+                    "Loading SAE: release=%s  hook_point=%s", self.sae_release, hook_point
+                )
+                sae, _cfg, _sparsity = SAE.from_pretrained(
+                    release=self.sae_release,
+                    sae_id=hook_point,
+                    device=self.device,
+                )
+                self._sae_cache[layer] = sae
         return self._sae_cache[layer]
+
+    def _load_custom_sae(self, layer: int) -> "_CustomSAE":
+        """Load a custom SAE checkpoint from disk and wrap it in _CustomSAE."""
+        from pathlib import Path
+
+        if self._custom_paths is not None:
+            if layer not in self._custom_paths:
+                raise ValueError(
+                    f"Custom SAE checkpoint not provided for layer {layer}.\n"
+                    f"Available layers: {list(self._custom_paths.keys())}"
+                )
+            path = self._custom_paths[layer]
+        else:
+            path = self._custom_path_single  # type: ignore[assignment]
+
+        logger.info("Loading custom SAE from %s for layer %d", path, layer)
+        ckpt = torch.load(path, map_location=self.device)
+
+        required = {"encoder_weight", "encoder_bias", "decoder_weight", "decoder_bias"}
+        missing  = required - set(ckpt.keys())
+        if missing:
+            raise ValueError(
+                f"Custom SAE checkpoint at '{path}' is missing keys: {missing}\n"
+                f"Required: {required}\nFound: {set(ckpt.keys())}"
+            )
+
+        return _CustomSAE(
+            W_enc = ckpt["encoder_weight"].to(self.device).float(),
+            b_enc = ckpt["encoder_bias"].to(self.device).float(),
+            W_dec = ckpt["decoder_weight"].to(self.device).float(),
+            b_dec = ckpt["decoder_bias"].to(self.device).float(),
+        )
 
     # -----------------------------------------------------------------------
     # CORE API
@@ -283,7 +432,12 @@ class SAEFeatureAttributor:
 
             # Score each active feature -------------------------------------------
             # score(f) = f_acts[f] × (W_dec[f] @ unembed_dir)
-            W_dec = sae.W_dec.detach().float()  # [n_features, d_model]
+            # W_dec shape: (n_features, d_model) for both hub SAEs and _CustomSAE
+            if isinstance(sae, _CustomSAE):
+                # _CustomSAE stores W_dec as (d_model, n_features); .T → (n_features, d_model)
+                W_dec = sae.W_dec.T.detach().float()
+            else:
+                W_dec = sae.W_dec.detach().float()   # sae-lens: already (n_features, d_model)
             unembed_dir_dev = unembed_dir.to(W_dec.device)
             feature_ld_contribs = feature_acts * (W_dec @ unembed_dir_dev)  # [n_features]
 
@@ -310,7 +464,7 @@ class SAEFeatureAttributor:
                     "direction":       direction,
                     "neuronpedia_url": (
                         f"https://www.neuronpedia.org/gpt2-small/{layer}-res-jb/{feat_id}"
-                        if "gpt2-small" in self.sae_release else None
+                        if (self.sae_release and "gpt2-small" in self.sae_release) else None
                     ),
                 })
 

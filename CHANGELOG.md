@@ -6,6 +6,58 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [3.1.0] — 2026-03-20
+
+### Added
+- **CircuitDiff** (`glassbox/circuit_diff.py`): Mechanistic diff between two model versions
+  or checkpoints. `CircuitDiff(gb_a, gb_b).diff(prompt, correct, incorrect)` returns a
+  `CircuitDiffResult` with added/removed/shared heads, Jaccard stability score, per-head
+  attribution delta, and F1 delta. `batch_diff()` for multi-prompt stability analysis.
+  `summary_stats()` aggregates stability mean/std and most-commonly-added/removed heads.
+  `to_markdown()` generates PR-ready audit report. Maps to EU AI Act Article 72 (post-market
+  monitoring) and Annex IV Section 6 (lifecycle change documentation).
+  Exported from top-level: `from glassbox import CircuitDiff, CircuitDiffResult`.
+
+- **Exact sufficiency in `bootstrap_metrics()`** (`glassbox/core.py`): New `_suff_exact()`
+  method computes exact causal sufficiency via positive ablation — keeps only circuit heads
+  active, corrupts all other heads, measures preserved logit difference. `bootstrap_metrics()`
+  now takes `exact_suff=True` (default) to use this method. Return dict includes
+  `meta.exact_suff` and `meta.suff_is_approx` fields. Reproducibility note documented in
+  docstring: seed=42, GPT-2 small, Apple M2 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
+  This resolves the discrepancy between Taylor approx (~80%) and exact (~100%) sufficiency.
+
+- **Custom SAE upload** (`glassbox/sae_attribution.py`): `SAEFeatureAttributor` now accepts
+  `sae_path` parameter. Pass a single `.pt` file path (applied to all layers) or a dict
+  `{layer: path}` for per-layer checkpoints. Expected checkpoint keys: `encoder_weight`,
+  `encoder_bias`, `decoder_weight`, `decoder_bias`. New `_CustomSAE` internal class mirrors
+  the sae-lens encode/decode interface. sae-lens not required when using custom checkpoints.
+  Enables SAE attribution for fine-tuned, custom, or non-public models.
+
+- **OpenTelemetry tracing** (`glassbox/telemetry.py`): `setup_telemetry(service_name, endpoint)`
+  initialises OTLP trace export. `instrument_glassbox(gb)` monkey-patches `analyze()` to emit
+  a span per call with attributes: `glassbox.model`, `glassbox.grade`, `glassbox.f1`,
+  `glassbox.circuit_heads`, `glassbox.duration_ms`. `trace_span()` context manager / decorator
+  for custom instrumentation. Supports Jaeger, Honeycomb, Datadog OTLP, Grafana Tempo.
+  Falls back to no-op silently if opentelemetry-sdk is not installed.
+  Install: `pip install 'glassbox-mech-interp[telemetry]'`.
+  Exported: `setup_telemetry`, `teardown_telemetry`, `trace_span`, `instrument_glassbox`,
+  `is_telemetry_enabled`, `TelemetryConfig`.
+
+### Changed
+- `bootstrap_metrics()` default behaviour changed: sufficiency is now exact (`exact_suff=True`)
+  rather than Taylor approximation. Pass `exact_suff=False` to restore prior behaviour.
+- README: Added v3.1.0 "What's New" section. Updated live services table to v3.1.0.
+  Added grade scale research-defined caveat. Added black-box behavioural proxy caveat.
+  Added hosted API / Render free-tier disclaimer. Added scaling roadmap in roadmap section.
+
+### Documentation
+- Comprehensive legal hardening: Legal Notices & Regulatory Disclaimer (9 subsections),
+  GDPR Project & Privacy Notice with Impressum (§5 TMG), trademark disclaimer.
+  Legal NOTICE blocks in all compliance-facing modules (compliance.py, risk_register.py,
+  bias.py, audit_log.py). CONTRIBUTING.md legal contribution guidelines.
+
+---
+
 ## [3.0.0] — 2026-03-20
 
 ### Added

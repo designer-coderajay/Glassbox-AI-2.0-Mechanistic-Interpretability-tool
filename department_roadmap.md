@@ -1,5 +1,5 @@
 # Glassbox — Department Coverage & Roadmap
-**As of v3.0.0 — March 2026**
+**As of v3.1.0 — March 2026**
 
 ---
 
@@ -35,8 +35,8 @@ People publishing on circuits, superposition, feature geometry.
 
 **Remaining gaps (v3.1 target).**
 - ~~Paper-ready figure export: "Download circuit as SVG" button~~ ✅ DONE v3.0
-- Circuit diff: compare circuits across model versions
-- Custom SAE upload to `SAEFeatureAttributor`
+- ~~Circuit diff: compare circuits across model versions~~ ✅ DONE v3.1 (CircuitDiff)
+- ~~Custom SAE upload to `SAEFeatureAttributor`~~ ✅ DONE v3.1 (sae_path parameter)
 
 ---
 
@@ -63,7 +63,7 @@ People who need to integrate compliance checks into CI/CD pipelines.
 
 **Remaining gaps (v3.1 target).**
 - ~~Webhook support: POST callback when async job completes~~ ✅ DONE v3.0
-- OpenTelemetry tracing for self-hosted deployments
+- ~~OpenTelemetry tracing for self-hosted deployments~~ ✅ DONE v3.1 (setup_telemetry, instrument_glassbox)
 
 ---
 
@@ -143,7 +143,8 @@ People responsible for regulatory submissions and model governance policy.
 | v2.8.0 | Engineering + Research + UI redesign | Async jobs, D3 graph, model card, dashboard redesign | ✅ SHIPPED |
 | v2.9.0 | Governance + SDK + DX | AuditLog, TS SDK, GH Action, Jupyter widget, attention API | ✅ SHIPPED |
 | v3.0.0 | Enterprise | BiasAnalyzer, webhooks, SVG export, multi-audit dashboard, RiskRegister | ✅ SHIPPED |
-| v3.1.0 | Research + Infra | Circuit diff, custom SAE upload, attention click-through, OpenTelemetry | 🔜 Next |
+| v3.1.0 | Research + Infra | CircuitDiff, custom SAE, exact suff, OpenTelemetry | ✅ SHIPPED |
+| v3.2.0 | Scale + Stability | Llama-3-8B circuits, multi-prompt stability (50 paraphrases), attention click-through | 🔜 Next |
 
 ---
 
