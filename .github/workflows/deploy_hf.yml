@@ -115,14 +115,17 @@ jobs:
           git config user.name "GitHub Actions"
 
           SHORT_SHA=$(git -C .. rev-parse --short HEAD)
+          COMMIT_TITLE=$(git -C .. log -1 --pretty=format:"%s")
 
           git add app.py requirements.txt README.md
           git add -u
 
+          # Force stage even if nothing staged (touch ensures rebuild on HF)
           if git diff --staged --quiet; then
-            echo "No changes - HF Space already up to date."
-          else
-            git commit -m "fix: pin python_version=3.11 to resolve audioop/pydub crash on py3.13 — GitHub @ ${SHORT_SHA}"
-            git push
-            echo "HF Space updated from commit ${SHORT_SHA}"
+            touch app.py
+            git add app.py
           fi
+
+          git commit -m "deploy: ${COMMIT_TITLE} — GitHub @ ${SHORT_SHA}"
+          git push
+          echo "HF Space updated from commit ${SHORT_SHA}: ${COMMIT_TITLE}"
