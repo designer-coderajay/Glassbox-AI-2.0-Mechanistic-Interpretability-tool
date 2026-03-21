@@ -1,10 +1,10 @@
 <div align="center">
 
-# Glassbox 3.0.0
+# Glassbox 3.4.0
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 
-[![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%20v3.0.0)](https://pypi.org/project/glassbox-mech-interp/)
+[![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%20v3.4.0)](https://pypi.org/project/glassbox-mech-interp/)
 [![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)]([https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
 [![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](LICENSE-COMMERCIAL) [![Patents Pending](https://img.shields.io/badge/Patents-Pending-blue.svg)](PATENTS.md)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
@@ -29,6 +29,8 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
+- [What's New in v3.4.0](#whats-new-in-v340)
+- [What's New in v3.3.0](#whats-new-in-v330)
 - [What's New in v3.1.0](#whats-new-in-v310)
 - [What's New in v3.0.0](#whats-new-in-v300)
 - [EU AI Act Compliance — Annex IV Reports](#eu-ai-act-compliance--annex-iv-reports)
@@ -62,7 +64,7 @@
 | **Compliance Dashboard** | [/dashboard](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard) | Web UI for compliance officers. No install needed. |
 | **REST API** | [glassbox-ai-2-0-mechanistic.onrender.com](https://glassbox-ai-2-0-mechanistic.onrender.com) | JSON API. See [/docs](https://glassbox-ai-2-0-mechanistic.onrender.com/docs) for Swagger UI. |
 | **White-Box Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) | Interactive circuit analysis on open-source models. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.1.0 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.4.0 |
 
 > **Hosted API disclaimer.** The REST API at `glassbox-ai-2-0-mechanistic.onrender.com` runs on Render's free tier. It spins down after 15 min inactivity (first request may take ~30s) and offers no SLA, uptime guarantee, or data persistence. It is provided for **evaluation and demo purposes only** — not production compliance workflows. For production use, [self-host](#self-hosting).
 
@@ -178,6 +180,207 @@ F1 trend chart, grade distribution, audit table with grade trajectory. "Load fro
 ### 5. Circuit SVG Export
 
 "Download SVG" button in the D3 circuit graph. Exports paper-ready `glassbox-circuit.svg` with inlined dark-mode styles.
+
+---
+
+## What's New in v3.4.0
+
+Glassbox v3.4.0 is the **strategic monopoly release** — three features that no other open-source interpretability tool ships, purpose-built for the August 2026 EU AI Act enforcement deadline.
+
+### 1. MultiAgentAudit — Causal Handoff Tracing (Article 9 system-level risk)
+
+The first open-source tool that traces bias contamination and semantic drift *across multi-agent chains* — not just individual models. Identify exactly which agent introduced or amplified a bias, and generate a per-agent liability report with Annex IV narrative.
+
+```python
+from glassbox import MultiAgentAudit, AgentCall
+
+audit = MultiAgentAudit()
+
+report = audit.audit_chain([
+    AgentCall(
+        agent_id="router",
+        model_name="gpt2",
+        input_text="Classify this job application from Maria Garcia",
+        output_text="Application flagged for manual review",
+    ),
+    AgentCall(
+        agent_id="scorer",
+        model_name="gpt2",
+        input_text="Application flagged for manual review",
+        output_text="Score: 42/100 — high risk profile",
+    ),
+])
+
+print(report.chain_risk_level)        # "HIGH"
+print(report.most_liable_agent)       # "scorer"
+print(report.annex_iv_text)           # Annex IV Article 9 narrative
+
+# Full HTML dashboard (self-contained, no deps)
+with open("liability_report.html", "w") as f:
+    f.write(audit.to_html(report))
+```
+
+Scores bias across 8 EU AI Act Article 10(5) protected categories (gender, race/ethnicity, nationality, religion, age, disability, sexuality, socioeconomic). No LLM required. Maps to **Article 9**, **Article 10(2)(f)**, **Article 10(5)**, **Article 13(1)**.
+
+### 2. SteeringVectorExporter — Article 9(2)(b) Risk Mitigation
+
+Extract and export steering vectors from the residual stream using Representation Engineering (Zou et al. 2023). Apply them as runtime safety layers, test their suppression effectiveness, and export `.pt` or `.npy` files as documented risk mitigation evidence.
+
+```python
+from glassbox import SteeringVectorExporter
+
+exporter = SteeringVectorExporter(method="mean_diff")  # or "pca"
+
+# Extract from contrast pairs
+sv = exporter.extract_mean_diff(
+    model=model,
+    positive_prompts=["The nurse said she would call the doctor."],
+    negative_prompts=["The nurse said he would call the doctor."],
+    layer=8,
+    concept_label="gender_bias",
+    scale=-15.0,  # negative = suppress
+)
+
+# Apply as a runtime hook — steered next token
+steered_token = exporter.apply(model, "The nurse said", sv)
+
+# Quantify suppression — before/after faithfulness comparison
+test = exporter.test_suppression(model, gb, prompt, correct, incorrect, sv)
+print(test["suppression_ratio"])   # 0.34  (34% reduction in circuit activation)
+print(test["verdict"])             # "Steering vector 'gender_bias' effectively suppresses..."
+
+# Export for regulatory submission
+exporter.export_pt(sv, "steering/gender_bias.pt")
+exporter.export_numpy(sv, "steering/gender_bias.npy")
+
+# Or extract the full default bias suite in one call
+bias_suite = exporter.extract_bias_suite(model, layer=8)
+# {"gender_bias": SteeringVector, "racial_bias": ..., "toxicity": ..., "age_bias": ...}
+```
+
+`extract_from_circuit()` auto-selects the optimal layer from a prior `gb.analyze()` result. Maps to **Article 9(2)(b)**, **Article 9(5)**, **Article 15(1)**.
+
+### 3. AnnexIVEvidenceVault — Full Article 11 Documentation Package
+
+The only tool that assembles *all* interpretability findings — circuit analysis, bias tests, steering vectors, multi-agent audits, SAE features, stability scores — into a single machine-readable, regulation-mapped Annex IV evidence vault.
+
+```python
+from glassbox import build_annex_iv_vault
+
+vault = build_annex_iv_vault(
+    gb_result=result,                          # GlassboxV2.analyze() output
+    model_name="meta-llama/Llama-2-7b-hf",
+    provider="Acme Bank NV",
+    use_case="automated_credit_scoring",
+    deployment_ctx="financial_services",
+    commit_sha="634e397",
+    multiagent_report=report,                  # MultiAgentAudit output
+    steering_vectors={"gender_bias": sv},      # SteeringVectorExporter output
+    steering_test_results={"gender_bias": test},
+    sae_features=top_features,                 # SAEFeatureAttributor output
+    stability_result=stability,                # stability_suite() output
+    output_json="reports/annex-iv.json",       # machine-readable
+    output_html="reports/annex-iv.html",       # submission-ready HTML
+)
+
+summary = vault.to_dict()["compliance_summary"]
+print(summary["overall_status"])    # "COMPLIANT"
+print(summary["pass_rate"])         # 0.875
+print(summary["sections_covered"])  # ["§1", "§2", "§3", "§4", "§6", "§7"]
+print(summary["articles_covered"])  # ["Article 9", "Article 10", "Article 11", ...]
+```
+
+Covers Annex IV **§1–§7**, maps to Articles **9, 10, 11, 13, 15, 72**. Every entry carries article references, metric values, pass/fail thresholds, and provenance metadata. HTML report is suitable for regulatory submission or attachment to a conformity declaration.
+
+---
+
+## What's New in v3.3.0
+
+### 1. NaturalLanguageExplainer — Plain English for Compliance Officers
+
+Converts raw circuit analysis results into structured, plain-English compliance summaries. No LLM dependency — entirely rule-based with EU AI Act article citations in every sentence.
+
+```python
+from glassbox import NaturalLanguageExplainer
+
+explainer = NaturalLanguageExplainer(verbosity="detailed", include_article_refs=True)
+explanation = explainer.explain(result, model_name="gpt2", use_case="credit_scoring")
+
+print(explanation["headline"])
+# "Circuit Grade: Good (F1 = 0.73) — Meets Article 15(1) accuracy threshold"
+
+print(explanation["compliance_summary"])
+# "The model's decision circuit satisfies Article 11 documentation requirements..."
+
+# Section breakdown
+sections = explainer.explain_sections(result)
+print(sections["verdict"])
+print(sections["circuit_description"])
+print(sections["faithfulness_analysis"])
+print(sections["risk_flags"])
+
+# Self-contained HTML card for embedding
+html = explainer.to_html(result)
+```
+
+Integrated into the Glassbox compliance dashboard — every circuit analysis now shows a plain-English summary above the metrics table.
+
+### 2. HuggingFace Hub Integration
+
+Load any HookedTransformer-compatible model directly from the Hub with a single call, and push compliance metadata back to model cards.
+
+```python
+from glassbox import load_from_hub, HuggingFaceModelCard
+
+# Load model (supports 29 architecture aliases)
+model = load_from_hub("meta-llama/Llama-2-7b-hf", dtype="float16")
+
+# Push compliance section to model card README.md
+card = HuggingFaceModelCard("my-org/my-model", token="hf_...")
+card.push_compliance_section(result, use_case="credit_scoring")
+
+# Read it back
+meta = card.read_compliance_section()
+print(meta["grade"])   # "B"
+```
+
+Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon — 29 architecture aliases.
+
+### 3. MLflow Integration
+
+Log every Glassbox audit run as an MLflow experiment with one call.
+
+```python
+from glassbox import log_glassbox_run, GlassboxMLflowCallback
+
+# One-liner logging
+run_id = log_glassbox_run(
+    result, model_name="gpt2", use_case="credit_scoring",
+    prompt=prompt, log_html_report=True
+)
+
+# Training callback — audit every N epochs
+cb = GlassboxMLflowCallback(gb, prompt, correct, incorrect, log_every_n_epochs=5)
+# pass to your trainer's callbacks list
+```
+
+Logs: sufficiency, comprehensiveness, F1, n_heads, stability scores, HTML report artifact, circuit JSON.
+
+### 4. Slack / Teams Alerting
+
+Fire webhook alerts when compliance drops or circuits drift.
+
+```python
+from glassbox import AlertConfig
+
+alert = AlertConfig(
+    slack_webhook="https://hooks.slack.com/...",
+    teams_webhook="https://outlook.office.com/webhook/...",
+    jaccard_alert_threshold=0.75,
+)
+alert.notify_audit_complete(result, model_name="gpt2", use_case="credit_scoring")
+alert.notify_circuit_drift(diff_result, model_a="gpt2", model_b="gpt2-ft")
+```
 
 ---
 
