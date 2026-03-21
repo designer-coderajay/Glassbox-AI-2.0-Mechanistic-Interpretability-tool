@@ -1,0 +1,33 @@
+# =============================================================================
+# Glassbox AI — Railway.app deployment config
+# =============================================================================
+# Railway auto-deploys from GitHub on every push to main.
+# Always-on, no sleep, ~$5/month. Zero management.
+#
+# One-time setup:
+#   1. railway.app → New Project → Deploy from GitHub repo
+#   2. Select this repo → Railway auto-detects this file
+#   3. Add env vars in Railway dashboard:
+#        GLASSBOX_SECRET_KEY = <random string>
+#        PORT = 8000  (Railway sets this automatically)
+#   4. Connect your domain:
+#        Railway dashboard → Settings → Custom Domain → glassboxai.com/api
+# =============================================================================
+
+[build]
+builder       = "DOCKERFILE"
+dockerfilePath= "Dockerfile"
+dockerTarget  = "api"
+
+[deploy]
+startCommand  = "uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 1 --log-level info"
+restartPolicyType     = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+[[services]]
+name = "glassbox-api"
+
+[services.variables]
+GLASSBOX_LOG_LEVEL   = "info"
+HF_HUB_OFFLINE       = "0"
+UVICORN_WORKERS      = "1"
