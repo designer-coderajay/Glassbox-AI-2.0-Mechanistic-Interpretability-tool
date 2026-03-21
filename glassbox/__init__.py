@@ -1,6 +1,6 @@
 """
-Glassbox 2.0 — Causal Mechanistic Interpretability Engine
-==========================================================
+Glassbox AI — Causal Mechanistic Interpretability Engine
+=========================================================
 
 Quick start
 -----------
@@ -48,39 +48,71 @@ Quick start
     w = CircuitWidget.from_prompt(gb, "When Mary and John ...", " Mary", " John")
     w.show()                      # renders inline in a notebook cell
 
+    # Multi-agent causal handoff tracing (v3.4.0 — Article 9 system-level risk)
+    from glassbox import MultiAgentAudit, AgentCall
+    audit  = MultiAgentAudit()
+    report = audit.audit_chain([
+        AgentCall("router",  "gpt2", "Classify this job application", output_text),
+        AgentCall("scorer",  "gpt2", output_text, final_text),
+    ])
+    print(report.chain_risk_level)
+
+    # Steering vector export (v3.4.0 — Article 9(2)(b) risk mitigation)
+    from glassbox import SteeringVectorExporter
+    exporter = SteeringVectorExporter()
+    sv = exporter.extract_mean_diff(model, pos_prompts, neg_prompts, layer=8,
+                                    concept_label="gender_bias")
+    exporter.export_pt(sv, "steering/gender_bias.pt")
+
+    # Annex IV Evidence Vault (v3.4.0 — full documentation package)
+    from glassbox import build_annex_iv_vault
+    vault = build_annex_iv_vault(
+        gb_result=result, model_name="gpt2", provider="Acme Corp",
+        steering_vectors={"gender_bias": sv},
+        output_json="reports/annex-iv.json",
+        output_html="reports/annex-iv.html",
+    )
+    print(vault.to_dict()["compliance_summary"])
+
 Package layout
 --------------
 glassbox/
-  __init__.py           ← you are here — re-exports the public API
-  core.py               ← GlassboxV2 class: attribution patching, MFC, FCAS,
+  __init__.py           <- you are here — re-exports the public API
+  core.py               <- GlassboxV2 class: attribution patching, MFC, FCAS,
                           bootstrap (exact_suff=True), logit lens, EAP,
                           attribution stability, token attribution,
                           attention patterns, _suff_exact (v3.1.0)
-  circuit_diff.py       ← CircuitDiff: mechanistic diff between model versions
+  circuit_diff.py       <- CircuitDiff: mechanistic diff between model versions
                           (v3.1.0 — Article 72 post-market monitoring)
-  sae_attribution.py    ← SAEFeatureAttributor: sparse feature decomposition
+  sae_attribution.py    <- SAEFeatureAttributor: sparse feature decomposition
                           via sae-lens hub SAEs or custom .pt checkpoints (v3.1.0)
-  telemetry.py          ← OpenTelemetry tracing for self-hosted deployments
+  telemetry.py          <- OpenTelemetry tracing for self-hosted deployments
                           (v3.1.0 — setup_telemetry, instrument_glassbox)
-  composition.py        ← HeadCompositionAnalyzer: Q/K/V composition scores
+  composition.py        <- HeadCompositionAnalyzer: Q/K/V composition scores
                           between attention heads (Elhage et al. 2021)
-  audit_log.py          ← AuditLog: append-only JSONL audit log with SHA-256
+  audit_log.py          <- AuditLog: append-only JSONL audit log with SHA-256
                           hash chain for tamper detection (v2.9.0)
-  bias.py               ← BiasAnalyzer: demographic parity, counterfactual
+  bias.py               <- BiasAnalyzer: demographic parity, counterfactual
                           fairness, token bias probing (v3.0.0)
-  risk_register.py      ← RiskRegister: persistent cross-audit risk tracking
+  risk_register.py      <- RiskRegister: persistent cross-audit risk tracking
                           (v3.0.0 — Article 9 EU AI Act)
-  widget.py             ← CircuitWidget / HeatmapWidget: Jupyter notebook
+  widget.py             <- CircuitWidget / HeatmapWidget: Jupyter notebook
                           widgets with attribution heatmap (v2.9.0)
-  cli.py                ← glassbox-ai CLI entry point
-  alignment.py          ← DEPRECATED: thin shim kept for back-compat
-  utils.py              ← shared utilities
+  multiagent.py         <- MultiAgentAudit: causal handoff tracing for
+                          multi-agent chains (v3.4.0 — Article 9 system risk)
+  steering.py           <- SteeringVectorExporter: representation engineering
+                          vectors for concept suppression (v3.4.0 — Article 9(2)(b))
+  evidence_vault.py     <- AnnexIVEvidenceVault: full Annex IV documentation
+                          package builder (v3.4.0 — Article 11)
+  cli.py                <- glassbox-ai CLI entry point
+  alignment.py          <- DEPRECATED: thin shim kept for back-compat
+  utils.py              <- shared utilities
 """
 
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "3.3.0"
+__version__ = "3.4.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -262,6 +294,36 @@ from glassbox.mlflow_integration import (
 from glassbox.notify import SlackNotifier, TeamsNotifier, AlertConfig
 
 # ---------------------------------------------------------------------------
+# Multi-Agent Causal Handoff Tracing (v3.4.0 — Article 9 system-level risk)
+# ---------------------------------------------------------------------------
+from glassbox.multiagent import (
+    MultiAgentAudit,
+    AgentCall,
+    LiabilityReport,
+    AgentLiabilityScore,
+    HandoffAnalysis,
+    BiasSignals,
+)
+
+# ---------------------------------------------------------------------------
+# Steering Vector Export (v3.4.0 — Article 9(2)(b) risk mitigation)
+# ---------------------------------------------------------------------------
+from glassbox.steering import (
+    SteeringVector,
+    SteeringVectorExporter,
+    extract_steering_vector,
+)
+
+# ---------------------------------------------------------------------------
+# Annex IV Evidence Vault (v3.4.0 — Article 11 full documentation package)
+# ---------------------------------------------------------------------------
+from glassbox.evidence_vault import (
+    AnnexIVEvidenceVault,
+    VaultEntry,
+    build_annex_iv_vault,
+)
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
@@ -336,6 +398,21 @@ __all__ = [
     "SlackNotifier",
     "TeamsNotifier",
     "AlertConfig",
+    # Multi-Agent Causal Handoff Tracing (v3.4.0)
+    "MultiAgentAudit",
+    "AgentCall",
+    "LiabilityReport",
+    "AgentLiabilityScore",
+    "HandoffAnalysis",
+    "BiasSignals",
+    # Steering Vector Export (v3.4.0)
+    "SteeringVector",
+    "SteeringVectorExporter",
+    "extract_steering_vector",
+    # Annex IV Evidence Vault (v3.4.0)
+    "AnnexIVEvidenceVault",
+    "VaultEntry",
+    "build_annex_iv_vault",
     # Meta
     "__version__",
     # Deprecated
