@@ -9,11 +9,11 @@
 [![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](LICENSE-COMMERCIAL) [![Patents Pending](https://img.shields.io/badge/Patents-Pending-blue.svg)](PATENTS.md)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
-[![Live API](https://img.shields.io/badge/API-Live%20on%20Render-success)](https://glassbox-ai-2-0-mechanistic.onrender.com)
+[![Website](https://img.shields.io/badge/Website-glassboxai.online-blue)](https://project-gu05p.vercel.app)
 [![arXiv](https://img.shields.io/badge/arXiv-2603.09988-b31b1b?logo=arxiv)](https://arxiv.org/abs/2603.09988)
 [![Tests](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml)
 
-[**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Dashboard**](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard) · [**API**](https://glassbox-ai-2-0-mechanistic.onrender.com) · [**Docs**](https://glassbox-ai-2-0-mechanistic.onrender.com/docs) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/)
+[**Website**](https://project-gu05p.vercel.app) · [**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**GitHub**](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
 
 </div>
 
@@ -62,12 +62,10 @@
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Compliance Dashboard** | [/dashboard](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard) | Web UI for compliance officers. No install needed. |
-| **REST API** | [glassbox-ai-2-0-mechanistic.onrender.com](https://glassbox-ai-2-0-mechanistic.onrender.com) | JSON API. See [/docs](https://glassbox-ai-2-0-mechanistic.onrender.com/docs) for Swagger UI. |
-| **White-Box Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) | Interactive circuit analysis on open-source models. |
+| **Website** | [project-gu05p.vercel.app](https://project-gu05p.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
+| **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) | Interactive circuit analysis on open-source models. No install needed. |
 | **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.4.0 |
-
-> **Hosted API disclaimer.** The REST API at `glassbox-ai-2-0-mechanistic.onrender.com` runs on Render's free tier. It spins down after 15 min inactivity (first request may take ~30s) and offers no SLA, uptime guarantee, or data persistence. It is provided for **evaluation and demo purposes only** — not production compliance workflows. For production use, [self-host](#self-hosting).
+| **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
 ---
 
@@ -146,7 +144,7 @@ print(report.to_markdown())
 Register a callback URL that fires when async jobs complete. HMAC-SHA256 signed payloads.
 
 ```bash
-curl -X POST https://glassbox-ai-2-0-mechanistic.onrender.com/v1/webhooks \
+curl -X POST https://YOUR_API_URL/v1/webhooks \
   -H "Content-Type: application/json" \
   -d '{"url":"https://yourapp.com/hook","events":["job.completed","job.failed"],"secret":"mysecret"}'
 ```
@@ -512,7 +510,7 @@ npm install glassbox-sdk
 import { GlassboxClient } from 'glassbox-sdk'
 
 const gb = new GlassboxClient({
-  baseUrl: 'https://glassbox-ai-2-0-mechanistic.onrender.com'
+  baseUrl: 'https://YOUR_API_URL'
 })
 
 const report = await gb.auditWhiteBox({
@@ -595,7 +593,7 @@ html_str = widget.to_html()
 New `/v1/attention-patterns` REST endpoint to visualize what each circuit head is attending to.
 
 ```bash
-curl -X POST https://glassbox-ai-2-0-mechanistic.onrender.com/v1/attention-patterns \
+curl -X POST https://YOUR_API_URL/v1/attention-patterns \
   -H "Content-Type: application/json" \
   -d '{
     "model_name": "gpt2",
@@ -725,12 +723,12 @@ Supported providers: OpenAI, Anthropic, Together AI, Groq, Azure OpenAI, any cus
 
 ## REST API (Hosted)
 
-The API is live at `https://glassbox-ai-2-0-mechanistic.onrender.com`. Interactive docs at [`/docs`](https://glassbox-ai-2-0-mechanistic.onrender.com/docs).
+The API is live at `https://YOUR_API_URL`. Interactive docs at [`/docs`](https://YOUR_API_URL/docs).
 
 **Black-box audit (any model via API):**
 
 ```bash
-curl -X POST https://glassbox-ai-2-0-mechanistic.onrender.com/v1/audit/black-box \
+curl -X POST https://YOUR_API_URL/v1/audit/black-box \
   -H "Content-Type: application/json" \
   -H "X-Provider-Api-Key: sk-your-openai-key" \
   -d '{
@@ -752,7 +750,7 @@ curl -X POST https://glassbox-ai-2-0-mechanistic.onrender.com/v1/audit/black-box
 **White-box analysis (open-source models):**
 
 ```bash
-curl -X POST https://glassbox-ai-2-0-mechanistic.onrender.com/v1/audit/analyze \
+curl -X POST https://YOUR_API_URL/v1/audit/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "model_name":       "gpt2",
@@ -769,8 +767,8 @@ curl -X POST https://glassbox-ai-2-0-mechanistic.onrender.com/v1/audit/analyze \
 **Retrieve a report:**
 
 ```bash
-curl https://glassbox-ai-2-0-mechanistic.onrender.com/v1/audit/report/{report_id}
-curl https://glassbox-ai-2-0-mechanistic.onrender.com/v1/audit/pdf/{report_id}  # download PDF
+curl https://YOUR_API_URL/v1/audit/report/{report_id}
+curl https://YOUR_API_URL/v1/audit/pdf/{report_id}  # download PDF
 ```
 
 ---
@@ -1111,7 +1109,7 @@ npm install glassbox-sdk    # Node.js, Deno, Bun
 
 Two dashboard options:
 
-**Option 1 — Live (no install):** Visit [glassbox-ai-2-0-mechanistic.onrender.com/dashboard](https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard). Full compliance audit UI with demo mode — works with zero backend.
+**Option 1 — Live Demo (no install):** Visit the [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai). Interactive circuit analysis on open-source models, no install needed.
 
 **Option 2 — Research UI (Gradio, local):**
 
@@ -1195,9 +1193,9 @@ docker run -p 8000:8000 \
 | `TEAMS_WEBHOOK_URL` | — | Teams compliance alert webhook |
 | `MODEL_CACHE_PATH` | `./data/model_cache` | Host path for model weight volume |
 
-One-click deploy to Render (demo/eval only — not production):
+One-click deploy to Railway (always-on, no sleep):
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
 
 ---
 
@@ -1492,10 +1490,9 @@ For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 **Privacy / GDPR (Regulation (EU) 2016/679).**
 
-- The hosted demo API at `glassbox-ai-2-0-mechanistic.onrender.com` is provided strictly for **evaluation and testing** of the research tool.
-- **No personal data is intentionally collected, stored, or processed.** Prompt text submitted via the API is processed in-memory to return a result and is not logged, retained, or shared.
-- Standard server access logs (IP address, timestamp, request path) may be recorded automatically by the hosting platform (Render.com). These are not controlled by the project author. See [Render's privacy policy](https://render.com/privacy) for details.
-- If you submit prompts containing personal data (e.g., names, financial details), you do so at your own risk. Do not send real personal data to the hosted API. For sensitive work, [self-host](#self-hosting).
+- **No personal data is intentionally collected, stored, or processed.** Prompt text submitted via the HuggingFace Space is processed in-memory to return a result and is not logged, retained, or shared.
+- Standard server access logs (IP address, timestamp, request path) may be recorded automatically by HuggingFace. These are not controlled by the project author. See [HuggingFace's privacy policy](https://huggingface.co/privacy) for details.
+- If you submit prompts containing personal data (e.g., names, financial details), you do so at your own risk. Do not send real personal data to the hosted demo. For sensitive work, [self-host](#self-hosting).
 - **Contact for data inquiries:** [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com)
 - **Responsible person (§5 TMG / Impressum):** Ajay Pravin Mahale, student, Germany. Contact: mahale.ajay01@gmail.com
 
