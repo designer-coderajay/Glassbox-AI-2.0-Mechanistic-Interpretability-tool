@@ -47,28 +47,45 @@ jobs:
         run: |
           git clone "https://user:${HF_TOKEN}@huggingface.co/spaces/designer-coderajay/Glassbox-ai" hf_space
 
+          # ── 1. Copy dashboard app ─────────────────────────────────────────
           cp dashboard/app.py hf_space/app.py
 
-          printf '%s\n' \
-            "gradio>=4.44.0" \
-            "numpy>=1.24.0" \
-            "matplotlib>=3.7.0" \
-            "Pillow>=9.0.0" \
-            "transformer-lens>=1.19.0" \
-            "glassbox-mech-interp>=3.1.0" \
-            "torch>=2.0.0" \
-            "einops>=0.6.1" \
-            > hf_space/requirements.txt
+          # ── 2. Pin to the exact version that has NaturalLanguageExplainer,
+          #       MultiAgentAudit, SteeringVectorExporter, AnnexIVEvidenceVault.
+          #       torch CPU-only keeps the HF Space build fast (<5 min).
+          cat > hf_space/requirements.txt << 'REQS'
+          gradio>=4.44.0
+          numpy>=1.24.0
+          matplotlib>=3.7.0
+          Pillow>=9.0.0
+          transformer-lens>=1.19.0
+          glassbox-mech-interp>=3.4.0
+          torch>=2.3.0
+          einops>=0.6.1
+          fancy_einsum>=0.0.3
+          jaxtyping>=0.2.20
+          REQS
 
+          # Strip leading whitespace from heredoc
+          sed -i 's/^[[:space:]]*//' hf_space/requirements.txt
+
+          # ── 3. Remove stale root-level files that shadow the pip-installed
+          #       glassbox package and cause "ModuleNotFoundError" on Space boot.
+          #       These were uploaded manually 27 days ago and are now orphans.
           cd hf_space
 
+          for stale in __init__.py core.py alignment.py utils.py Dockerfile; do
+            if [ -f "$stale" ]; then
+              git rm --force --ignore-unmatch "$stale"
+              echo "Removed stale file: $stale"
+            fi
+          done
+
+          # ── 4. Commit and push ────────────────────────────────────────────
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
 
           SHORT_SHA=$(git -C .. rev-parse --short HEAD)
-
-          git rm --cached --ignore-unmatch Dockerfile
-          rm -f Dockerfile
 
           git add app.py requirements.txt
           git add -u
@@ -76,7 +93,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes - HF Space already up to date."
           else
-            git commit -m "Auto-sync from GitHub @ ${SHORT_SHA}"
+            git commit -m "fix: remove stale root files, pin glassbox>=3.4.0 — GitHub @ ${SHORT_SHA}"
             git push
             echo "HF Space updated from commit ${SHORT_SHA}"
           fi

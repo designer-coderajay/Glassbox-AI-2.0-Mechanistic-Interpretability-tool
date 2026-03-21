@@ -1,7 +1,7 @@
 """
-Glassbox 3.3 — Causal Mechanistic Interpretability + EU AI Act Compliance
+Glassbox 3.4 — Causal Mechanistic Interpretability + EU AI Act Compliance
 =========================================================================
-HuggingFace Space — v3.3.0
+HuggingFace Space — v3.4.0
 
 Tabs:
   1. Circuit Analysis   — attribution patching, MFC discovery, faithfulness metrics
@@ -9,6 +9,11 @@ Tabs:
   3. Attention Patterns — raw attention weight heatmap
   4. Compliance Report  — EU AI Act Annex IV explainability grade + bias check + plain English
   5. About / Docs       — methodology, references, citation
+
+v3.4.0 new features:
+  - MultiAgentAudit: causal handoff tracing for multi-agent chains (Article 9)
+  - SteeringVectorExporter: representation engineering vectors (Article 9(2)(b))
+  - AnnexIVEvidenceVault: full Annex IV documentation package builder (Article 11)
 
 v3.3.0 new features:
   - NaturalLanguageExplainer: plain-English compliance summaries for non-technical stakeholders
