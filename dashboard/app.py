@@ -494,14 +494,15 @@ body {
 ::-webkit-scrollbar-track { background:#000; }
 ::-webkit-scrollbar-thumb { background:#27272a; border-radius:3px; }
 
-/* ── Fixed topbar + nav clearance ── */
+/* ── Container ── */
 .gradio-container {
   background:transparent !important;
   max-width:1160px !important;
   margin:0 auto !important;
-  padding:102px clamp(20px,4vw,56px) 56px !important;
+  padding:0 clamp(20px,4vw,56px) 56px !important;
   font-family:'Inter',ui-sans-serif,sans-serif !important;
   position:relative; z-index:1;
+  color:#e2e8f0 !important;
 }
 footer, footer.svelte-1ax1toq, gradio-app > footer { display:none !important; }
 
@@ -716,7 +717,8 @@ HEADER = """
 
 /* ─ Topbar ─ */
 .gb-topbar {
-  position:fixed; top:0; left:0; right:0; z-index:1000;
+  position:sticky; top:0; z-index:1000;
+  margin:0 calc(-1 * clamp(20px,4vw,56px));
   background:#6366f1; padding:9px 24px; text-align:center;
   font-family:'Inter',sans-serif; font-size:13px; font-weight:500;
   letter-spacing:.01em; color:#fff;
@@ -730,7 +732,8 @@ HEADER = """
 
 /* ─ Nav ─ */
 .gb-nav {
-  position:fixed; top:38px; left:0; right:0; z-index:999; height:64px;
+  position:sticky; top:38px; z-index:999; height:64px;
+  margin:0 calc(-1 * clamp(20px,4vw,56px));
   display:flex; align-items:center; padding:0 clamp(20px,4vw,56px);
   background:rgba(0,0,0,.72);
   backdrop-filter:blur(24px) saturate(180%);
@@ -1010,7 +1013,7 @@ Enforcement starts **August 2026**. High-risk AI systems (finance, healthcare, H
 
 ### Citation
 
-```bibtex
+```
 @software{mahale2026glassbox,
   author  = {Mahale, Ajay Pravin},
   title   = {Glassbox 3.3: Mechanistic Interpretability and EU AI Act Compliance Toolkit},
@@ -1042,18 +1045,29 @@ with gr.Blocks(
     ).set(
         body_background_fill="#000000",
         body_background_fill_dark="#000000",
+        body_text_color="#e2e8f0",
+        body_text_color_dark="#e2e8f0",
+        body_text_color_subdued="#a1a1aa",
+        body_text_color_subdued_dark="#a1a1aa",
         block_background_fill="#00000000",
         block_background_fill_dark="#00000000",
+        block_title_text_color="#a1a1aa",
+        block_title_text_color_dark="#a1a1aa",
+        block_label_text_color="#a1a1aa",
+        block_label_text_color_dark="#a1a1aa",
         block_border_color="rgba(255,255,255,0.07)",
         block_border_color_dark="rgba(255,255,255,0.07)",
         input_background_fill="rgba(255,255,255,0.04)",
         input_background_fill_dark="rgba(255,255,255,0.04)",
         input_border_color="rgba(255,255,255,0.13)",
         input_border_color_dark="rgba(255,255,255,0.13)",
-        button_primary_background_fill="linear-gradient(135deg,#6366f1,#4f46e5)",
-        button_primary_background_fill_dark="linear-gradient(135deg,#6366f1,#4f46e5)",
-        button_primary_background_fill_hover="linear-gradient(135deg,#818cf8,#6366f1)",
+        input_placeholder_color="#52525b",
+        input_placeholder_color_dark="#52525b",
+        button_primary_background_fill="#6366f1",
+        button_primary_background_fill_dark="#6366f1",
+        button_primary_background_fill_hover="#4f46e5",
         button_primary_text_color="#ffffff",
+        button_primary_text_color_dark="#ffffff",
         button_secondary_background_fill="rgba(255,255,255,0.05)",
         button_secondary_border_color="rgba(255,255,255,0.13)",
         button_secondary_text_color="#a1a1aa",
