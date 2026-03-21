@@ -1,14 +1,21 @@
 """
-Glassbox 3.1 — Causal Mechanistic Interpretability + EU AI Act Compliance
+Glassbox 3.3 — Causal Mechanistic Interpretability + EU AI Act Compliance
 =========================================================================
-HuggingFace Space — v3.1.0
+HuggingFace Space — v3.3.0
 
 Tabs:
   1. Circuit Analysis   — attribution patching, MFC discovery, faithfulness metrics
   2. Logit Lens         — residual stream projection by layer
   3. Attention Patterns — raw attention weight heatmap
-  4. Compliance Report  — EU AI Act Annex IV explainability grade + bias check
+  4. Compliance Report  — EU AI Act Annex IV explainability grade + bias check + plain English
   5. About / Docs       — methodology, references, citation
+
+v3.3.0 new features:
+  - NaturalLanguageExplainer: plain-English compliance summaries for non-technical stakeholders
+  - HuggingFace Hub integration: push Annex IV metadata to model cards
+  - MLflow integration: log circuit metrics as experiment tracking artifacts
+  - Slack/Teams alerting: CircuitDiff drift + compliance drop notifications
+  - GitHub Action CI hook: auto-fail CI if compliance grade drops
 """
 
 import io
@@ -25,6 +32,9 @@ from PIL import Image
 print("Loading GPT-2 small via TransformerLens …")
 from transformer_lens import HookedTransformer
 from glassbox import GlassboxV2, AuditLog, BiasAnalyzer, AnnexIVReport, DeploymentContext
+from glassbox.explain import NaturalLanguageExplainer
+
+_explainer = NaturalLanguageExplainer(verbosity="standard", include_article_refs=True)
 
 model = HookedTransformer.from_pretrained("gpt2")
 model.eval()
@@ -173,10 +183,19 @@ def run_full_analysis(prompt: str, correct: str, incorrect: str):
 
     suff_note = " *(first-order approx)*" if faith.get("suff_is_approx") else ""
 
-    report = f"""## Circuit Analysis — v3.1.0
+    # Plain-English explanation (v3.3.0)
+    plain_english = _explainer.explain(result, model_name="gpt2", prompt=prompt.strip())
+
+    report = f"""## Circuit Analysis — v3.3.0
 
 **Prompt:** *{prompt.strip()}*
 **Correct:** `{correct.strip()}` | **Distractor:** `{incorrect.strip()}`
+
+---
+
+### Plain-English Summary
+
+{plain_english}
 
 ---
 
@@ -197,12 +216,12 @@ def run_full_analysis(prompt: str, correct: str, incorrect: str):
 
 ---
 
-### EU AI Act Relevance
+### EU AI Act Compliance
 
 Maps to **Article 13 transparency requirements**. Circuit identifies which model components causally drove this prediction with quantified faithfulness scores. Grade: **{"A" if faith["f1"] >= 0.7 else "B" if faith["f1"] >= 0.5 else "C" if faith["f1"] >= 0.3 else "D"}**
 
 ---
-*Glassbox v3.1.0 · pip install glassbox-mech-interp*
+*Glassbox v3.3.0 · pip install glassbox-mech-interp · Regulation (EU) 2024/1689*
 """
     # Log to audit trail
     try:
@@ -313,7 +332,7 @@ def run_compliance_report(prompt: str, correct: str, incorrect: str,
 | 3. Monitoring & Control | Audit log active · {_audit_log.summary().get("total_audits", 0)} sessions recorded |
 | 4. Data & Training | TransformerLens GPT-2 weights (117M params) |
 | 5. Bias Testing | See below |
-| 6. Lifecycle | Version 3.1.0 · {_rj.get("generated_at", "")[:10]} |
+| 6. Lifecycle | Version 3.3.0 · {_rj.get("generated_at", "")[:10]} |
 | 7. Explainability | F1={f1_score:.2f} · Grade {grade} · {len(result["circuit"])} circuit heads |
 | 8. Cybersecurity | Tamper-evident SHA-256 audit chain |
 | 9. Performance Metrics | Suff={faith["sufficiency"]:.1%} · Comp={faith["comprehensiveness"]:.1%} |
@@ -370,7 +389,7 @@ Running counterfactual fairness probe on gender swap …
 | Annex IV | Technical documentation | ✅ All 9 sections |
 
 ---
-*Glassbox v3.1.0 · EU AI Act (EU) 2024/1689 · Enforcement August 2026*
+*Glassbox v3.3.0 · EU AI Act (EU) 2024/1689 · Enforcement August 2026*
 """
 
         model_card = annex.to_model_card()
@@ -406,7 +425,7 @@ HEADER = """
     </div>
     <h1 style="font-size:2.8em;font-weight:900;color:#e2e8f0;margin:0 0 10px;
                letter-spacing:-1.5px;line-height:1.1;">
-      Glassbox <span style="color:#6366f1;">3.1</span>
+      Glassbox <span style="color:#6366f1;">3.3</span>
     </h1>
     <p style="font-size:1.05em;color:#94a3b8;margin:0 0 16px;font-weight:400;">
       Causal Mechanistic Interpretability · EU AI Act Annex IV Compliance · Bias Analysis
@@ -446,15 +465,21 @@ Glassbox identifies the **specific attention heads** in a transformer that *caus
 | **Comprehensiveness** | How much does ablating those heads degrade the prediction? | Exact activation patching |
 | **F1** | Single faithfulness score | Harmonic mean |
 
-### v3.1.0 — What's new
+### v3.3.0 — What's new
 
-- **BiasAnalyzer** — demographic parity, counterfactual fairness, token bias probe (EU AI Act Article 10(2)(f))
+- **NaturalLanguageExplainer** — plain-English compliance summaries for compliance officers and legal teams. Zero LLM dependency, EU AI Act article-cited, deterministic.
+- **HuggingFace Hub integration** — push Annex IV compliance metadata to model cards (`HuggingFaceModelCard`). 29 architecture aliases supported.
+- **MLflow integration** — `log_glassbox_run()` logs circuit metrics as experiment tracking artifacts. `GlassboxMLflowCallback` for training loop integration.
+- **Slack/Teams alerting** — `SlackNotifier`, `TeamsNotifier`, `AlertConfig` — formatted alerts for CircuitDiff drift and compliance grade drops.
+- **GitHub Action CI hook** — auto-fails CI if compliance grade drops below threshold. Annex IV reports uploaded as workflow artifacts.
+
+### v3.2.1 — Previous release
+
+- **stability_suite()** — multi-prompt Jaccard circuit stability analysis
+- **BSL 1.1 dual licensing** — commercial IP protection (Change Date 2036-03-21)
+- **CircuitDiff** — patent-pending mechanistic diff between model checkpoints
+- **BiasAnalyzer** — demographic parity, counterfactual fairness, token bias probe (Article 10(2)(f))
 - **AuditLog** — append-only JSONL with SHA-256 hash chain tamper detection (Article 12)
-- **Webhooks** — POST callback on job completion for CI/CD pipelines
-- **TypeScript SDK** — zero-dependency browser/Node/Deno/Bun client
-- **GitHub Action** — `glassbox-audit@v1` drops compliance gating into any CI pipeline
-- **Jupyter widgets** — `CircuitWidget.from_prompt()` renders inline heatmaps in notebooks
-- **SVG export** — download the D3 circuit graph as a standalone SVG for papers
 
 ### EU AI Act relevance
 
@@ -479,10 +504,10 @@ Enforcement starts **August 2026**. High-risk AI systems (finance, healthcare, H
 ```bibtex
 @software{mahale2026glassbox,
   author  = {Mahale, Ajay Pravin},
-  title   = {Glassbox 3.1: Mechanistic Interpretability and EU AI Act Compliance Toolkit},
+  title   = {Glassbox 3.3: Mechanistic Interpretability and EU AI Act Compliance Toolkit},
   year    = {2026},
   url     = {https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool},
-  version = {3.1.0}
+  version = {3.3.0}
 }
 ```
 
@@ -495,11 +520,11 @@ Enforcement starts **August 2026**. High-risk AI systems (finance, healthcare, H
 - EU AI Act (EU) 2024/1689, Official Journal of the EU
 
 ---
-**Contact:** mahale.ajay01@gmail.com | **License:** MIT | **Version:** 3.1.0
+**Contact:** mahale.ajay01@gmail.com | **License:** MIT | **Version:** 3.3.0
 """
 
 with gr.Blocks(
-    title="Glassbox 3.1 — EU AI Act Compliance",
+    title="Glassbox 3.3 — EU AI Act Compliance",
     theme=gr.themes.Base(
         primary_hue="indigo",
         secondary_hue="purple",
@@ -634,7 +659,7 @@ with gr.Blocks(
     gr.HTML("""
 <div style="text-align:center;color:#475569;font-size:0.8em;
             padding:16px 0;border-top:1px solid rgba(255,255,255,0.065);margin-top:8px;">
-  Glassbox v3.1.0 &nbsp;·&nbsp; Built on TransformerLens &nbsp;·&nbsp;
+  Glassbox v3.3.0 &nbsp;·&nbsp; Built on TransformerLens &nbsp;·&nbsp;
   MIT License &nbsp;·&nbsp; mahale.ajay01@gmail.com &nbsp;·&nbsp;
   EU AI Act (EU) 2024/1689
 </div>
