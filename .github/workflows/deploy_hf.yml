@@ -45,7 +45,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone "https://user:${HF_TOKEN}@huggingface.co/spaces/designer-coderajay/Glassbox-ai" hf_space
+          git clone "https://user:${HF_TOKEN}@huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" hf_space
 
           # ── 1. Copy dashboard app ─────────────────────────────────────────
           cp dashboard/app.py hf_space/app.py
