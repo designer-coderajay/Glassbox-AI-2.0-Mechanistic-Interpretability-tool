@@ -21,10 +21,11 @@ Additional Use Grant: You may make production use of the Licensed Work,
                       Annex IV purposes) is permitted without a separate
                       commercial license, subject to the terms below.
 
-Change Date:          Four years from the release date of each specific file
-                      version, as recorded in the git commit history. For
-                      files first published in v3.x.x (2026), the Change
-                      Date is 2030-01-01.
+Change Date:          2036-03-21
+
+                      Ten years from the initial commercial release (2026-03-21).
+                      On the Change Date, the Licensed Work will be made
+                      available under the Apache License, Version 2.0.
 
 Change License:       Apache License, Version 2.0
 
