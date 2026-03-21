@@ -5,7 +5,7 @@
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 
 [![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%20v3.0.0)](https://pypi.org/project/glassbox-mech-interp/)
-[![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
+[![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)]([https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp?min_date=2026-02-01&max_date=2026-03-21))
 [![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](LICENSE-COMMERCIAL) [![Patents Pending](https://img.shields.io/badge/Patents-Pending-blue.svg)](PATENTS.md)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
