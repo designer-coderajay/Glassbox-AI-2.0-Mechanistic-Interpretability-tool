@@ -671,3 +671,5 @@ with gr.Blocks(
     """)
 
 demo.launch(server_name="0.0.0.0", server_port=7860)
+
+# v3.4.1-patch: python_version=3.11 pinned in Space README to fix py3.13 audioop crash
