@@ -80,7 +80,7 @@ glassbox/
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "3.2.1"
+__version__ = "3.3.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -238,6 +238,30 @@ except ImportError:
     _WIDGETS_AVAILABLE = False
 
 # ---------------------------------------------------------------------------
+# Natural Language Explainer — plain English for compliance officers (v3.3.0)
+# ---------------------------------------------------------------------------
+from glassbox.explain import NaturalLanguageExplainer, explain as explain_result
+
+# ---------------------------------------------------------------------------
+# HuggingFace Hub Integration — load_from_hub, HuggingFaceModelCard (v3.3.0)
+# ---------------------------------------------------------------------------
+from glassbox.hf_integration import load_from_hub, HuggingFaceModelCard
+
+# ---------------------------------------------------------------------------
+# MLflow Integration — log_glassbox_run, GlassboxMLflowCallback (v3.3.0)
+# ---------------------------------------------------------------------------
+from glassbox.mlflow_integration import (
+    log_glassbox_run,
+    register_compliance_artifact,
+    GlassboxMLflowCallback,
+)
+
+# ---------------------------------------------------------------------------
+# Slack / Teams Alerting — SlackNotifier, TeamsNotifier, AlertConfig (v3.3.0)
+# ---------------------------------------------------------------------------
+from glassbox.notify import SlackNotifier, TeamsNotifier, AlertConfig
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
@@ -298,6 +322,20 @@ __all__ = [
     "format_head_label",
     "parse_head_label",
     "estimate_forward_pass_memory_mb",
+    # Natural Language Explainer (v3.3.0)
+    "NaturalLanguageExplainer",
+    "explain_result",
+    # HuggingFace Hub Integration (v3.3.0)
+    "load_from_hub",
+    "HuggingFaceModelCard",
+    # MLflow Integration (v3.3.0)
+    "log_glassbox_run",
+    "register_compliance_artifact",
+    "GlassboxMLflowCallback",
+    # Slack / Teams Alerting (v3.3.0)
+    "SlackNotifier",
+    "TeamsNotifier",
+    "AlertConfig",
     # Meta
     "__version__",
     # Deprecated
