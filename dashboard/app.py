@@ -458,47 +458,278 @@ Running counterfactual fairness probe on gender swap …
 
 # ── Gradio UI ──────────────────────────────────────────────────────────────────
 
+# ── Billion-dollar CSS ─────────────────────────────────────────────────────────
+GB_CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --gb-indigo:#6366f1; --gb-indigo-d:#4f46e5; --gb-indigo-l:#818cf8;
+  --gb-sky:#0ea5e9; --gb-sky-l:#38bdf8;
+  --gb-green:#22c55e; --gb-amber:#f59e0b; --gb-red:#ef4444;
+  --gb-t2:#a1a1aa; --gb-t3:#52525b; --gb-t4:#3f3f46;
+  --gb-bd:rgba(255,255,255,.07); --gb-bd2:rgba(255,255,255,.13);
+  --gb-sf:rgba(255,255,255,.03); --gb-sf2:rgba(255,255,255,.06);
+  --gb-r:8px; --gb-r2:12px;
+}
+
+/* ── Base ── */
+body, html { background:#000 !important; }
+body {
+  font-family:'Inter',ui-sans-serif,-apple-system,BlinkMacSystemFont,sans-serif !important;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  color:#fff !important;
+}
+::selection { background:rgba(99,102,241,.28); }
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:#000; }
+::-webkit-scrollbar-thumb { background:#27272a; border-radius:3px; }
+
+/* ── Gradient mesh ── */
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% -5%, rgba(99,102,241,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 85% 15%, rgba(14,165,233,.12) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 50% 95%, rgba(139,92,246,.10) 0%, transparent 55%);
+  animation:gb-mesh 18s ease-in-out infinite alternate;
+}
+@keyframes gb-mesh {
+  0%   { transform:scale(1) translateY(0); opacity:.85; }
+  50%  { transform:scale(1.04) translateY(-14px); opacity:1; }
+  100% { transform:scale(1.01) translateY(6px); opacity:.88; }
+}
+
+/* ── Dot grid ── */
+body::after {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:radial-gradient(circle, rgba(255,255,255,.055) 1px, transparent 1px);
+  background-size:28px 28px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%);
+  mask-image:radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%);
+}
+
+/* ── Container ── */
+.gradio-container {
+  background:transparent !important;
+  max-width:1160px !important;
+  margin:0 auto !important;
+  padding:0 20px 56px !important;
+  font-family:'Inter',ui-sans-serif,sans-serif !important;
+  position:relative; z-index:1;
+}
+footer.svelte-1ax1toq, footer { display:none !important; }
+
+/* ── Blocks / cards ── */
+.block, .form { background:transparent !important; border-color:var(--gb-bd) !important; }
+.block.padded {
+  background:rgba(255,255,255,.025) !important;
+  border:1px solid var(--gb-bd) !important;
+  border-radius:var(--gb-r2) !important;
+  backdrop-filter:blur(8px);
+}
+.gap { background:transparent !important; }
+.contain { background:transparent !important; }
+
+/* ── Tabs ── */
+.tab-nav {
+  background:rgba(255,255,255,.028) !important;
+  border:1px solid var(--gb-bd) !important;
+  border-radius:10px !important;
+  padding:4px !important;
+  gap:2px !important;
+  margin-bottom:20px !important;
+  backdrop-filter:blur(12px);
+}
+.tab-nav button {
+  background:transparent !important;
+  color:var(--gb-t2) !important;
+  border:1px solid transparent !important;
+  border-radius:7px !important;
+  font-family:'Inter',sans-serif !important;
+  font-size:13px !important; font-weight:500 !important;
+  padding:7px 15px !important;
+  transition:color .15s, background .15s !important;
+}
+.tab-nav button:hover { color:#fff !important; background:rgba(255,255,255,.06) !important; }
+.tab-nav button.selected {
+  background:rgba(99,102,241,.16) !important;
+  color:#818cf8 !important;
+  border-color:rgba(99,102,241,.28) !important;
+}
+
+/* ── Inputs ── */
+input[type=text], input[type=number], textarea, select {
+  background:rgba(255,255,255,.04) !important;
+  border:1px solid var(--gb-bd2) !important;
+  border-radius:var(--gb-r) !important;
+  color:#fff !important;
+  font-family:'Inter',sans-serif !important;
+  font-size:14px !important;
+  padding:10px 13px !important;
+  transition:border-color .15s, box-shadow .15s !important;
+}
+input[type=text]:focus, textarea:focus {
+  outline:none !important;
+  border-color:rgba(99,102,241,.6) !important;
+  box-shadow:0 0 0 3px rgba(99,102,241,.12) !important;
+}
+input[type=text]::placeholder, textarea::placeholder { color:var(--gb-t3) !important; }
+
+/* ── Labels ── */
+label, .label-wrap span {
+  color:var(--gb-t2) !important;
+  font-family:'Inter',sans-serif !important;
+  font-size:13px !important; font-weight:500 !important;
+  letter-spacing:.01em !important;
+}
+
+/* ── Primary buttons ── */
+button.primary, .btn-primary, button[data-testid*="primary"], .svelte-cmf5ev.primary {
+  background:linear-gradient(135deg,var(--gb-indigo),var(--gb-indigo-d)) !important;
+  border:none !important;
+  border-radius:var(--gb-r) !important;
+  color:#fff !important;
+  font-family:'Inter',sans-serif !important;
+  font-size:14px !important; font-weight:600 !important;
+  padding:10px 22px !important;
+  letter-spacing:-.01em !important;
+  box-shadow:0 0 20px rgba(99,102,241,.28) !important;
+  transition:box-shadow .2s, transform .15s !important;
+}
+button.primary:hover { box-shadow:0 0 36px rgba(99,102,241,.48) !important; transform:translateY(-1px) !important; }
+button.secondary {
+  background:rgba(255,255,255,.05) !important;
+  border:1px solid var(--gb-bd2) !important;
+  color:var(--gb-t2) !important;
+  border-radius:var(--gb-r) !important;
+  font-family:'Inter',sans-serif !important;
+}
+
+/* ── Sliders ── */
+input[type=range] { accent-color:var(--gb-indigo) !important; }
+
+/* ── Dropdowns ── */
+ul.options {
+  background:#0c0c0c !important;
+  border:1px solid var(--gb-bd2) !important;
+  border-radius:var(--gb-r) !important;
+}
+ul.options li { color:var(--gb-t2) !important; font-size:14px !important; }
+ul.options li:hover, ul.options li.selected {
+  background:rgba(99,102,241,.15) !important; color:#fff !important;
+}
+
+/* ── Image output ── */
+.image-container { background:rgba(255,255,255,.02) !important; border:1px solid var(--gb-bd) !important; border-radius:var(--gb-r2) !important; }
+
+/* ── Code ── */
+code, pre {
+  font-family:'JetBrains Mono','Fira Code',monospace !important;
+  font-size:13px !important;
+  background:rgba(255,255,255,.035) !important;
+  border:1px solid var(--gb-bd) !important;
+  border-radius:6px !important;
+  color:#a5b4fc !important;
+}
+pre code { background:transparent !important; border:none !important; padding:0 !important; }
+
+/* ── Accordion ── */
+.accordion, details {
+  background:rgba(255,255,255,.02) !important;
+  border:1px solid var(--gb-bd) !important;
+  border-radius:var(--gb-r) !important;
+}
+details summary { color:var(--gb-t2) !important; font-size:13px !important; font-weight:500 !important; padding:10px 14px !important; }
+
+/* ── Markdown ── */
+.markdown, .prose { color:#e2e8f0 !important; font-size:14px !important; line-height:1.7 !important; }
+.markdown h1, .markdown h2, .markdown h3 { color:#fff !important; font-weight:700 !important; letter-spacing:-.02em !important; }
+.markdown h2 { font-size:1.25em !important; margin:20px 0 10px !important; }
+.markdown h3 { font-size:1.05em !important; }
+.markdown a { color:var(--gb-indigo-l) !important; }
+.markdown table { border-collapse:collapse !important; width:100% !important; margin:12px 0 !important; font-size:13px !important; }
+.markdown th {
+  background:rgba(99,102,241,.1) !important; color:#a5b4fc !important;
+  font-weight:600 !important; padding:8px 12px !important;
+  border:1px solid rgba(99,102,241,.18) !important; text-align:left !important;
+}
+.markdown td { padding:8px 12px !important; border:1px solid var(--gb-bd) !important; color:#cbd5e1 !important; }
+.markdown tr:nth-child(even) td { background:rgba(255,255,255,.02) !important; }
+.markdown strong { color:#fff !important; }
+.markdown code { color:#a5b4fc !important; background:rgba(99,102,241,.1) !important; border-color:rgba(99,102,241,.2) !important; padding:1px 5px !important; border-radius:4px !important; }
+.markdown hr { border:none !important; border-top:1px solid var(--gb-bd) !important; margin:20px 0 !important; }
+
+/* ── Row gap ── */
+.row { gap:16px !important; }
+
+/* ── Compliance metric badges inside markdown ── */
+div[style*="background:#1a2030"] {
+  background:rgba(255,255,255,.035) !important;
+  border-color:rgba(255,255,255,.08) !important;
+  border-radius:10px !important;
+}
+"""
+
+# ── Header ─────────────────────────────────────────────────────────────────────
 HEADER = """
-<div style="background:linear-gradient(135deg,#07080d 0%,#0d1017 100%);
-            padding:32px 24px 20px;
-            border-bottom:1px solid rgba(255,255,255,0.065);
-            margin-bottom:0;">
-  <div style="max-width:860px; margin:0 auto; text-align:center;">
-    <div style="display:inline-flex;align-items:center;gap:10px;
-                background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);
-                border-radius:20px;padding:4px 14px;margin-bottom:16px;">
-      <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;
-                   box-shadow:0 0 6px #22c55e;display:inline-block;"></span>
-      <span style="font-size:0.78em;color:#a5b4fc;font-weight:500;letter-spacing:0.05em;">
-        THE ONLY EU AI ACT COMPLIANCE AUDIT PLATFORM
-      </span>
-    </div>
-    <h1 style="font-size:2.8em;font-weight:900;color:#e2e8f0;margin:0 0 10px;
-               letter-spacing:-1.5px;line-height:1.1;">
-      Glassbox <span style="color:#6366f1;">3.3</span>
-    </h1>
-    <p style="font-size:1.05em;color:#94a3b8;margin:0 0 16px;font-weight:400;">
-      Causal Mechanistic Interpretability · EU AI Act Annex IV Compliance · Bias Analysis
-    </p>
-    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
-      <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
-         target="_blank"
-         style="background:#1a2030;border:1px solid rgba(255,255,255,0.1);border-radius:6px;
-                padding:6px 14px;font-size:0.82em;color:#a5b4fc;text-decoration:none;font-weight:500;">
-        ⭐ GitHub
-      </a>
-      <a href="https://pypi.org/project/glassbox-mech-interp/"
-         target="_blank"
-         style="background:#1a2030;border:1px solid rgba(255,255,255,0.1);border-radius:6px;
-                padding:6px 14px;font-size:0.82em;color:#a5b4fc;text-decoration:none;font-weight:500;">
-        📦 pip install glassbox-mech-interp
-      </a>
-      <span style="background:#1a2030;border:1px solid rgba(239,68,68,0.4);border-radius:6px;
-                   padding:6px 14px;font-size:0.82em;color:#f87171;font-weight:500;">
-        ⚡ Enforcement: August 2026
-      </span>
-    </div>
+<style>
+@keyframes gb-pulse { 0%,100% { box-shadow:0 0 4px #22c55e; } 50% { box-shadow:0 0 14px #22c55e,0 0 28px rgba(34,197,94,.3); } }
+@keyframes gb-shine { 0% { background-position:0% 50%; } 100% { background-position:100% 50%; } }
+.gb-hdr { padding:52px 0 36px; text-align:center; position:relative; }
+.gb-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.25);
+  border-radius:20px; padding:5px 16px; margin-bottom:22px;
+  font-family:'Inter',sans-serif; font-size:11px; font-weight:600;
+  letter-spacing:.08em; color:#a5b4fc; text-transform:uppercase;
+}
+.gb-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:#22c55e; box-shadow:0 0 6px #22c55e;
+  animation:gb-pulse 2.2s ease-in-out infinite;
+  display:inline-block; flex-shrink:0;
+}
+.gb-h1 {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(38px,6vw,76px); font-weight:900;
+  letter-spacing:-0.05em; color:#fff; line-height:1.05;
+  margin:0 0 16px;
+}
+.gb-grad {
+  background:linear-gradient(135deg,#fff 0%,#a5b4fc 38%,#38bdf8 72%,#fff 100%);
+  background-size:200% 200%;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:gb-shine 7s ease-in-out infinite alternate;
+}
+.gb-sub {
+  font-family:'Inter',sans-serif; font-size:15px; font-weight:400;
+  color:#94a3b8; margin:0 auto 28px; max-width:560px; line-height:1.65;
+}
+.gb-pills { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+.gb-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+  border-radius:7px; padding:7px 15px;
+  font-family:'Inter',sans-serif; font-size:12px; font-weight:500;
+  color:#94a3b8; text-decoration:none;
+  transition:color .15s, border-color .15s, background .15s;
+}
+.gb-pill:hover { color:#a5b4fc; border-color:rgba(99,102,241,.4); background:rgba(99,102,241,.08); }
+.gb-pill-red { border-color:rgba(239,68,68,.3) !important; color:#f87171 !important; }
+.gb-pill-red:hover { background:rgba(239,68,68,.07) !important; }
+.gb-sep { height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent); margin:36px 0 0; }
+</style>
+<div class="gb-hdr">
+  <div class="gb-badge"><span class="gb-dot"></span>Live Demo &nbsp;·&nbsp; EU AI Act Compliance Platform</div>
+  <h1 class="gb-h1">Glassbox <span class="gb-grad">3.4</span></h1>
+  <p class="gb-sub">Causal Mechanistic Interpretability &nbsp;·&nbsp; EU AI Act Annex IV Compliance &nbsp;·&nbsp; Bias Analysis</p>
+  <div class="gb-pills">
+    <a class="gb-pill" href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">⭐&nbsp;GitHub</a>
+    <a class="gb-pill" href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">📦&nbsp;pip install glassbox-mech-interp</a>
+    <span class="gb-pill gb-pill-red">⚡&nbsp;Enforcement: August 2026</span>
   </div>
+  <div class="gb-sep"></div>
 </div>
 """
 
@@ -574,19 +805,35 @@ Enforcement starts **August 2026**. High-risk AI systems (finance, healthcare, H
 """
 
 with gr.Blocks(
-    title="Glassbox 3.3 — EU AI Act Compliance",
+    title="Glassbox 3.4 — EU AI Act Compliance",
+    css=GB_CSS,
     theme=gr.themes.Base(
         primary_hue="indigo",
-        secondary_hue="purple",
-        neutral_hue="slate",
+        secondary_hue="slate",
+        neutral_hue="zinc",
     ).set(
-        body_background_fill="#07080d",
-        block_background_fill="#0d1017",
-        block_border_color="rgba(255,255,255,0.065)",
-        input_background_fill="#131720",
-        button_primary_background_fill="#6366f1",
-        button_primary_background_fill_hover="#4f46e5",
-    )
+        body_background_fill="#000000",
+        body_background_fill_dark="#000000",
+        block_background_fill="#00000000",
+        block_background_fill_dark="#00000000",
+        block_border_color="rgba(255,255,255,0.07)",
+        block_border_color_dark="rgba(255,255,255,0.07)",
+        input_background_fill="rgba(255,255,255,0.04)",
+        input_background_fill_dark="rgba(255,255,255,0.04)",
+        input_border_color="rgba(255,255,255,0.13)",
+        input_border_color_dark="rgba(255,255,255,0.13)",
+        button_primary_background_fill="linear-gradient(135deg,#6366f1,#4f46e5)",
+        button_primary_background_fill_dark="linear-gradient(135deg,#6366f1,#4f46e5)",
+        button_primary_background_fill_hover="linear-gradient(135deg,#818cf8,#6366f1)",
+        button_primary_text_color="#ffffff",
+        button_secondary_background_fill="rgba(255,255,255,0.05)",
+        button_secondary_border_color="rgba(255,255,255,0.13)",
+        button_secondary_text_color="#a1a1aa",
+        shadow_drop="0 4px 24px rgba(0,0,0,0.6)",
+        shadow_drop_lg="0 8px 40px rgba(0,0,0,0.8)",
+        color_accent_soft="rgba(99,102,241,0.15)",
+        color_accent_soft_dark="rgba(99,102,241,0.15)",
+    ),
 ) as demo:
     if _STARTUP_ERROR:
         gr.Markdown(f"## ⚠️ Startup Error\n```\n{_STARTUP_ERROR}\n```")
@@ -709,11 +956,34 @@ with gr.Blocks(
             gr.Markdown(ABOUT_TEXT)
 
     gr.HTML("""
-<div style="text-align:center;color:#475569;font-size:0.8em;
-            padding:16px 0;border-top:1px solid rgba(255,255,255,0.065);margin-top:8px;">
-  Glassbox v3.3.0 &nbsp;·&nbsp; Built on TransformerLens &nbsp;·&nbsp;
-  MIT License &nbsp;·&nbsp; mahale.ajay01@gmail.com &nbsp;·&nbsp;
-  EU AI Act (EU) 2024/1689
+<div style="
+  text-align:center; padding:24px 0 12px;
+  margin-top:20px; border-top:1px solid rgba(255,255,255,.06);
+  font-family:'Inter',sans-serif; font-size:12px;
+  color:#3f3f46; letter-spacing:.02em;
+">
+  <span style="color:#52525b;">Glassbox v3.4.0</span>
+  &nbsp;·&nbsp; Built on TransformerLens
+  &nbsp;·&nbsp; MIT License
+  &nbsp;·&nbsp; <a href="mailto:mahale.ajay01@gmail.com" style="color:#52525b;text-decoration:none;">mahale.ajay01@gmail.com</a>
+  &nbsp;·&nbsp; EU AI Act (EU) 2024/1689
+  <div style="margin-top:10px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">
+    <a href="https://project-gu05p.vercel.app" target="_blank"
+       style="color:#52525b;text-decoration:none;font-size:11px;transition:color .15s;"
+       onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#52525b'">
+      🌐 Website
+    </a>
+    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank"
+       style="color:#52525b;text-decoration:none;font-size:11px;transition:color .15s;"
+       onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#52525b'">
+      ⭐ GitHub
+    </a>
+    <a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank"
+       style="color:#52525b;text-decoration:none;font-size:11px;transition:color .15s;"
+       onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#52525b'">
+      📦 PyPI
+    </a>
+  </div>
 </div>
     """)
 
