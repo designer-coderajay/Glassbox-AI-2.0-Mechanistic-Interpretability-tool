@@ -26,18 +26,32 @@ v3.3.0 new features:
 import io
 
 # ── gradio_client boolean-schema compatibility fix ────────────────────────────
-# gradio_client utils.py does `if "const" in schema` which crashes when schema
-# is a JSON Schema boolean (True/False).  Patch it to handle non-dict schemas.
+# gradio_client._json_schema_to_python_type raises APIInfoParseError when it
+# encounters a JSON Schema boolean (e.g. additionalProperties: true).
+# This is valid JSON Schema but gradio_client doesn't handle it.
+# Patch the private function to return "Any" for non-dict schemas.
 try:
     import gradio_client.utils as _gcu
-    _orig_get_type = _gcu.get_type
 
-    def _safe_get_type(schema: dict):
+    _orig_parse = _gcu._json_schema_to_python_type
+
+    def _safe_json_schema_to_python_type(schema, defs=None):
         if not isinstance(schema, dict):
-            return "unknown"
-        return _orig_get_type(schema)
+            return "Any"
+        return _orig_parse(schema, defs)
 
-    _gcu.get_type = _safe_get_type
+    _gcu._json_schema_to_python_type = _safe_json_schema_to_python_type
+
+    # Also patch the public wrapper in case it's called directly
+    _orig_public = _gcu.json_schema_to_python_type
+
+    def _safe_public_parse(schema, defs=None):
+        try:
+            return _orig_public(schema, defs)
+        except Exception:
+            return "Any"
+
+    _gcu.json_schema_to_python_type = _safe_public_parse
 except Exception:
     pass
 # ─────────────────────────────────────────────────────────────────────────────
