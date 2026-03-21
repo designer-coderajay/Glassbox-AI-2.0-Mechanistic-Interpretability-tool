@@ -685,6 +685,6 @@ with gr.Blocks(
 </div>
     """)
 
-demo.launch(server_name="0.0.0.0", server_port=7860)
+demo.launch(server_name="0.0.0.0", server_port=7860, show_api=False)
 
 # v3.4.1-patch: python_version=3.11 + pyaudioop in Space to permanently fix py3.13 audioop crash
