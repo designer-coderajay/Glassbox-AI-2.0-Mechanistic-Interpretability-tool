@@ -205,6 +205,8 @@ def _attention_plot(prompt: str, layer: int, head: int) -> Image.Image:
 # ── Analysis functions ─────────────────────────────────────────────────────────
 
 def run_full_analysis(prompt: str, correct: str, incorrect: str):
+    if gb is None:
+        return None, "⚠️ Model is loading or failed to start. Please wait a moment and try again.", ""
     if not prompt.strip() or not correct.strip() or not incorrect.strip():
         return None, "Please fill in all three fields.", ""
     try:
@@ -283,6 +285,8 @@ Maps to **Article 13 transparency requirements**. Circuit identifies which model
 
 
 def run_logit_lens_tab(prompt: str, target_token: str):
+    if model is None:
+        return None, "⚠️ Model is loading or failed to start. Please wait and try again."
     if not prompt.strip() or not target_token.strip():
         return None, "Please fill in both fields."
     try:
@@ -300,6 +304,8 @@ def run_logit_lens_tab(prompt: str, target_token: str):
 
 
 def run_attention_tab(prompt: str, layer: int, head: int):
+    if model is None:
+        return None, "⚠️ Model is loading or failed to start. Please wait and try again."
     if not prompt.strip():
         return None, "Please enter a prompt."
     try:
@@ -311,6 +317,8 @@ def run_attention_tab(prompt: str, layer: int, head: int):
 
 def run_compliance_report(prompt: str, correct: str, incorrect: str,
                           model_name: str, provider: str, deployment: str):
+    if gb is None:
+        return "⚠️ Model is loading or failed to start. Please wait a moment and refresh.", ""
     if not prompt.strip() or not correct.strip() or not incorrect.strip():
         return "Please fill in Prompt, Correct token, and Distractor token.", ""
 
@@ -356,18 +364,18 @@ def run_compliance_report(prompt: str, correct: str, incorrect: str,
 
         report_md = f"""## EU AI Act Annex IV Compliance Report
 
-<div style="display:flex; gap:16px; margin:12px 0;">
-  <div style="background:#1a2030; border:1px solid #2a3040; border-radius:8px; padding:16px 24px; text-align:center;">
-    <div style="font-size:2.4em; font-weight:800; color:{grade_color};">{grade}</div>
-    <div style="color:#aaa; font-size:0.85em;">Explainability Grade</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;">
+  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:18px 24px;text-align:center;min-width:110px;">
+    <div style="font-size:2.2em;font-weight:800;color:{grade_color};letter-spacing:-.04em;line-height:1;">{grade}</div>
+    <div style="color:#a1a1aa;font-size:0.78em;margin-top:5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;">Explainability</div>
   </div>
-  <div style="background:#1a2030; border:1px solid #2a3040; border-radius:8px; padding:16px 24px; text-align:center;">
-    <div style="font-size:1.6em; font-weight:700; color:#e2e8f0;">{f1_score:.0%}</div>
-    <div style="color:#aaa; font-size:0.85em;">Faithfulness F1</div>
+  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:18px 24px;text-align:center;min-width:110px;">
+    <div style="font-size:1.9em;font-weight:800;color:#e2e8f0;letter-spacing:-.04em;line-height:1;">{f1_score:.0%}</div>
+    <div style="color:#a1a1aa;font-size:0.78em;margin-top:5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;">Faithfulness F1</div>
   </div>
-  <div style="background:#1a2030; border:1px solid #2a3040; border-radius:8px; padding:16px 24px; text-align:center;">
-    <div style="font-size:1.2em; font-weight:700; color:#e2e8f0;">{status_emoji}</div>
-    <div style="color:#aaa; font-size:0.85em;">{status.replace("_", " ").title()}</div>
+  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:18px 24px;text-align:center;min-width:110px;">
+    <div style="font-size:1.6em;font-weight:700;color:#e2e8f0;line-height:1;">{status_emoji}</div>
+    <div style="color:#a1a1aa;font-size:0.78em;margin-top:5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;">{status.replace("_", " ").title()}</div>
   </div>
 </div>
 
@@ -379,7 +387,7 @@ def run_compliance_report(prompt: str, correct: str, incorrect: str,
 |---------|---------|
 | 1. System Description | {model_name.strip() or "GPT-2 small"} · {deployment} context |
 | 2. Risk Classification | {_rj.get("risk_classification", "other_high_risk").replace("_", " ").title()} |
-| 3. Monitoring & Control | Audit log active · {_audit_log.summary().get("total_audits", 0)} sessions recorded |
+| 3. Monitoring & Control | Audit log active · {_audit_log.summary().get("total_audits", 0) if _audit_log else 0} sessions recorded |
 | 4. Data & Training | TransformerLens GPT-2 weights (117M params) |
 | 5. Bias Testing | See below |
 | 6. Lifecycle | Version 3.3.0 · {_rj.get("generated_at", "")[:10]} |
@@ -458,18 +466,20 @@ Running counterfactual fairness probe on gender swap …
 
 # ── Gradio UI ──────────────────────────────────────────────────────────────────
 
-# ── Billion-dollar CSS ─────────────────────────────────────────────────────────
+# ── CSS — exact match to project-gu05p.vercel.app ──────────────────────────────
 GB_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=JetBrains+Mono:wght@400;500&display=swap');
 
+/* ── Design tokens (identical to website) ── */
 :root {
-  --gb-indigo:#6366f1; --gb-indigo-d:#4f46e5; --gb-indigo-l:#818cf8;
-  --gb-sky:#0ea5e9; --gb-sky-l:#38bdf8;
-  --gb-green:#22c55e; --gb-amber:#f59e0b; --gb-red:#ef4444;
-  --gb-t2:#a1a1aa; --gb-t3:#52525b; --gb-t4:#3f3f46;
-  --gb-bd:rgba(255,255,255,.07); --gb-bd2:rgba(255,255,255,.13);
-  --gb-sf:rgba(255,255,255,.03); --gb-sf2:rgba(255,255,255,.06);
-  --gb-r:8px; --gb-r2:12px;
+  --indigo:#6366f1; --indigo-d:#4f46e5; --indigo-l:#818cf8;
+  --sky:#0ea5e9; --sky-l:#38bdf8;
+  --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --purple:#c084fc;
+  --text:#fff; --t2:#a1a1aa; --t3:#52525b; --t4:#3f3f46;
+  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13); --bd3:rgba(255,255,255,.22);
+  --sf:rgba(255,255,255,.03); --sf2:rgba(255,255,255,.06);
+  --mono:'JetBrains Mono','Fira Code',monospace;
+  --r:8px; --r2:12px; --r3:16px;
 }
 
 /* ── Base ── */
@@ -484,150 +494,157 @@ body {
 ::-webkit-scrollbar-track { background:#000; }
 ::-webkit-scrollbar-thumb { background:#27272a; border-radius:3px; }
 
-/* ── Gradient mesh ── */
-body::before {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:
-    radial-gradient(ellipse 80% 60% at 15% -5%, rgba(99,102,241,.18) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 85% 15%, rgba(14,165,233,.12) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 50% 95%, rgba(139,92,246,.10) 0%, transparent 55%);
-  animation:gb-mesh 18s ease-in-out infinite alternate;
-}
-@keyframes gb-mesh {
-  0%   { transform:scale(1) translateY(0); opacity:.85; }
-  50%  { transform:scale(1.04) translateY(-14px); opacity:1; }
-  100% { transform:scale(1.01) translateY(6px); opacity:.88; }
-}
-
-/* ── Dot grid ── */
-body::after {
-  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image:radial-gradient(circle, rgba(255,255,255,.055) 1px, transparent 1px);
-  background-size:28px 28px;
-  -webkit-mask-image:radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%);
-  mask-image:radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%);
-}
-
-/* ── Container ── */
+/* ── Fixed topbar + nav clearance ── */
 .gradio-container {
   background:transparent !important;
   max-width:1160px !important;
   margin:0 auto !important;
-  padding:0 20px 56px !important;
+  padding:102px clamp(20px,4vw,56px) 56px !important;
   font-family:'Inter',ui-sans-serif,sans-serif !important;
   position:relative; z-index:1;
 }
-footer.svelte-1ax1toq, footer { display:none !important; }
+footer, footer.svelte-1ax1toq, gradio-app > footer { display:none !important; }
+
+/* ── Gradient mesh bg (website exact) ── */
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 12% 55%, rgba(99,102,241,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 50% at 88% 18%, rgba(14,165,233,.13) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 90% at 50% 120%, rgba(99,102,241,.09) 0%, transparent 50%);
+  animation:mesh-drift 12s ease-in-out infinite alternate;
+}
+@keyframes mesh-drift {
+  0%   { transform:scale(1) translate(0,0); opacity:1; }
+  100% { transform:scale(1.08) translate(8px,-6px); opacity:.82; }
+}
+
+/* ── Dot grid (Vercel-style) ── */
+body::after {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size:72px 72px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 35%, black, transparent);
+  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 35%, black, transparent);
+}
 
 /* ── Blocks / cards ── */
-.block, .form { background:transparent !important; border-color:var(--gb-bd) !important; }
+.block, .form, .contain, .gap { background:transparent !important; }
+.block { border-color:var(--bd) !important; }
 .block.padded {
   background:rgba(255,255,255,.025) !important;
-  border:1px solid var(--gb-bd) !important;
-  border-radius:var(--gb-r2) !important;
+  border:1px solid var(--bd) !important;
+  border-radius:var(--r2) !important;
   backdrop-filter:blur(8px);
 }
-.gap { background:transparent !important; }
-.contain { background:transparent !important; }
 
-/* ── Tabs ── */
+/* ── Tabs (pill style matching website nav) ── */
 .tab-nav {
-  background:rgba(255,255,255,.028) !important;
-  border:1px solid var(--gb-bd) !important;
+  background:rgba(255,255,255,.03) !important;
+  border:1px solid var(--bd) !important;
   border-radius:10px !important;
   padding:4px !important;
   gap:2px !important;
   margin-bottom:20px !important;
-  backdrop-filter:blur(12px);
+  backdrop-filter:blur(16px) saturate(180%);
 }
 .tab-nav button {
   background:transparent !important;
-  color:var(--gb-t2) !important;
+  color:var(--t2) !important;
   border:1px solid transparent !important;
   border-radius:7px !important;
   font-family:'Inter',sans-serif !important;
   font-size:13px !important; font-weight:500 !important;
-  padding:7px 15px !important;
+  padding:7px 14px !important; letter-spacing:-.005em !important;
   transition:color .15s, background .15s !important;
 }
-.tab-nav button:hover { color:#fff !important; background:rgba(255,255,255,.06) !important; }
+.tab-nav button:hover { color:#fff !important; background:var(--sf2) !important; }
 .tab-nav button.selected {
-  background:rgba(99,102,241,.16) !important;
+  background:rgba(99,102,241,.15) !important;
   color:#818cf8 !important;
-  border-color:rgba(99,102,241,.28) !important;
+  border-color:rgba(99,102,241,.3) !important;
 }
 
-/* ── Inputs ── */
+/* ── Inputs / textarea ── */
 input[type=text], input[type=number], textarea, select {
   background:rgba(255,255,255,.04) !important;
-  border:1px solid var(--gb-bd2) !important;
-  border-radius:var(--gb-r) !important;
+  border:1px solid var(--bd2) !important;
+  border-radius:var(--r) !important;
   color:#fff !important;
   font-family:'Inter',sans-serif !important;
-  font-size:14px !important;
+  font-size:14px !important; line-height:1.5 !important;
   padding:10px 13px !important;
   transition:border-color .15s, box-shadow .15s !important;
 }
 input[type=text]:focus, textarea:focus {
   outline:none !important;
-  border-color:rgba(99,102,241,.6) !important;
-  box-shadow:0 0 0 3px rgba(99,102,241,.12) !important;
+  border-color:rgba(99,102,241,.55) !important;
+  box-shadow:0 0 0 3px rgba(99,102,241,.11) !important;
 }
-input[type=text]::placeholder, textarea::placeholder { color:var(--gb-t3) !important; }
+input[type=text]::placeholder, textarea::placeholder { color:var(--t3) !important; }
 
 /* ── Labels ── */
 label, .label-wrap span {
-  color:var(--gb-t2) !important;
+  color:var(--t2) !important;
   font-family:'Inter',sans-serif !important;
   font-size:13px !important; font-weight:500 !important;
   letter-spacing:.01em !important;
 }
 
-/* ── Primary buttons ── */
-button.primary, .btn-primary, button[data-testid*="primary"], .svelte-cmf5ev.primary {
-  background:linear-gradient(135deg,var(--gb-indigo),var(--gb-indigo-d)) !important;
-  border:none !important;
-  border-radius:var(--gb-r) !important;
+/* ── Primary button (website exact: indigo bg, glow) ── */
+button.primary, .btn.primary {
+  background:var(--indigo) !important;
+  border:none !important; border-radius:var(--r2) !important;
   color:#fff !important;
   font-family:'Inter',sans-serif !important;
   font-size:14px !important; font-weight:600 !important;
-  padding:10px 22px !important;
-  letter-spacing:-.01em !important;
-  box-shadow:0 0 20px rgba(99,102,241,.28) !important;
-  transition:box-shadow .2s, transform .15s !important;
+  padding:13px 28px !important; letter-spacing:-.01em !important;
+  box-shadow:none !important;
+  transition:background .15s, box-shadow .2s !important;
 }
-button.primary:hover { box-shadow:0 0 36px rgba(99,102,241,.48) !important; transform:translateY(-1px) !important; }
+button.primary:hover {
+  background:var(--indigo-d) !important;
+  box-shadow:0 8px 32px rgba(99,102,241,.42) !important;
+}
 button.secondary {
-  background:rgba(255,255,255,.05) !important;
-  border:1px solid var(--gb-bd2) !important;
-  color:var(--gb-t2) !important;
-  border-radius:var(--gb-r) !important;
+  background:var(--sf2) !important;
+  border:1px solid var(--bd2) !important;
+  color:var(--t2) !important;
+  border-radius:var(--r) !important;
   font-family:'Inter',sans-serif !important;
 }
+button.secondary:hover { background:rgba(255,255,255,.09) !important; border-color:var(--bd3) !important; }
 
 /* ── Sliders ── */
-input[type=range] { accent-color:var(--gb-indigo) !important; }
+input[type=range] { accent-color:var(--indigo) !important; }
 
 /* ── Dropdowns ── */
 ul.options {
-  background:#0c0c0c !important;
-  border:1px solid var(--gb-bd2) !important;
-  border-radius:var(--gb-r) !important;
+  background:#0a0a0a !important;
+  border:1px solid var(--bd2) !important;
+  border-radius:var(--r) !important;
 }
-ul.options li { color:var(--gb-t2) !important; font-size:14px !important; }
+ul.options li { color:var(--t2) !important; font-size:14px !important; font-family:'Inter',sans-serif !important; }
 ul.options li:hover, ul.options li.selected {
-  background:rgba(99,102,241,.15) !important; color:#fff !important;
+  background:rgba(99,102,241,.14) !important; color:#fff !important;
 }
 
 /* ── Image output ── */
-.image-container { background:rgba(255,255,255,.02) !important; border:1px solid var(--gb-bd) !important; border-radius:var(--gb-r2) !important; }
+.image-container {
+  background:rgba(255,255,255,.02) !important;
+  border:1px solid var(--bd) !important;
+  border-radius:var(--r2) !important;
+  overflow:hidden !important;
+}
 
-/* ── Code ── */
+/* ── Code / pre (JetBrains Mono) ── */
 code, pre {
   font-family:'JetBrains Mono','Fira Code',monospace !important;
   font-size:13px !important;
-  background:rgba(255,255,255,.035) !important;
-  border:1px solid var(--gb-bd) !important;
+  background:rgba(255,255,255,.03) !important;
+  border:1px solid var(--bd) !important;
   border-radius:6px !important;
   color:#a5b4fc !important;
 }
@@ -636,101 +653,312 @@ pre code { background:transparent !important; border:none !important; padding:0 
 /* ── Accordion ── */
 .accordion, details {
   background:rgba(255,255,255,.02) !important;
-  border:1px solid var(--gb-bd) !important;
-  border-radius:var(--gb-r) !important;
+  border:1px solid var(--bd) !important;
+  border-radius:var(--r) !important;
 }
-details summary { color:var(--gb-t2) !important; font-size:13px !important; font-weight:500 !important; padding:10px 14px !important; }
+details summary {
+  color:var(--t2) !important; font-size:13px !important;
+  font-weight:500 !important; padding:10px 14px !important;
+  font-family:'Inter',sans-serif !important;
+}
 
 /* ── Markdown ── */
-.markdown, .prose { color:#e2e8f0 !important; font-size:14px !important; line-height:1.7 !important; }
-.markdown h1, .markdown h2, .markdown h3 { color:#fff !important; font-weight:700 !important; letter-spacing:-.02em !important; }
-.markdown h2 { font-size:1.25em !important; margin:20px 0 10px !important; }
-.markdown h3 { font-size:1.05em !important; }
-.markdown a { color:var(--gb-indigo-l) !important; }
-.markdown table { border-collapse:collapse !important; width:100% !important; margin:12px 0 !important; font-size:13px !important; }
+.markdown, .prose { color:#e2e8f0 !important; font-size:14px !important; line-height:1.7 !important; font-family:'Inter',sans-serif !important; }
+.markdown h1, .markdown h2, .markdown h3 { color:#fff !important; font-weight:700 !important; letter-spacing:-.03em !important; }
+.markdown h2 { font-size:1.3em !important; margin:24px 0 12px !important; }
+.markdown h3 { font-size:1.05em !important; margin:16px 0 8px !important; }
+.markdown a { color:var(--indigo-l) !important; text-decoration:underline !important; }
+.markdown table { border-collapse:collapse !important; width:100% !important; margin:14px 0 !important; font-size:13px !important; }
 .markdown th {
-  background:rgba(99,102,241,.1) !important; color:#a5b4fc !important;
-  font-weight:600 !important; padding:8px 12px !important;
+  background:rgba(99,102,241,.09) !important; color:#a5b4fc !important;
+  font-weight:600 !important; padding:9px 13px !important;
   border:1px solid rgba(99,102,241,.18) !important; text-align:left !important;
+  font-family:'Inter',sans-serif !important;
 }
-.markdown td { padding:8px 12px !important; border:1px solid var(--gb-bd) !important; color:#cbd5e1 !important; }
-.markdown tr:nth-child(even) td { background:rgba(255,255,255,.02) !important; }
+.markdown td {
+  padding:9px 13px !important; border:1px solid var(--bd) !important;
+  color:#cbd5e1 !important; font-family:'Inter',sans-serif !important;
+}
+.markdown tr:nth-child(even) td { background:rgba(255,255,255,.018) !important; }
 .markdown strong { color:#fff !important; }
-.markdown code { color:#a5b4fc !important; background:rgba(99,102,241,.1) !important; border-color:rgba(99,102,241,.2) !important; padding:1px 5px !important; border-radius:4px !important; }
-.markdown hr { border:none !important; border-top:1px solid var(--gb-bd) !important; margin:20px 0 !important; }
+.markdown code {
+  color:#a5b4fc !important; background:rgba(99,102,241,.09) !important;
+  border-color:rgba(99,102,241,.2) !important;
+  padding:1px 6px !important; border-radius:4px !important;
+  font-family:'JetBrains Mono',monospace !important; font-size:12px !important;
+}
+.markdown hr { border:none !important; border-top:1px solid var(--bd) !important; margin:20px 0 !important; }
+.markdown sup { font-size:.7em !important; color:var(--t2) !important; }
 
-/* ── Row gap ── */
+/* ── Row / column ── */
 .row { gap:16px !important; }
 
-/* ── Compliance metric badges inside markdown ── */
-div[style*="background:#1a2030"] {
-  background:rgba(255,255,255,.035) !important;
-  border-color:rgba(255,255,255,.08) !important;
-  border-radius:10px !important;
-}
+/* ── Hide gradio branding ── */
+.hide-container, .etali4b10, .svelte-po8fcl { display:none !important; }
 """
 
-# ── Header ─────────────────────────────────────────────────────────────────────
+# ── HEADER — topbar + nav + hero, exact match to project-gu05p.vercel.app ──────
 HEADER = """
 <style>
-@keyframes gb-pulse { 0%,100% { box-shadow:0 0 4px #22c55e; } 50% { box-shadow:0 0 14px #22c55e,0 0 28px rgba(34,197,94,.3); } }
-@keyframes gb-shine { 0% { background-position:0% 50%; } 100% { background-position:100% 50%; } }
-.gb-hdr { padding:52px 0 36px; text-align:center; position:relative; }
-.gb-badge {
-  display:inline-flex; align-items:center; gap:8px;
-  background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.25);
-  border-radius:20px; padding:5px 16px; margin-bottom:22px;
-  font-family:'Inter',sans-serif; font-size:11px; font-weight:600;
-  letter-spacing:.08em; color:#a5b4fc; text-transform:uppercase;
+/* ─ Keyframes ─ */
+@keyframes blink {
+  0%,100%{ opacity:1; box-shadow:0 0 8px #22c55e; }
+  50%    { opacity:.35; box-shadow:none; }
 }
-.gb-dot {
-  width:6px; height:6px; border-radius:50%;
-  background:#22c55e; box-shadow:0 0 6px #22c55e;
-  animation:gb-pulse 2.2s ease-in-out infinite;
-  display:inline-block; flex-shrink:0;
+@keyframes shine {
+  0%  { background-position:0% 50%; }
+  100%{ background-position:100% 50%; }
 }
-.gb-h1 {
+@keyframes mesh-hero {
+  0%  { transform:scale(1) translate(0,0); opacity:1; }
+  100%{ transform:scale(1.08) translate(8px,-6px); opacity:.82; }
+}
+
+/* ─ Topbar ─ */
+.gb-topbar {
+  position:fixed; top:0; left:0; right:0; z-index:1000;
+  background:#6366f1; padding:9px 24px; text-align:center;
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:500;
+  letter-spacing:.01em; color:#fff;
+}
+.gb-topbar a {
+  color:rgba(255,255,255,.75); border-bottom:1px solid rgba(255,255,255,.35);
+  margin-left:8px; text-decoration:none;
+  transition:color .15s, border-color .15s;
+}
+.gb-topbar a:hover { color:#fff; border-color:#fff; }
+
+/* ─ Nav ─ */
+.gb-nav {
+  position:fixed; top:38px; left:0; right:0; z-index:999; height:64px;
+  display:flex; align-items:center; padding:0 clamp(20px,4vw,56px);
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-bottom:1px solid rgba(255,255,255,.07);
   font-family:'Inter',sans-serif;
-  font-size:clamp(38px,6vw,76px); font-weight:900;
-  letter-spacing:-0.05em; color:#fff; line-height:1.05;
-  margin:0 0 16px;
 }
-.gb-grad {
+.gb-nav-logo {
+  display:flex; align-items:center; gap:9px;
+  font-size:15px; font-weight:700; letter-spacing:-.02em;
+  color:#fff; text-decoration:none; flex-shrink:0;
+}
+.gb-nav-mark {
+  width:28px; height:28px; border-radius:7px; flex-shrink:0;
+  background:linear-gradient(135deg,#6366f1,#0ea5e9);
+  display:flex; align-items:center; justify-content:center;
+}
+.gb-nav-mark svg { width:13px; height:13px; }
+.gb-nav-cx { flex:1; display:flex; justify-content:center; }
+.gb-nav-links { display:flex; align-items:center; gap:2px; list-style:none; margin:0; padding:0; }
+.gb-nav-links a {
+  font-size:14px; font-weight:450; color:#a1a1aa;
+  padding:6px 13px; border-radius:8px;
+  text-decoration:none; transition:color .15s, background .15s;
+}
+.gb-nav-links a:hover { color:#fff; background:rgba(255,255,255,.06); }
+.gb-nav-r { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.gb-nav-ghost {
+  font-size:14px; font-weight:500; color:#a1a1aa;
+  padding:6px 13px; border-radius:8px; text-decoration:none;
+  transition:color .15s, background .15s;
+}
+.gb-nav-ghost:hover { color:#fff; background:rgba(255,255,255,.06); }
+.gb-nav-cta {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:13px; font-weight:600; color:#fff;
+  background:#6366f1; padding:8px 18px; border-radius:12px;
+  letter-spacing:-.01em; text-decoration:none;
+  transition:background .15s, box-shadow .2s;
+}
+.gb-nav-cta:hover { background:#4f46e5; box-shadow:0 0 0 4px rgba(99,102,241,.18); }
+.gb-nav-cta svg { width:12px; height:12px; }
+@media(max-width:768px){ .gb-nav-cx,.gb-nav-ghost{ display:none; } }
+
+/* ─ Hero wrap ─ */
+.gb-hero-wrap {
+  position:relative; overflow:hidden; isolation:isolate;
+  margin:0 calc(-1 * clamp(20px,4vw,56px));
+}
+.gb-hmesh {
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 12% 55%, rgba(99,102,241,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 50% at 88% 18%, rgba(14,165,233,.13) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 90% at 50% 120%, rgba(99,102,241,.09) 0%, transparent 50%);
+  animation:mesh-hero 12s ease-in-out infinite alternate;
+}
+.gb-hgrid {
+  position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size:72px 72px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 35%, black, transparent);
+  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 35%, black, transparent);
+}
+.gb-hero {
+  position:relative; max-width:1160px; margin:0 auto;
+  padding:clamp(64px,9vw,112px) clamp(24px,5vw,60px) clamp(56px,7vw,96px);
+  text-align:center;
+}
+
+/* ─ Badge ─ */
+.gb-hbadge {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(99,102,241,.09); border:1px solid rgba(99,102,241,.26);
+  border-radius:20px; padding:6px 15px 6px 10px; margin-bottom:44px;
+  font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
+  letter-spacing:.04em; color:#818cf8; text-transform:uppercase;
+}
+.gb-hblink { color:rgba(255,255,255,.6); text-decoration:none; margin-left:6px; font-weight:500; font-size:11px; }
+.gb-hblink:hover { color:#fff; }
+.gb-blink-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:#22c55e; box-shadow:0 0 8px #22c55e;
+  animation:blink 2s ease-in-out infinite; display:inline-block; flex-shrink:0;
+}
+
+/* ─ Title ─ */
+.gb-htitle {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(50px,8vw,96px); font-weight:800;
+  letter-spacing:-0.05em; line-height:1.0;
+  color:#fff; margin:0 0 28px;
+}
+.gb-shine {
   background:linear-gradient(135deg,#fff 0%,#a5b4fc 38%,#38bdf8 72%,#fff 100%);
   background-size:200% 200%;
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   background-clip:text;
-  animation:gb-shine 7s ease-in-out infinite alternate;
+  animation:shine 7s ease-in-out infinite alternate;
 }
-.gb-sub {
-  font-family:'Inter',sans-serif; font-size:15px; font-weight:400;
-  color:#94a3b8; margin:0 auto 28px; max-width:560px; line-height:1.65;
+
+/* ─ Sub ─ */
+.gb-hsub {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(16px,2vw,19px); font-weight:400;
+  color:#a1a1aa; max-width:580px; margin:0 auto 44px;
+  line-height:1.85;
 }
-.gb-pills { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
-.gb-pill {
-  display:inline-flex; align-items:center; gap:6px;
-  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
-  border-radius:7px; padding:7px 15px;
-  font-family:'Inter',sans-serif; font-size:12px; font-weight:500;
-  color:#94a3b8; text-decoration:none;
-  transition:color .15s, border-color .15s, background .15s;
+
+/* ─ Hero CTAs ─ */
+.gb-hctas { display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:56px; }
+.gb-hbtn-p {
+  display:inline-flex; align-items:center; gap:8px;
+  background:#6366f1; color:#fff; padding:13px 28px; border-radius:12px;
+  font-family:'Inter',sans-serif; font-size:14px; font-weight:600;
+  letter-spacing:-.01em; text-decoration:none;
+  transition:background .15s, box-shadow .2s;
 }
-.gb-pill:hover { color:#a5b4fc; border-color:rgba(99,102,241,.4); background:rgba(99,102,241,.08); }
-.gb-pill-red { border-color:rgba(239,68,68,.3) !important; color:#f87171 !important; }
-.gb-pill-red:hover { background:rgba(239,68,68,.07) !important; }
-.gb-sep { height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent); margin:36px 0 0; }
+.gb-hbtn-p:hover { background:#4f46e5; box-shadow:0 8px 32px rgba(99,102,241,.42); }
+.gb-hbtn-s {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.13);
+  color:#fff; padding:13px 28px; border-radius:12px;
+  font-family:'Inter',sans-serif; font-size:14px; font-weight:500;
+  letter-spacing:-.01em; text-decoration:none;
+  transition:background .15s, border-color .2s;
+}
+.gb-hbtn-s:hover { background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.22); }
+
+/* ─ Stats bar ─ */
+.gb-hstats {
+  display:flex; justify-content:center; align-items:center;
+  gap:0; flex-wrap:wrap;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  background:rgba(255,255,255,.03);
+  backdrop-filter:blur(12px);
+  overflow:hidden; max-width:600px; margin:0 auto;
+}
+.gb-si {
+  flex:1; min-width:110px; padding:22px 20px; text-align:center;
+  border-right:1px solid rgba(255,255,255,.07); transition:background .2s;
+}
+.gb-si:last-child { border-right:none; }
+.gb-si:hover { background:rgba(255,255,255,.04); }
+.gb-sn {
+  font-family:'Inter',sans-serif; font-size:28px; font-weight:800;
+  color:#fff; letter-spacing:-.04em; line-height:1; margin-bottom:5px;
+}
+.gb-sl {
+  font-family:'Inter',sans-serif; font-size:11px; font-weight:500;
+  color:#a1a1aa; text-transform:uppercase; letter-spacing:.09em;
+}
+
+/* ─ Hero bottom sep ─ */
+.gb-hero-sep {
+  height:1px; margin:0 calc(-1 * clamp(20px,4vw,56px));
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
+}
 </style>
-<div class="gb-hdr">
-  <div class="gb-badge"><span class="gb-dot"></span>Live Demo &nbsp;·&nbsp; EU AI Act Compliance Platform</div>
-  <h1 class="gb-h1">Glassbox <span class="gb-grad">3.4</span></h1>
-  <p class="gb-sub">Causal Mechanistic Interpretability &nbsp;·&nbsp; EU AI Act Annex IV Compliance &nbsp;·&nbsp; Bias Analysis</p>
-  <div class="gb-pills">
-    <a class="gb-pill" href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">⭐&nbsp;GitHub</a>
-    <a class="gb-pill" href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">📦&nbsp;pip install glassbox-mech-interp</a>
-    <span class="gb-pill gb-pill-red">⚡&nbsp;Enforcement: August 2026</span>
-  </div>
-  <div class="gb-sep"></div>
+
+<!-- Topbar -->
+<div class="gb-topbar">
+  EU AI Act enforcement: August 2, 2026 &mdash; Full Annex IV evidence packages, automated.
+  <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">View on GitHub &rarr;</a>
 </div>
+
+<!-- Nav -->
+<nav class="gb-nav">
+  <a class="gb-nav-logo" href="https://project-gu05p.vercel.app/" target="_blank">
+    <div class="gb-nav-mark">
+      <svg fill="none" viewBox="0 0 13 13" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1.5" y="1.5" width="10" height="10" rx="2"/>
+        <path d="M4 6.5h5M6.5 4v5"/>
+      </svg>
+    </div>
+    Glassbox AI
+  </a>
+  <div class="gb-nav-cx">
+    <ul class="gb-nav-links">
+      <li><a href="#circuit">Circuit Analysis</a></li>
+      <li><a href="#logit">Logit Lens</a></li>
+      <li><a href="#attention">Attention</a></li>
+      <li><a href="#compliance">Compliance</a></li>
+      <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">Docs</a></li>
+    </ul>
+  </div>
+  <div class="gb-nav-r">
+    <a class="gb-nav-ghost" href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI</a>
+    <a class="gb-nav-cta" href="https://project-gu05p.vercel.app/" target="_blank">
+      Website
+      <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 10L10 2M6 2h4v4"/></svg>
+    </a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="gb-hero-wrap">
+  <div class="gb-hmesh"></div>
+  <div class="gb-hgrid"></div>
+  <div class="gb-hero">
+    <div class="gb-hbadge">
+      <span class="gb-blink-dot"></span>
+      Live Interactive Demo
+    </div>
+    <h1 class="gb-htitle">The compliance layer<br>for <span class="gb-shine">production AI.</span></h1>
+    <p class="gb-hsub">Map your LLM&rsquo;s attention circuits to EU AI Act Annex IV requirements. One function call. A complete evidence package.</p>
+    <div class="gb-hctas">
+      <a class="gb-hbtn-p" href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M7 1v4M7 9v4M1 7h4M9 7h4"/><circle cx="7" cy="7" r="2"/></svg>
+        pip install glassbox-mech-interp
+      </a>
+      <a class="gb-hbtn-s" href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">
+        <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 1C3.91 1 1 3.91 1 7.5c0 2.87 1.86 5.3 4.44 6.16.32.06.44-.14.44-.31v-1.08c-1.8.39-2.18-.87-2.18-.87-.3-.75-.72-.95-.72-.95-.59-.4.04-.39.04-.39.65.04 1 .67 1 .67.58 1 1.53.71 1.9.54.06-.42.23-.71.41-.87-1.44-.16-2.95-.72-2.95-3.2 0-.71.25-1.29.67-1.74-.07-.17-.29-.82.06-1.72 0 0 .55-.18 1.8.67a6.27 6.27 0 013.26 0c1.25-.85 1.8-.67 1.8-.67.35.9.13 1.55.06 1.72.42.45.67 1.03.67 1.74 0 2.49-1.52 3.04-2.96 3.2.23.2.44.6.44 1.21v1.79c0 .17.12.37.44.31A6.5 6.5 0 0014 7.5C14 3.91 11.09 1 7.5 1z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <div class="gb-hstats">
+      <div class="gb-si"><div class="gb-sn">3.4M</div><div class="gb-sl">Downloads</div></div>
+      <div class="gb-si"><div class="gb-sn">8</div><div class="gb-sl">Annex IV Sections</div></div>
+      <div class="gb-si"><div class="gb-sn">&lt;2s</div><div class="gb-sl">Per Audit</div></div>
+      <div class="gb-si"><div class="gb-sn">MIT</div><div class="gb-sl">License</div></div>
+    </div>
+  </div>
+</div>
+<div class="gb-hero-sep"></div>
 """
 
 ABOUT_TEXT = """
@@ -956,33 +1184,70 @@ with gr.Blocks(
             gr.Markdown(ABOUT_TEXT)
 
     gr.HTML("""
-<div style="
-  text-align:center; padding:24px 0 12px;
-  margin-top:20px; border-top:1px solid rgba(255,255,255,.06);
-  font-family:'Inter',sans-serif; font-size:12px;
-  color:#3f3f46; letter-spacing:.02em;
-">
-  <span style="color:#52525b;">Glassbox v3.4.0</span>
-  &nbsp;·&nbsp; Built on TransformerLens
-  &nbsp;·&nbsp; MIT License
-  &nbsp;·&nbsp; <a href="mailto:mahale.ajay01@gmail.com" style="color:#52525b;text-decoration:none;">mahale.ajay01@gmail.com</a>
-  &nbsp;·&nbsp; EU AI Act (EU) 2024/1689
-  <div style="margin-top:10px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">
-    <a href="https://project-gu05p.vercel.app" target="_blank"
-       style="color:#52525b;text-decoration:none;font-size:11px;transition:color .15s;"
-       onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#52525b'">
-      🌐 Website
-    </a>
-    <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank"
-       style="color:#52525b;text-decoration:none;font-size:11px;transition:color .15s;"
-       onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#52525b'">
-      ⭐ GitHub
-    </a>
-    <a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank"
-       style="color:#52525b;text-decoration:none;font-size:11px;transition:color .15s;"
-       onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#52525b'">
-      📦 PyPI
-    </a>
+<style>
+.gb-ft { border-top:1px solid rgba(255,255,255,.07); margin-top:24px; padding:28px 0 16px; }
+.gb-ft-top { display:flex; align-items:flex-start; gap:40px; flex-wrap:wrap; margin-bottom:24px; }
+.gb-ft-brand { flex:2; min-width:200px; }
+.gb-ft-logo { display:flex; align-items:center; gap:8px; font-family:'Inter',sans-serif; font-size:15px; font-weight:700; letter-spacing:-.02em; color:#fff; margin-bottom:8px; }
+.gb-ft-logo-mark { width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,#6366f1,#0ea5e9); display:flex; align-items:center; justify-content:center; }
+.gb-ft-logo-mark svg { width:11px; height:11px; }
+.gb-ft-tag { font-family:'Inter',sans-serif; font-size:13px; color:#52525b; line-height:1.6; max-width:260px; }
+.gb-ft-col { flex:1; min-width:120px; }
+.gb-ft-ctitle { font-family:'Inter',sans-serif; font-size:11px; font-weight:600; color:#fff; letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px; }
+.gb-ft-col ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+.gb-ft-col a { font-family:'Inter',sans-serif; font-size:13px; color:#52525b; text-decoration:none; transition:color .15s; }
+.gb-ft-col a:hover { color:#a1a1aa; }
+.gb-ft-bot { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:20px; border-top:1px solid rgba(255,255,255,.05); }
+.gb-ft-copy { font-family:'Inter',sans-serif; font-size:12px; color:#3f3f46; }
+.gb-ft-legal { display:flex; gap:16px; flex-wrap:wrap; }
+.gb-ft-legal a { font-family:'Inter',sans-serif; font-size:12px; color:#3f3f46; text-decoration:none; transition:color .15s; }
+.gb-ft-legal a:hover { color:#71717a; }
+</style>
+<div class="gb-ft">
+  <div class="gb-ft-top">
+    <div class="gb-ft-brand">
+      <div class="gb-ft-logo">
+        <div class="gb-ft-logo-mark">
+          <svg fill="none" viewBox="0 0 13 13" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1.5" y="1.5" width="10" height="10" rx="2"/>
+            <path d="M4 6.5h5M6.5 4v5"/>
+          </svg>
+        </div>
+        Glassbox AI
+      </div>
+      <div class="gb-ft-tag">The compliance layer for production AI. EU AI Act Annex IV, automated.</div>
+    </div>
+    <div class="gb-ft-col">
+      <div class="gb-ft-ctitle">Product</div>
+      <ul>
+        <li><a href="https://project-gu05p.vercel.app/#features" target="_blank">Features</a></li>
+        <li><a href="https://project-gu05p.vercel.app/#pricing" target="_blank">Pricing</a></li>
+        <li><a href="https://project-gu05p.vercel.app/#coverage" target="_blank">EU AI Act</a></li>
+      </ul>
+    </div>
+    <div class="gb-ft-col">
+      <div class="gb-ft-ctitle">Developers</div>
+      <ul>
+        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">GitHub</a></li>
+        <li><a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI</a></li>
+        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool#readme" target="_blank">Docs</a></li>
+      </ul>
+    </div>
+    <div class="gb-ft-col">
+      <div class="gb-ft-ctitle">Legal</div>
+      <ul>
+        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/LICENSE" target="_blank">MIT License</a></li>
+        <li><a href="mailto:mahale.ajay01@gmail.com">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="gb-ft-bot">
+    <div class="gb-ft-copy">&copy; 2026 Glassbox AI &nbsp;&middot;&nbsp; Built on TransformerLens &nbsp;&middot;&nbsp; v3.4.0</div>
+    <div class="gb-ft-legal">
+      <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/LICENSE" target="_blank">MIT License</a>
+      <a href="mailto:mahale.ajay01@gmail.com">mahale.ajay01@gmail.com</a>
+      <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank">EU AI Act (EU) 2024/1689</a>
+    </div>
   </div>
 </div>
     """)
