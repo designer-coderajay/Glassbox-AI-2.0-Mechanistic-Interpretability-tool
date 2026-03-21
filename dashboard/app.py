@@ -24,6 +24,24 @@ v3.3.0 new features:
 """
 
 import io
+
+# ── gradio_client boolean-schema compatibility fix ────────────────────────────
+# gradio_client utils.py does `if "const" in schema` which crashes when schema
+# is a JSON Schema boolean (True/False).  Patch it to handle non-dict schemas.
+try:
+    import gradio_client.utils as _gcu
+    _orig_get_type = _gcu.get_type
+
+    def _safe_get_type(schema: dict):
+        if not isinstance(schema, dict):
+            return "unknown"
+        return _orig_get_type(schema)
+
+    _gcu.get_type = _safe_get_type
+except Exception:
+    pass
+# ─────────────────────────────────────────────────────────────────────────────
+
 import gradio as gr
 import torch
 import numpy as np
