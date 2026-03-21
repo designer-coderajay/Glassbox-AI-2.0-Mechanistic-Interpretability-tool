@@ -1,0 +1,98 @@
+# =============================================================================
+# Glassbox AI — .dockerignore
+# Excludes files from Docker build context to keep images lean and
+# prevent accidental inclusion of secrets or development artifacts.
+# =============================================================================
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python caches and build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+pip-wheel-metadata/
+.eggs/
+.installed.cfg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Large data and model files (these should be in volumes, not images)
+data/
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+*.gguf
+*.npy
+*.npz
+*.h5
+*.hdf5
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI / CD
+.github/
+
+# Development tools
+.pre-commit-config.yaml
+Makefile
+
+# Secrets — never include these
+.env
+.env.*
+*.pem
+*.key
+*.crt
+secrets/
+
+# Logs
+*.log
+logs/
+
+# Reports (generated at runtime, stored in volumes)
+reports/

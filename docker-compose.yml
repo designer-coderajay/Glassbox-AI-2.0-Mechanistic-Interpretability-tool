@@ -1,0 +1,215 @@
+# =============================================================================
+# Glassbox AI — Production Docker Compose v3.4.0
+# =============================================================================
+#
+# Services
+# --------
+#   api          FastAPI REST API              :8000
+#   dashboard    Gradio compliance UI          :7860
+#   redis        Result cache + rate limiting  :6379  (optional)
+#   nginx        TLS termination + routing     :443   (optional)
+#
+# Quick start (API + Dashboard, no TLS)
+# --------------------------------------
+#   docker compose up api dashboard
+#
+# Full production stack (with TLS and caching)
+#   GLASSBOX_DOMAIN=compliance.yourbank.com docker compose --profile production up
+#
+# Air-gapped / offline mode (no HuggingFace downloads at runtime)
+#   docker compose --profile offline up
+#
+# Environment variables (set in .env or pass directly)
+# -------------------------------------------------------
+#   GLASSBOX_SECRET_KEY     Random string for HMAC webhook signing
+#   GLASSBOX_LOG_LEVEL      debug | info | warning (default: info)
+#   GLASSBOX_MAX_WORKERS    Uvicorn worker count (default: 2)
+#   HF_HUB_OFFLINE          Set to 1 for air-gapped deployments
+#   MLFLOW_TRACKING_URI     MLflow server URI (optional)
+#   SLACK_WEBHOOK_URL       Slack alerting webhook (optional)
+#   TEAMS_WEBHOOK_URL       Teams alerting webhook (optional)
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # API — FastAPI compliance REST API
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      target: api
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    image: glassbox-api:3.4.0
+    container_name: glassbox-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      GLASSBOX_LOG_LEVEL:    ${GLASSBOX_LOG_LEVEL:-info}
+      GLASSBOX_SECRET_KEY:   ${GLASSBOX_SECRET_KEY:-change-me-in-production}
+      UVICORN_WORKERS:       ${GLASSBOX_MAX_WORKERS:-2}
+      HF_HUB_OFFLINE:        ${HF_HUB_OFFLINE:-0}
+      MLFLOW_TRACKING_URI:   ${MLFLOW_TRACKING_URI:-}
+      SLACK_WEBHOOK_URL:     ${SLACK_WEBHOOK_URL:-}
+      TEAMS_WEBHOOK_URL:     ${TEAMS_WEBHOOK_URL:-}
+      # Cache directory — models downloaded here on first run
+      HF_HOME:               /app/.cache/huggingface
+    volumes:
+      # Persist downloaded model weights across restarts
+      - model-cache:/app/.cache/huggingface
+      # Persist audit log JSONL files
+      - audit-data:/app/data/audit_logs
+      # Persist Annex IV report output
+      - reports:/app/data/reports
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - glassbox-internal
+    # Resource limits — adjust for your hardware
+    # Minimum for GPT-2: 2 CPU, 4 GB RAM
+    # Recommended for Llama-2-7B: 4 CPU, 16 GB RAM
+    deploy:
+      resources:
+        limits:
+          cpus:   "4.0"
+          memory: 8G
+        reservations:
+          cpus:   "1.0"
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # ---------------------------------------------------------------------------
+  # Dashboard — Gradio compliance UI
+  # ---------------------------------------------------------------------------
+  dashboard:
+    build:
+      context: .
+      target: dashboard
+    image: glassbox-dashboard:3.4.0
+    container_name: glassbox-dashboard
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    environment:
+      GLASSBOX_API_URL:       http://api:8000
+      GRADIO_SERVER_NAME:     "0.0.0.0"
+      GRADIO_SERVER_PORT:     "7860"
+      GRADIO_ANALYTICS_ENABLED: "False"
+      HF_HUB_OFFLINE:         ${HF_HUB_OFFLINE:-0}
+      HF_HOME:                /app/.cache/huggingface
+    volumes:
+      - model-cache:/app/.cache/huggingface
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 120s
+    networks:
+      - glassbox-internal
+      - glassbox-external
+    deploy:
+      resources:
+        limits:
+          cpus:   "2.0"
+          memory: 4G
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
+  # Redis — result cache + rate limiting (optional, production profile)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: glassbox-redis
+    restart: unless-stopped
+    profiles:
+      - production
+      - cache
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru --save ""
+    volumes:
+      - redis-data:/data
+    networks:
+      - glassbox-internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 640M
+
+  # ---------------------------------------------------------------------------
+  # Nginx — TLS termination + reverse proxy (production profile)
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: glassbox-nginx
+    restart: unless-stopped
+    profiles:
+      - production
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - api
+      - dashboard
+    networks:
+      - glassbox-internal
+      - glassbox-external
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ---------------------------------------------------------------------------
+# Networks
+# ---------------------------------------------------------------------------
+networks:
+  glassbox-internal:
+    driver: bridge
+    internal: true    # no outbound internet from internal services
+  glassbox-external:
+    driver: bridge    # only dashboard and nginx are on this network
+
+# ---------------------------------------------------------------------------
+# Volumes
+# ---------------------------------------------------------------------------
+volumes:
+  model-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MODEL_CACHE_PATH:-./data/model_cache}
+  audit-data:
+    driver: local
+  reports:
+    driver: local
+  redis-data:
+    driver: local
+  nginx-logs:
+    driver: local
