@@ -39,15 +39,28 @@ from transformer_lens import HookedTransformer
 from glassbox import GlassboxV2, AuditLog, BiasAnalyzer, AnnexIVReport, DeploymentContext
 from glassbox.explain import NaturalLanguageExplainer
 
-_explainer = NaturalLanguageExplainer(verbosity="standard", include_article_refs=True)
+_STARTUP_ERROR = None
 
-model = HookedTransformer.from_pretrained("gpt2")
-model.eval()
-gb = GlassboxV2(model)
-print("Model ready (12 layers × 12 heads, 117 M params)")
+try:
+    _explainer = NaturalLanguageExplainer(verbosity="standard", include_article_refs=True)
 
-_audit_log = AuditLog("glassbox_space_audit.jsonl")
-_bias_analyzer = BiasAnalyzer()
+    model = HookedTransformer.from_pretrained("gpt2")
+    model.eval()
+    gb = GlassboxV2(model)
+    print("Model ready (12 layers × 12 heads, 117 M params)")
+
+    _audit_log = AuditLog("glassbox_space_audit.jsonl")
+    _bias_analyzer = BiasAnalyzer()
+except Exception as _e:
+    import traceback
+    _STARTUP_ERROR = traceback.format_exc()
+    print("STARTUP ERROR:", _STARTUP_ERROR)
+    # Provide stubs so the rest of the module parses cleanly
+    model = None
+    gb = None
+    _explainer = None
+    _audit_log = None
+    _bias_analyzer = None
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -543,6 +556,8 @@ with gr.Blocks(
         button_primary_background_fill_hover="#4f46e5",
     )
 ) as demo:
+    if _STARTUP_ERROR:
+        gr.Markdown(f"## ⚠️ Startup Error\n```\n{_STARTUP_ERROR}\n```")
     gr.HTML(HEADER)
 
     with gr.Tabs():
