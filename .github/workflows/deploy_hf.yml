@@ -85,6 +85,7 @@ jobs:
           #       torch CPU-only keeps the HF Space build fast (<5 min).
           cat > hf_space/requirements.txt << 'REQS'
           gradio>=4.44.0,<5.0.0
+          pyaudioop>=0.2.0
           numpy>=1.24.0
           matplotlib>=3.7.0
           Pillow>=9.0.0
