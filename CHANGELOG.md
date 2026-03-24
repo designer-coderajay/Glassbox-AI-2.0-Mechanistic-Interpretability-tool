@@ -6,6 +6,63 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased] — HuggingFace Space UI Fixes — 2026-03-22
+
+### Fixed
+- **HF Space About tab blank** — root cause was a CSS selector (`.etali4b10, .svelte-po8fcl { display:none !important }`) that matched the Gradio 4.43.0 Markdown component wrapper, silently hiding every `gr.Markdown()` and `gr.HTML()` block in the app. Full GB_CSS rewrite replacing 430 lines with 270 lines of clean, version-stable CSS using semantic selectors and `data-testid` attributes only.
+- **Compliance Report "Error generating compliance report: D"** — `AnnexIVReport` library class raises an internal exception with message `"D"` on HF Space (version mismatch). Restructured `run_compliance_report` to derive grade A/B/C/D directly from the raw `gb.analyze()` result without depending on `AnnexIVReport`. `AnnexIVReport` is now tried non-blocking for the model card only; a fallback model card is generated if it throws.
+- **Compliance Report output invisible** — `cr_report` component was `gr.HTML()` but the function returns mixed Markdown+HTML. Changed to `gr.Markdown(sanitize_html=False)` which renders both Markdown tables/headings and inline HTML div blocks.
+- **About tab blank (previous attempts)** — replaced `gr.HTML(ABOUT_HTML)` (unreliable in HF iframe) with `gr.Markdown(ABOUT_MD)` using standard Markdown content. Gradio's Markdown component is unconditionally reliable.
+- **HF Space URLs in README** — all 7 occurrences of the wrong Space ID (`Glassbox-ai`) corrected to `Glassbox-AI-2.0-Mechanistic-Interpretability-tool`.
+- **pyproject.toml project URLs** — `Homepage`, `Dashboard`, `Documentation` updated from stale Render.com URL to active Vercel site, HF Space, and GitHub README.
+- **GitHub Actions workflow** — fixed deploy target from wrong Space name to `Glassbox-AI-2.0-Mechanistic-Interpretability-tool`; added force-push and dynamic commit messages.
+
+---
+
+## [3.4.0] — 2026-03-21
+
+### Added
+- **MultiAgentAudit** (`glassbox/multi_agent_audit.py`): First open-source tool to trace bias contamination and semantic drift across multi-agent chains. `MultiAgentAudit().audit_chain([AgentCall(...)])` returns a `ChainAuditReport` with per-agent liability scoring, most-liable-agent identification, and Annex IV Article 9 narrative. Scores bias across 8 EU AI Act Article 10(5) protected categories. `to_html()` generates a self-contained liability dashboard. Maps to Article 9, Article 10(2)(f), Article 10(5), Article 13(1). Exported from top-level: `from glassbox import MultiAgentAudit, AgentCall`.
+- **SteeringVectorExporter** (`glassbox/steering.py`): Extract and export steering vectors from the residual stream using Representation Engineering (Zou et al. 2023). `extract_mean_diff()`, `extract_pca()`, and `extract_bias_suite()` methods. `apply()` applies a vector as a runtime hook. `test_suppression()` computes before/after faithfulness comparison and suppression ratio. `export_pt()` / `export_numpy()` for regulatory submission artefacts. Maps to Article 9(2)(b), Article 9(5), Article 15(1). Exported: `SteeringVectorExporter, SteeringVector`.
+- **AnnexIVEvidenceVault** (`glassbox/annex_iv_vault.py`): Assembles all interpretability findings (circuit analysis, bias tests, steering vectors, multi-agent audits, SAE features, stability scores) into a single machine-readable, regulation-mapped Annex IV evidence vault. `build_annex_iv_vault()` top-level function. Outputs JSON and self-contained HTML suitable for regulatory submission. Covers Annex IV §1–§7, maps to Articles 9, 10, 11, 13, 15, 72.
+- **HuggingFace Space v3.4** interactive dashboard deployed at `designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool` with five tabs: Circuit Analysis, Logit Lens, Attention Patterns, Compliance Report, About.
+
+### Changed
+- Version bumped to 3.4.0 in `pyproject.toml`.
+- README: Added v3.4.0 "What's New" section with full code examples for all three new modules. Updated live services table. Live demo link updated to correct HF Space.
+
+---
+
+## [3.3.0] — 2026-03-20
+
+### Added
+- **NaturalLanguageExplainer** (`glassbox/explain.py`): Rule-based, deterministic converter from raw circuit analysis results to structured plain-English compliance summaries. Zero LLM dependency. `verbosity` levels: `"brief"`, `"standard"`, `"detailed"`. `include_article_refs=True` adds EU AI Act article citations to every sentence. Methods: `explain()`, `explain_sections()`, `to_html()`. Exported: `NaturalLanguageExplainer`.
+- **HuggingFace Hub integration** (`glassbox/hf_integration.py`): `load_from_hub()` loads any HookedTransformer-compatible model from HF Hub (29 architecture aliases). `HuggingFaceModelCard` pushes/reads compliance metadata sections to/from model card README.md. `push_compliance_section()` adds grade, F1, circuit summary, and article mapping. Exported: `load_from_hub, HuggingFaceModelCard`. Install: `pip install 'glassbox-mech-interp[hf]'`.
+- **MLflow integration** (`glassbox/mlflow_integration.py`): `log_glassbox_run()` logs a full circuit analysis result as an MLflow run — grade, F1, sufficiency, comprehensiveness, circuit heads, and prompt metadata. `GlassboxMLflowCallback` for automatic logging during batch analysis. Install: `pip install 'glassbox-mech-interp[mlflow]'`.
+- **Slack/Teams alerting** (`glassbox/notify.py`): `SlackAlerter` and `TeamsAlerter` send formatted alerts when CircuitDiff detects drift (`drift_threshold`) or compliance grade drops (`grade_threshold`). Webhook-based, no SDK required. `AlertConfig` for threshold management.
+- **GitHub Action CI hook** (`glassbox/ci_hook.py`): `check_compliance_gate()` function suitable for use in GitHub Actions; exits with code 1 if compliance grade drops below configured threshold. Sample workflow in README.
+
+### Changed
+- `GlassboxV2.analyze()` now integrates `NaturalLanguageExplainer` — result dict includes `"explanation"` key with plain-English summary when `explain=True` (default False to preserve backward compatibility).
+- README: Added v3.3.0 "What's New" section. Updated live services table.
+
+---
+
+## [3.2.0] — 2026-03-20
+
+### Added
+- **Black-box audit mode**: `BlackBoxAuditor` class in `glassbox/black_box.py`. Runs behavioural proxy metrics (token probability, output consistency, bias probes) on any model accessible via a callable — GPT-4, Claude, Gemini, or any proprietary API. No model weights required. `audit_api_model(model_fn, prompt, correct, incorrect)` returns faithfulness proxies and Annex IV draft. Exported: `BlackBoxAuditor`.
+- **Stability suite** (`glassbox/stability.py`): `stability_suite(gb, prompt, correct, incorrect, n_bootstrap=100)` runs bootstrap F1 estimation, prompt perturbation robustness, and token-swap sensitivity. Returns `StabilityResult` with confidence intervals and `summary_stats()`. Exported: `stability_suite, StabilityResult`.
+- **AnnexIVReport** (`glassbox/compliance.py`): `AnnexIVReport` class generates the full 9-section EU AI Act Annex IV technical documentation package. `to_json()`, `to_markdown()`, `to_model_card()` export formats. `add_analysis()` attaches circuit results. Exported: `AnnexIVReport`.
+- **REST API** (`glassbox/api.py`): FastAPI-based REST endpoint. `/analyze`, `/compliance-report`, `/audit-log`, `/health` routes. `pip install 'glassbox-mech-interp[api]'`.
+- **DeploymentContext enum** (`glassbox/compliance.py`): `FINANCIAL_SERVICES`, `HEALTHCARE`, `HR_EMPLOYMENT`, `EDUCATION`, `LEGAL`, `OTHER_HIGH_RISK` for context-aware risk classification and Annex IV narrative. Exported: `DeploymentContext`.
+
+### Changed
+- `GlassboxV2` now accepts `model_name` kwarg for Annex IV auto-population.
+- README: Added black-box audit section. Updated live services table to v3.2.0.
+
+---
+
 ## [3.1.0] — 2026-03-20
 
 ### Added

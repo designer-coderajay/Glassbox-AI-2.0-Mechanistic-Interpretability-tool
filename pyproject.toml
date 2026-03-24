@@ -64,9 +64,9 @@ dependencies = [
 
 
 [project.urls]
-Homepage      = "https://glassbox-ai-2-0-mechanistic.onrender.com"
-Dashboard     = "https://glassbox-ai-2-0-mechanistic.onrender.com/dashboard"
-Documentation = "https://glassbox-ai-2-0-mechanistic.onrender.com/docs"
+Homepage      = "https://project-gu05p.vercel.app"
+Dashboard     = "https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+Documentation = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool#readme"
 Repository    = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
 Paper         = "https://arxiv.org/abs/2603.09988"
 

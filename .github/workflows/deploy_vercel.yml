@@ -1,0 +1,40 @@
+name: Deploy to Vercel (Production)
+
+# Deploys the website to Vercel on every push to main and posts the
+# GitHub Deployment status (green/red) back to the repo.
+#
+# One-time setup required — add these three GitHub Secrets:
+#   VERCEL_TOKEN      → https://vercel.com/account/tokens  (create a token)
+#   VERCEL_ORG_ID     → team_lKQMS6ZfVVe1y9KXXN7Kt6jJ
+#   VERCEL_PROJECT_ID → prj_Am5pxHcNUDNAiTwR2hAJl9HFEnf2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Vercel Production
+    runs-on: ubuntu-latest
+
+    environment:
+      name: Production
+      url: https://project-gu05p.vercel.app
+
+    permissions:
+      deployments: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-comment: false

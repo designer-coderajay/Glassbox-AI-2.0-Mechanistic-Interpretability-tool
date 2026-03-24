@@ -4,16 +4,19 @@
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 
-[![PyPI](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue&label=PyPI%20v3.4.0)](https://pypi.org/project/glassbox-mech-interp/)
-[![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)]([https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
+[![PyPI version](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue)](https://pypi.org/project/glassbox-mech-interp/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/glassbox-mech-interp?color=blue&label=downloads%2Fmonth)](https://pypistats.org/packages/glassbox-mech-interp)
+[![GitHub last commit](https://img.shields.io/github/last-commit/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool?color=green)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/commits/main)
+[![GitHub issues](https://img.shields.io/github/issues/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues)
+[![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
 [![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](LICENSE-COMMERCIAL) [![Patents Pending](https://img.shields.io/badge/Patents-Pending-blue.svg)](PATENTS.md)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
-[![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai)
+[![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
 [![Website](https://img.shields.io/badge/Website-glassboxai.online-blue)](https://project-gu05p.vercel.app)
 [![arXiv](https://img.shields.io/badge/arXiv-2603.09988-b31b1b?logo=arxiv)](https://arxiv.org/abs/2603.09988)
 [![Tests](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml)
 
-[**Website**](https://project-gu05p.vercel.app) · [**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**GitHub**](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
+[**Website**](https://project-gu05p.vercel.app) · [**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**GitHub**](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
 
 </div>
 
@@ -63,7 +66,7 @@
 | Service | URL | Description |
 |---------|-----|-------------|
 | **Website** | [project-gu05p.vercel.app](https://project-gu05p.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
-| **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) | Interactive circuit analysis on open-source models. No install needed. |
+| **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
 | **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.4.0 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
@@ -99,7 +102,7 @@ print(result["faithfulness"])
 #  'suff_is_approx': True}       # True = approx; use bootstrap_metrics() for exact ~100%
 ```
 
-No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) — no install required.
+No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) — no install required.
 
 ---
 
@@ -1109,7 +1112,7 @@ npm install glassbox-sdk    # Node.js, Deno, Bun
 
 Two dashboard options:
 
-**Option 1 — Live Demo (no install):** Visit the [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai). Interactive circuit analysis on open-source models, no install needed.
+**Option 1 — Live Demo (no install):** Visit the [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool). Interactive circuit analysis on open-source models, no install needed.
 
 **Option 2 — Research UI (Gradio, local):**
 
@@ -1122,7 +1125,7 @@ python dashboard/app.py
 # Tabs: Circuit Analysis · Logit Lens · Attention Patterns
 ```
 
-**Option 3 — HuggingFace Space:** [huggingface.co/spaces/designer-coderajay/Glassbox-ai](https://huggingface.co/spaces/designer-coderajay/Glassbox-ai) — white-box circuit analysis, no install needed.
+**Option 3 — HuggingFace Space:** [huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) — white-box circuit analysis, no install needed.
 
 ---
 
