@@ -1,0 +1,7 @@
+# Base runtime dependencies
+# Mirrors [project.dependencies] in pyproject.toml
+# Use: pip install -r requirements/base.txt
+torch>=2.0.0
+transformer-lens>=1.14.0
+einops>=0.6.0
+numpy>=1.24.0

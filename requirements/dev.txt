@@ -1,0 +1,9 @@
+# Development and testing dependencies
+# Use: pip install -r requirements/dev.txt
+-r base.txt
+
+pytest>=7.0.0
+pytest-cov>=4.0.0
+ruff>=0.4.0
+mypy>=1.8.0
+pre-commit>=3.6.0

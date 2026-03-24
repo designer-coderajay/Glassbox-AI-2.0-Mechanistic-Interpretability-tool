@@ -1,16 +1,52 @@
+# Python
 *.egg-info/
 __pycache__/
 *.pyc
 *.pyo
-.pytest_cache/
+*.pyd
+*.so
+*.egg
 dist/
 build/
-*.egg
+wheels/
+sdist/
+.eggs/
+
+# Testing & coverage
+.pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
+*.cover
+
+# Type checkers & linters
 .mypy_cache/
 .ruff_cache/
-*.so
+.dmypy.json
+
+# Environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+
+# Editors
 .DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Gradio flagged outputs
 flagged/
+
+# Private files
 department_roadmap.md

@@ -1,0 +1,25 @@
+# CODEOWNERS
+# Each line maps a path pattern to the owner(s) who review PRs touching it.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: all changes require review from the maintainer
+*                               @designer-coderajay
+
+# Core library — extra scrutiny on algorithm changes
+/glassbox/                      @designer-coderajay
+/glassbox/core.py               @designer-coderajay
+/glassbox/compliance.py         @designer-coderajay
+/glassbox/circuit_diff.py       @designer-coderajay
+
+# Public API
+/api/                           @designer-coderajay
+
+# CI/CD and release workflows — any change needs maintainer sign-off
+/.github/workflows/             @designer-coderajay
+/pyproject.toml                 @designer-coderajay
+
+# Website
+/docs/                          @designer-coderajay
+
+# Tests — no change should reduce coverage
+/tests/                         @designer-coderajay
