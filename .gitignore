@@ -12,3 +12,5 @@ htmlcov/
 .ruff_cache/
 *.so
 .DS_Store
+flagged/
+department_roadmap.md
