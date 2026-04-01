@@ -15,7 +15,9 @@ on:
     branches: [main]
     paths:
       - "dashboard/app.py"
+      - "glassbox/**"
       - ".github/workflows/deploy_hf.yml"
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -89,7 +91,7 @@ jobs:
           matplotlib>=3.7.0
           Pillow>=9.0.0
           transformer-lens>=1.19.0
-          glassbox-mech-interp>=3.4.0
+          glassbox-mech-interp>=3.5.0
           torch>=2.3.0
           einops>=0.6.1
           fancy_einsum>=0.0.3
