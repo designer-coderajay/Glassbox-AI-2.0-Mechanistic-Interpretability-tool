@@ -1,930 +1,1007 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Glassbox — EU AI Act Annex IV compliance documentation. Causal circuit discovery for any transformer model. 37× faster than ACDC." />
-  <meta property="og:title" content="Glassbox — The compliance audit your model cannot fake." />
-  <meta property="og:description" content="Causal circuit discovery. EU AI Act Annex IV documentation. 37× faster than ACDC." />
-  <meta property="og:type" content="website" />
-  <title>Glassbox — Causal Mechanistic Interpretability</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Glassbox AI maps your LLM's attention circuits to EU AI Act Annex IV requirements. One function call. A complete evidence package. August 2026 ready.">
+<meta property="og:title" content="Glassbox AI — EU AI Act Compliance, Automated">
+<meta property="og:description" content="The compliance layer for production AI. Map circuits to Annex IV. Ship before August 2026.">
+<meta property="og:type" content="website">
+<title>Glassbox AI — EU AI Act Compliance, Automated</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET ───────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',ui-sans-serif,-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#000;color:#fff;line-height:1.6;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+::selection{background:rgba(99,102,241,.28)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#000}
+::-webkit-scrollbar-thumb{background:#27272a;border-radius:3px}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+/* ─── TOKENS ──────────────────────────────────────────────────────── */
+:root{
+  --indigo:#6366f1;--indigo-d:#4f46e5;--indigo-l:#818cf8;
+  --sky:#0ea5e9;--sky-l:#38bdf8;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#c084fc;
+  --text:#fff;--t2:#a1a1aa;--t3:#52525b;--t4:#3f3f46;
+  --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);--bd3:rgba(255,255,255,.22);
+  --sf:rgba(255,255,255,.03);--sf2:rgba(255,255,255,.06);
+  --mono:'JetBrains Mono','Fira Code',monospace;
+  --r:8px;--r2:12px;--r3:16px;
+}
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ─── ANNOUNCEMENT BAR ────────────────────────────────────────────── */
+.topbar{
+  background:var(--indigo);padding:9px 24px;text-align:center;
+  font-size:13px;font-weight:500;letter-spacing:.01em;
+}
+.topbar a{
+  color:rgba(255,255,255,.75);border-bottom:1px solid rgba(255,255,255,.35);
+  margin-left:8px;transition:color .15s,border-color .15s;
+}
+.topbar a:hover{color:#fff;border-color:#fff}
 
-    :root {
-      --bg:          #07070b;
-      --bg-2:        #0d0d14;
-      --bg-3:        #12121c;
-      --bg-card:     #141420;
-      --bg-raised:   #1c1c2c;
-      --bdr:         rgba(255,255,255,0.055);
-      --bdr-md:      rgba(255,255,255,0.10);
-      --bdr-hi:      rgba(255,255,255,0.17);
-      --text:        #f2ede6;
-      --muted-1:     #9e99a0;
-      --muted-2:     #6a6570;
-      --muted-3:     #c8c0b8;
-      --amber:       #e09b20;
-      --amber-hi:    #f0ab28;
-      --amber-dim:   rgba(224,155,32,0.08);
-      --amber-bdr:   rgba(224,155,32,0.22);
-      --amber-glow:  rgba(224,155,32,0.32);
-      --violet:      #8457e6;
-      --violet-dim:  rgba(132,87,230,0.08);
-      --emerald:     #22c88a;
-      --emerald-dim: rgba(34,200,138,0.08);
-      --emerald-bdr: rgba(34,200,138,0.22);
-      --red:         #e05252;
-      --red-dim:     rgba(224,82,82,0.08);
-      --red-bdr:     rgba(224,82,82,0.22);
-      --sans:   'Inter', system-ui, sans-serif;
-      --serif:  'DM Serif Display', Georgia, serif;
-      --mono:   'JetBrains Mono', monospace;
-      --spring: cubic-bezier(0.16, 1, 0.3, 1);
-    }
+/* ─── NAV ──────────────────────────────────────────────────────────── */
+nav{
+  position:sticky;top:0;z-index:300;height:64px;
+  display:flex;align-items:center;padding:0 clamp(20px,4vw,56px);
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-bottom:1px solid var(--bd);
+}
+.nav-logo{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;letter-spacing:-.02em;flex-shrink:0}
+.nav-mark{
+  width:28px;height:28px;border-radius:7px;
+  background:linear-gradient(135deg,var(--indigo),var(--sky));
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.nav-mark svg{width:13px;height:13px}
+.nav-cx{flex:1;display:flex;justify-content:center}
+.nav-links{display:flex;align-items:center;gap:2px;list-style:none}
+.nav-links a{
+  font-size:14px;font-weight:450;color:var(--t2);
+  padding:6px 13px;border-radius:var(--r);transition:color .15s,background .15s;
+}
+.nav-links a:hover{color:#fff;background:var(--sf2)}
+.nav-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nav-ghost{font-size:14px;font-weight:500;color:var(--t2);padding:6px 13px;border-radius:var(--r);transition:color .15s,background .15s}
+.nav-ghost:hover{color:#fff;background:var(--sf2)}
+.nav-cta{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:600;color:#fff;
+  background:var(--indigo);padding:8px 18px;border-radius:var(--r2);letter-spacing:-.01em;
+  transition:background .15s,box-shadow .2s;
+}
+.nav-cta:hover{background:var(--indigo-d);box-shadow:0 0 0 4px rgba(99,102,241,.18)}
+.nav-cta svg{width:12px;height:12px}
+@media(max-width:768px){.nav-cx,.nav-ghost{display:none}}
 
-    html { scroll-behavior: smooth; }
+/* ─── HERO ──────────────────────────────────────────────────────────── */
+.hero-wrap{position:relative;overflow:hidden;isolation:isolate}
+/* Gradient mesh — Stripe-style */
+.hmesh{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 12% 55%,rgba(99,102,241,.18) 0%,transparent 55%),
+    radial-gradient(ellipse 65% 50% at 88% 18%,rgba(14,165,233,.13) 0%,transparent 50%),
+    radial-gradient(ellipse 90% 90% at 50% 120%,rgba(99,102,241,.09) 0%,transparent 50%);
+  animation:mesh-drift 12s ease-in-out infinite alternate;
+}
+@keyframes mesh-drift{
+  0%{transform:scale(1) translate(0,0);opacity:1}
+  100%{transform:scale(1.08) translate(8px,-6px);opacity:.82}
+}
+/* Grid — Vercel-style */
+.hgrid{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+  background-size:72px 72px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 35%,black,transparent);
+  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 35%,black,transparent);
+}
+.hero{
+  position:relative;max-width:1160px;margin:0 auto;
+  padding:clamp(104px,13vw,172px) clamp(24px,5vw,60px) clamp(80px,10vw,132px);
+  text-align:center;
+}
+/* Badge */
+.hbadge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.26);
+  border-radius:100px;padding:6px 15px 6px 10px;
+  font-size:12px;font-weight:700;color:var(--indigo-l);
+  letter-spacing:.04em;text-transform:uppercase;margin-bottom:44px;cursor:default;
+}
+.bdot{
+  width:6px;height:6px;background:var(--green);border-radius:50%;
+  box-shadow:0 0 8px var(--green);animation:blink 2.8s ease infinite;
+}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.35;box-shadow:none}}
+/* Headline */
+.htitle{
+  font-size:clamp(50px,8vw,96px);font-weight:800;
+  letter-spacing:-.05em;line-height:1.0;margin-bottom:28px;
+}
+.htitle .dim{color:rgba(255,255,255,.38)}
+.htitle .shine{
+  background:linear-gradient(135deg,#fff 0%,#a5b4fc 38%,#38bdf8 72%,#fff 100%);
+  background-size:200% 200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shine 7s ease-in-out infinite alternate;
+}
+@keyframes shine{from{background-position:0% 50%}to{background-position:100% 50%}}
+/* Sub */
+.hsub{
+  font-size:clamp(16px,2vw,19px);color:var(--t2);
+  max-width:580px;margin:0 auto 52px;line-height:1.85;font-weight:400;
+}
+/* Actions */
+.hactions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:52px}
+.btn-p{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:14px;font-weight:600;color:#fff;letter-spacing:-.01em;
+  background:var(--indigo);padding:13px 28px;border-radius:var(--r2);
+  transition:background .15s,box-shadow .2s,transform .1s;
+}
+.btn-p:hover{background:var(--indigo-d);box-shadow:0 8px 32px rgba(99,102,241,.42);transform:translateY(-1px)}
+.btn-p svg,.btn-s svg{width:15px;height:15px;flex-shrink:0}
+.btn-s{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em;
+  background:var(--sf2);border:1px solid var(--bd2);padding:13px 28px;border-radius:var(--r2);
+  transition:background .15s,border-color .15s,transform .1s;
+}
+.btn-s:hover{background:rgba(255,255,255,.09);border-color:var(--bd3);transform:translateY(-1px)}
+/* pip install */
+.pip{
+  display:inline-flex;align-items:center;gap:14px;
+  background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);
+  padding:13px 20px;font-family:var(--mono);font-size:14px;color:var(--t2);
+  margin-bottom:72px;cursor:text;transition:border-color .15s;
+}
+.pip:hover{border-color:var(--bd2)}
+.pip .pr{color:var(--indigo-l);user-select:none}
+.pip .pc{color:#e2e8f0}
+.pip-cp{
+  background:none;border:1px solid var(--bd);color:var(--t3);
+  padding:3px 10px;border-radius:5px;font-family:inherit;
+  font-size:11px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;font-weight:700;
+  transition:color .15s,border-color .15s;
+}
+.pip-cp:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+.pip-cp.ok{color:var(--green);border-color:var(--green)}
+/* Stats */
+.hstats{
+  display:flex;justify-content:center;align-items:stretch;
+  border:1px solid var(--bd);border-radius:var(--r3);
+  background:var(--sf);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  overflow:hidden;max-width:700px;margin:0 auto;
+}
+.si{flex:1;min-width:110px;padding:22px 20px;text-align:center;border-right:1px solid var(--bd);transition:background .15s}
+.si:last-child{border-right:none}
+.si:hover{background:rgba(255,255,255,.03)}
+.sn{font-size:28px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:6px}
+.sn sup{font-size:15px;font-weight:700;vertical-align:super}
+.sl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;font-weight:700}
 
-    body {
-      font-family: var(--sans);
-      background: var(--bg);
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-      overflow-x: hidden;
-    }
+/* ─── TRUST BAR ────────────────────────────────────────────────────── */
+.trustbar{
+  border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);
+  padding:26px clamp(24px,5vw,56px);
+  display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap;
+}
+.tl-label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-weight:700;white-space:nowrap}
+.tbadges{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.tb{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--t2)}
+.tb svg{color:var(--t3);flex-shrink:0}
+.tsep{width:1px;height:20px;background:var(--bd);flex-shrink:0}
 
-    /* ── SUBTLE STATIC TEXTURE (no animation = no flicker) ── */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 9999;
-      pointer-events: none; opacity: 0.018;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
+/* ─── SECTION BASE ──────────────────────────────────────────────────── */
+.sec{padding:clamp(88px,11vw,136px) clamp(24px,5vw,56px)}
+.sec-in{max-width:1160px;margin:0 auto}
+.divider{border:none;border-top:1px solid var(--bd);max-width:1160px;margin:0 auto}
+.slabel{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--indigo-l);margin-bottom:16px;
+}
+.slabel svg{width:11px;height:11px}
+.stitle{font-size:clamp(30px,4.5vw,52px);font-weight:800;letter-spacing:-.04em;line-height:1.08;margin-bottom:16px;color:#fff}
+.ssub{font-size:17px;color:var(--t2);max-width:520px;line-height:1.78}
 
-    /* ── SCROLL PROGRESS ── */
-    #prog {
-      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
-      background: linear-gradient(90deg, var(--amber), var(--violet));
-      z-index: 9998; transition: width 0.08s linear;
-    }
+/* ─── FEATURES GRID ────────────────────────────────────────────────── */
+.feat-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px;flex-wrap:wrap}
+.feat-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border:1px solid var(--bd);border-radius:18px;overflow:hidden;
+  /* shared-border trick */
+  gap:1px;background:var(--bd);
+}
+.fc{
+  background:#000;padding:36px 30px;position:relative;
+  transition:background .2s;
+}
+.fc:hover{background:rgba(255,255,255,.025)}
+/* gradient border reveal on hover */
+.fc::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  border-radius:inherit;
+  background:linear-gradient(135deg,rgba(99,102,241,.5),rgba(14,165,233,.4));
+  opacity:0;transition:opacity .25s;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite:destination-out;
+  mask-composite:exclude;
+  padding:1px;
+}
+.fc:hover::after{opacity:1}
+.ficon{
+  width:44px;height:44px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;margin-bottom:20px;
+  background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);
+}
+.ficon svg{width:20px;height:20px}
+.ftitle{font-size:16px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;color:#fff}
+.fdesc{font-size:14px;color:var(--t2);line-height:1.72}
+.flink{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:12px;font-weight:700;color:var(--indigo-l);margin-top:16px;
+  letter-spacing:.01em;text-transform:uppercase;transition:gap .15s;
+}
+.flink:hover{gap:8px}
+.flink svg{width:12px;height:12px}
+@media(max-width:900px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.feat-grid{grid-template-columns:1fr}.fc{padding:28px 24px}}
 
-    /* ── REVEAL ── */
-    .rv    { opacity: 0; transform: translateY(30px); transition: opacity 0.72s var(--spring), transform 0.72s var(--spring); }
-    .rv-l  { opacity: 0; transform: translateX(-26px); transition: opacity 0.72s var(--spring), transform 0.72s var(--spring); }
-    .rv-r  { opacity: 0; transform: translateX(26px); transition: opacity 0.72s var(--spring), transform 0.72s var(--spring); }
-    .rv.on, .rv-l.on, .rv-r.on { opacity: 1; transform: none; }
-    .d1{transition-delay:.06s} .d2{transition-delay:.13s} .d3{transition-delay:.20s}
-    .d4{transition-delay:.27s} .d5{transition-delay:.34s}
+/* ─── DEMO / HOW IT WORKS ───────────────────────────────────────────── */
+.demo-wrap{
+  position:relative;overflow:hidden;
+  border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);
+  padding:clamp(88px,11vw,136px) clamp(24px,5vw,56px);
+}
+.demo-wrap::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 80% at 75% 50%,rgba(99,102,241,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 45% 60% at 10% 55%,rgba(14,165,233,.05) 0%,transparent 55%);
+}
+.demo-in{
+  position:relative;max-width:1160px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:88px;align-items:center;
+}
+@media(max-width:900px){.demo-in{grid-template-columns:1fr;gap:52px}}
+.steps{list-style:none;display:flex;flex-direction:column;gap:34px}
+.step{display:flex;gap:20px;align-items:flex-start}
+.snum{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.28);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;color:var(--indigo-l);letter-spacing:-.01em;
+}
+.stept{font-size:15px;font-weight:700;letter-spacing:-.02em;margin-bottom:7px;color:#fff}
+.stepd{font-size:14px;color:var(--t2);line-height:1.68}
+/* Code window */
+.cwin{
+  background:#0b0b10;border:1px solid var(--bd);border-radius:var(--r3);overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04);
+}
+.ctbar{
+  display:flex;align-items:center;padding:13px 18px;border-bottom:1px solid var(--bd);
+  background:rgba(255,255,255,.02);
+}
+.tlights{display:flex;gap:7px;margin-right:16px}
+.tl{width:11px;height:11px;border-radius:50%}
+.tl-r{background:#ff5f57}.tl-y{background:#ffbd2e}.tl-g{background:#28c840}
+.cfname{font-family:var(--mono);font-size:12px;color:var(--t3)}
+.ctabs{display:flex;gap:3px;margin-left:auto}
+.ctab{
+  background:none;border:none;font-size:12px;font-weight:700;
+  color:var(--t3);padding:4px 10px;border-radius:5px;cursor:pointer;
+  letter-spacing:.03em;text-transform:uppercase;transition:color .15s,background .15s;
+}
+.ctab:hover{color:var(--t2);background:var(--sf2)}
+.ctab.on{color:#fff;background:var(--sf2)}
+.cbody{display:none;padding:26px 24px}
+.cbody.on{display:block}
+pre{font-family:var(--mono);font-size:13px;line-height:1.85;overflow-x:auto;color:#cdd6f4}
+/* Catppuccin-inspired syntax tokens */
+.kw{color:#cba6f7}.fn{color:#89b4fa}.st{color:#a6e3a1}.cm{color:#585b70}
+.nr{color:#fab387}.cl{color:#f9e2af}.op{color:#89dceb}.ok{color:#a6e3a1}
+.dim-t{color:#6c7086}
 
-    /* ── NAV ── */
-    nav {
-      position: sticky; top: 0; z-index: 900;
-      height: 60px; display: flex; align-items: center;
-      padding: 0 clamp(16px,5vw,56px);
-      justify-content: space-between;
-      border-bottom: 1px solid transparent;
-      transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
-    }
-    nav.scrolled {
-      background: rgba(7,7,11,0.84);
-      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border-bottom-color: var(--bdr);
-    }
-    .nav-logo {
-      font-family: var(--serif); font-size: 1.16rem;
-      color: var(--text); text-decoration: none;
-      display: flex; align-items: center; gap: 9px;
-    }
-    .logo-mark {
-      width: 28px; height: 28px; border-radius: 7px;
-      background: var(--amber-dim); border: 1px solid var(--amber-bdr);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .logo-mark svg { width: 14px; height: 14px; stroke: var(--amber); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .nav-logo em { font-style: italic; color: var(--amber-hi); }
-    .nav-links {
-      list-style: none; display: flex; gap: 28px;
-      position: absolute; left: 50%; transform: translateX(-50%);
-    }
-    .nav-links a { font-size: 0.86rem; font-weight: 450; color: var(--muted-2); text-decoration: none; transition: color 0.15s; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-right { display: flex; align-items: center; gap: 8px; }
-    .nav-ghost {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 14px; border-radius: 7px;
-      font-size: 0.82rem; font-weight: 500;
-      color: var(--muted-1); text-decoration: none;
-      border: 1px solid var(--bdr-md); transition: all 0.15s;
-    }
-    .nav-ghost:hover { color: var(--text); border-color: var(--bdr-hi); background: rgba(255,255,255,0.03); }
-    .nav-ghost svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .nav-cta {
-      display: inline-flex; align-items: center;
-      padding: 8px 20px; border-radius: 7px;
-      background: var(--amber); color: #07050a;
-      font-size: 0.86rem; font-weight: 650;
-      text-decoration: none; letter-spacing: 0.01em;
-      transition: all 0.18s var(--spring);
-      position: relative; overflow: hidden;
-    }
-    .nav-cta::after { content:''; position:absolute; inset:0; background: linear-gradient(180deg,rgba(255,255,255,0.10) 0%,transparent 100%); }
-    .nav-cta:hover { background: var(--amber-hi); box-shadow: 0 0 28px var(--amber-glow), 0 4px 16px rgba(0,0,0,0.3); transform: translateY(-1px); }
+/* ─── ARTICLES GRID ─────────────────────────────────────────────────── */
+.art-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--bd);border-radius:18px;overflow:hidden;
+  gap:1px;background:var(--bd);margin-top:56px;
+}
+.ac{background:#000;padding:28px 24px;transition:background .2s}
+.ac:hover{background:rgba(255,255,255,.025)}
+.anum{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:10px}
+.atitle{font-size:14px;font-weight:700;letter-spacing:-.02em;color:#fff;margin-bottom:8px}
+.adesc{font-size:13px;color:var(--t2);line-height:1.65}
+.atag{
+  display:inline-flex;align-items:center;gap:4px;margin-top:12px;
+  font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.06em;
+}
+.atag svg{width:11px;height:11px}
+@media(max-width:900px){.art-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.art-grid{grid-template-columns:1fr}}
 
-    /* ── LAYOUT ── */
-    .section { padding: clamp(80px,10vw,144px) clamp(16px,5vw,56px); }
-    .inner    { max-width: 1080px; margin: 0 auto; }
-    .inner-sm { max-width: 760px;  margin: 0 auto; }
-    .inner-md { max-width: 920px;  margin: 0 auto; }
-    .alt      { background: var(--bg-2); }
-    .eyebrow  {
-      display: inline-flex; align-items: center; gap: 10px;
-      font-size: 0.71rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.14em;
-      color: var(--amber); margin-bottom: 18px;
-    }
-    .eyebrow::before { content:''; display:block; width:20px; height:1px; background:var(--amber); }
-    .h2 { font-family: var(--serif); font-size: clamp(2rem,4vw,3.2rem); font-weight: 400; line-height: 1.1; letter-spacing: -0.018em; color: var(--text); }
-    .h2 em { font-style: italic; color: var(--amber-hi); }
-    .lead { font-size: clamp(1rem,1.5vw,1.14rem); color: var(--muted-3); line-height: 1.75; }
-    .copy { font-size: 1rem; color: var(--muted-1); line-height: 1.75; }
+/* ─── PRICING ───────────────────────────────────────────────────────── */
+.pgrid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:20px;max-width:860px;margin:56px auto 0;
+}
+@media(max-width:640px){.pgrid{grid-template-columns:1fr}}
+.pc{
+  background:var(--sf);border:1px solid var(--bd);border-radius:var(--r3);
+  padding:38px 32px;transition:border-color .2s;
+}
+.pc:hover{border-color:var(--bd2)}
+.pc.feat{
+  background:rgba(99,102,241,.06);border-color:rgba(99,102,241,.3);position:relative;
+}
+.pc.feat:hover{border-color:rgba(99,102,241,.52)}
+.pbadge{
+  display:inline-block;font-size:10px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--indigo-l);background:rgba(99,102,241,.12);
+  border:1px solid rgba(99,102,241,.22);border-radius:100px;padding:3px 10px;margin-bottom:20px;
+}
+.pname{font-size:18px;font-weight:700;letter-spacing:-.025em;margin-bottom:8px}
+.pdesc{font-size:14px;color:var(--t2);line-height:1.65;margin-bottom:28px}
+.pprice{font-size:46px;font-weight:800;letter-spacing:-.04em;margin-bottom:5px;line-height:1}
+.pprice sup{font-size:22px;font-weight:700;vertical-align:super;margin-right:2px}
+.pper{font-size:13px;color:var(--t2);margin-bottom:32px}
+.pitems{list-style:none;display:flex;flex-direction:column;gap:13px;margin-bottom:32px}
+.pi{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--t2);line-height:1.5}
+.pi svg{width:15px;height:15px;color:var(--green);flex-shrink:0;margin-top:2px}
+.pbtn{
+  display:block;width:100%;padding:13px 24px;border-radius:var(--r2);
+  font-size:14px;font-weight:600;text-align:center;letter-spacing:-.01em;
+  transition:all .15s;cursor:pointer;border:none;
+}
+.pbtn.ol{background:var(--sf2);border:1px solid var(--bd2);color:#fff}
+.pbtn.ol:hover{background:rgba(255,255,255,.09);border-color:var(--bd3)}
+.pbtn.sl{background:var(--indigo);color:#fff}
+.pbtn.sl:hover{background:var(--indigo-d);box-shadow:0 8px 24px rgba(99,102,241,.36)}
 
-    /* ── HERO ── */
-    .hero-wrap {
-      position: relative; min-height: 100vh;
-      display: flex; flex-direction: column; justify-content: center;
-      padding: clamp(90px,10vw,130px) clamp(16px,5vw,56px) clamp(60px,8vw,100px);
-      overflow: hidden;
-    }
-    /* Orbs: use pseudo-elements + radial gradients (no filter:blur = no repaint storm) */
-    .orb { position: absolute; border-radius: 50%; pointer-events: none; }
-    .orb-1 { width:700px; height:700px; top:-18%; left:-14%;
-      background: radial-gradient(circle at 40% 40%, rgba(224,155,32,0.11) 0%, transparent 68%);
-      animation: od1 22s ease-in-out infinite; }
-    .orb-2 { width:540px; height:540px; top:20%; right:-10%;
-      background: radial-gradient(circle at 60% 40%, rgba(132,87,230,0.09) 0%, transparent 68%);
-      animation: od2 28s ease-in-out infinite; }
-    .orb-3 { width:440px; height:440px; bottom:-14%; left:30%;
-      background: radial-gradient(circle at 50% 50%, rgba(34,200,138,0.06) 0%, transparent 68%);
-      animation: od3 34s ease-in-out infinite; }
-    @keyframes od1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(50px,-40px)} }
-    @keyframes od2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,32px)} }
-    @keyframes od3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,-28px)} }
+/* ─── CTA BAND ──────────────────────────────────────────────────────── */
+.cta-sec{
+  position:relative;overflow:hidden;
+  padding:clamp(96px,12vw,152px) clamp(24px,5vw,56px);text-align:center;
+}
+.cta-sec::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 70% at 50% 50%,rgba(99,102,241,.13) 0%,transparent 60%),
+    radial-gradient(ellipse 55% 55% at 85% 25%,rgba(14,165,233,.08) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 50% at 15% 75%,rgba(99,102,241,.06) 0%,transparent 55%);
+}
+.cta-in{position:relative;max-width:720px;margin:0 auto}
+.cta-title{
+  font-size:clamp(36px,5.5vw,64px);font-weight:800;
+  letter-spacing:-.045em;margin-bottom:20px;line-height:1.05;
+}
+.cta-sub{font-size:17px;color:var(--t2);margin-bottom:44px;line-height:1.8}
+.cta-acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
+.cta-mono{font-family:var(--mono);font-size:13px;color:var(--t3)}
 
-    .hero-grid {
-      position: relative; z-index: 2; max-width: 1080px; margin: 0 auto;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
-    }
+/* ─── FOOTER ────────────────────────────────────────────────────────── */
+footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
+.ft-in{max-width:1160px;margin:0 auto}
+.ft-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px}
+@media(max-width:768px){.ft-top{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.ft-top{grid-template-columns:1fr}}
+.ft-logo{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;letter-spacing:-.02em;margin-bottom:14px}
+.ft-mark{
+  width:26px;height:26px;border-radius:6px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--indigo),var(--sky));
+  display:flex;align-items:center;justify-content:center;
+}
+.ft-mark svg{width:12px;height:12px}
+.ft-tag{font-size:14px;color:var(--t3);line-height:1.65;max-width:260px;margin-bottom:24px}
+.ft-soc{display:flex;gap:9px}
+.sbtn{
+  width:34px;height:34px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;color:var(--t3);
+  transition:color .15s,border-color .15s,background .15s;
+}
+.sbtn:hover{color:#fff;border-color:var(--bd2);background:var(--sf2)}
+.sbtn svg{width:15px;height:15px}
+.ft-ctitle{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:#fff;margin-bottom:16px}
+.ft-col ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.ft-col a{font-size:14px;color:var(--t3);transition:color .15s}
+.ft-col a:hover{color:var(--t2)}
+.ft-bot{
+  border-top:1px solid var(--bd);padding-top:28px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+}
+.ft-copy{font-size:13px;color:var(--t3)}
+.ft-legal{display:flex;gap:24px}
+.ft-legal a{font-size:13px;color:var(--t3);transition:color .15s}
+.ft-legal a:hover{color:var(--t2)}
 
-    /* Badge */
-    .badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 5px 14px 5px 8px; border-radius: 100px;
-      background: var(--amber-dim); border: 1px solid var(--amber-bdr);
-      font-size: 0.75rem; font-weight: 700;
-      color: var(--amber-hi); letter-spacing: 0.05em; text-transform: uppercase;
-      margin-bottom: 30px;
-      animation: fadeUp 0.6s 0.15s var(--spring) both;
-    }
-    .badge-dot { width:6px; height:6px; border-radius:50%; background:var(--amber); animation: bdot 2.4s ease infinite; }
-    @keyframes bdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
-
-    .hero-h1 {
-      font-family: var(--serif);
-      font-size: clamp(2.8rem, 5.5vw, 5rem);
-      font-weight: 400; line-height: 1.06;
-      letter-spacing: -0.025em; color: var(--text);
-      margin-bottom: 22px;
-      animation: fadeUp 0.72s 0.25s var(--spring) both;
-    }
-    .hero-h1 em { font-style: italic; color: var(--amber-hi); }
-
-    .hero-sub {
-      font-size: clamp(1rem,1.6vw,1.15rem); line-height: 1.78;
-      color: var(--muted-3); max-width: 480px; margin-bottom: 40px;
-      animation: fadeUp 0.72s 0.35s var(--spring) both;
-    }
-
-    .hero-btns { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:44px; animation: fadeUp 0.72s 0.45s var(--spring) both; }
-
-    .btn-p {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 28px; border-radius: 8px;
-      background: var(--amber); color: #070500;
-      font-weight: 700; font-size: 0.93rem;
-      text-decoration: none; letter-spacing: 0.01em;
-      transition: all 0.18s var(--spring); position: relative; overflow: hidden;
-    }
-    .btn-p::after { content:''; position:absolute; inset:0; background: linear-gradient(180deg,rgba(255,255,255,0.10) 0%,transparent 100%); }
-    .btn-p:hover { background: var(--amber-hi); transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 36px var(--amber-glow), 0 2px 8px rgba(0,0,0,0.35); }
-    .btn-p svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
-
-    .btn-g {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 24px; border-radius: 8px;
-      background: transparent; color: var(--muted-3);
-      font-weight: 500; font-size: 0.93rem;
-      text-decoration: none; border: 1px solid var(--bdr-hi);
-      transition: all 0.15s;
-    }
-    .btn-g:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-
-    .install-row {
-      display: inline-flex; align-items: center; gap: 12px;
-      padding: 11px 18px; border-radius: 8px;
-      background: var(--bg-card); border: 1px solid var(--bdr-md);
-      font-family: var(--mono); font-size: 0.87rem; color: var(--muted-3);
-      animation: fadeUp 0.72s 0.55s var(--spring) both;
-    }
-    .dollar { color: var(--amber); }
-    .copy-btn {
-      background: var(--amber-dim); border: 1px solid var(--amber-bdr);
-      color: var(--amber); font-size: 0.7rem; font-weight: 700;
-      padding: 3px 10px; border-radius: 4px;
-      cursor: pointer; font-family: var(--sans);
-      transition: all 0.15s; letter-spacing: 0.04em;
-    }
-    .copy-btn:hover { background: rgba(224,155,32,0.16); }
-
-    /* ── HERO TERMINAL ── */
-    .hero-term {
-      background: var(--bg-card);
-      border: 1px solid var(--bdr-md);
-      border-radius: 18px; overflow: hidden;
-      box-shadow: 0 28px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.055);
-      animation: fadeLeft 0.9s 0.55s var(--spring) both;
-    }
-    .term-bar {
-      display: flex; align-items: center; gap: 6px;
-      padding: 13px 18px; border-bottom: 1px solid var(--bdr);
-      background: rgba(255,255,255,0.016);
-    }
-    .tdot { width: 11px; height: 11px; border-radius: 50%; }
-    .tdot-r{background:#ff5f57;} .tdot-y{background:#febc2e;} .tdot-g{background:#28c840;}
-    .term-title-txt { margin: 0 auto; font-family: var(--mono); font-size: 0.71rem; color: var(--muted-2); letter-spacing: 0.04em; }
-    .term-body {
-      padding: 20px 22px; font-family: var(--mono); font-size: 0.82rem;
-      line-height: 1.9; min-height: 290px; position: relative;
-    }
-    .tl   { display: flex; align-items: flex-start; }
-    .t-p  { color: var(--amber); margin-right: 8px; user-select: none; }
-    .t-c  { color: var(--text); }
-    .t-o  { color: var(--muted-2); padding-left: 16px; }
-    .t-g  { color: var(--emerald); }
-    .t-a  { color: var(--amber-hi); }
-    .t-v  { color: #b97cf5; }
-    .t-dim{ color: var(--muted-2); }
-    .cursor {
-      display: inline-block; width: 8px; height: 15px;
-      background: var(--amber); border-radius: 1px;
-      vertical-align: middle; margin-left: 1px;
-      animation: blink 1s step-end infinite;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-    /* scroll hint */
-    .scroll-hint {
-      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      animation: fadeUp 0.6s 1.4s var(--spring) both;
-    }
-    .scroll-hint span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.13em; color: var(--muted-2); }
-    .scroll-line { width: 1px; height: 44px; background: linear-gradient(180deg, var(--amber) 0%, transparent 100%); animation: sdrop 2.2s ease-in-out infinite; }
-    @keyframes sdrop { 0%{opacity:0;transform:scaleY(0);transform-origin:top} 50%{opacity:1} 100%{opacity:0;transform:scaleY(1);transform-origin:top} }
-
-    /* ── KEYFRAMES ── */
-    @keyframes fadeUp   { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
-    @keyframes fadeLeft { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:none} }
-
-    /* ── MARQUEE ── */
-    .marquee-wrap {
-      overflow: hidden; background: var(--bg-2);
-      border-top: 1px solid var(--bdr); border-bottom: 1px solid var(--bdr);
-      padding: 14px 0;
-    }
-    .marquee-track { display: flex; width: max-content; animation: mq 32s linear infinite; }
-    .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
-    .mq-item {
-      display: flex; align-items: center; gap: 28px;
-      padding: 0 28px; font-size: 0.77rem; font-weight: 600;
-      letter-spacing: 0.10em; text-transform: uppercase;
-      color: var(--muted-2); white-space: nowrap;
-    }
-    .mq-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--amber); opacity: 0.5; }
-    @keyframes mq { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-
-    /* ── STATS ── */
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(5,1fr);
-      border: 1px solid var(--bdr); border-radius: 18px;
-      overflow: hidden; background: var(--bg-2);
-    }
-    .stat-item {
-      padding: 40px 26px; border-right: 1px solid var(--bdr);
-      transition: background 0.2s;
-    }
-    .stat-item:last-child { border-right: none; }
-    .stat-item:hover { background: var(--bg-3); }
-    .stat-num {
-      font-family: var(--serif); font-size: clamp(2.2rem,3.4vw,3.1rem);
-      line-height: 1; letter-spacing: -0.02em; color: var(--text); margin-bottom: 8px;
-    }
-    .stat-num em { font-style: normal; color: var(--amber-hi); }
-    .stat-lbl { font-size: 0.77rem; color: var(--muted-2); line-height: 1.5; }
-
-    /* ── FINDING ── */
-    .finding {
-      padding: clamp(80px,10vw,140px) clamp(16px,5vw,56px);
-      background: var(--bg-2); text-align: center;
-      border-top: 1px solid var(--bdr); border-bottom: 1px solid var(--bdr);
-      position: relative; overflow: hidden;
-    }
-    .finding::before {
-      content:''; position:absolute; inset:0; pointer-events:none;
-      background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(224,155,32,0.065) 0%, transparent 65%);
-    }
-    .finding-num {
-      display: block; font-family: var(--serif); font-style: italic;
-      font-size: clamp(4.5rem, 12vw, 9.5rem); line-height: 1;
-      letter-spacing: -0.03em; margin-bottom: 28px;
-      background: linear-gradient(135deg, var(--amber) 0%, #f5b830 45%, #ffd568 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .finding-claim {
-      font-family: var(--serif); font-size: clamp(1.5rem,3vw,2.5rem);
-      font-weight: 400; line-height: 1.3; color: var(--text);
-      max-width: 800px; margin: 0 auto 22px; letter-spacing: -0.015em;
-    }
-    .finding-sub {
-      font-size: 1.05rem; color: var(--muted-1); max-width: 560px;
-      margin: 0 auto; line-height: 1.78;
-    }
-    .finding-sub strong { color: var(--muted-3); font-weight: 500; }
-
-    /* ── STEPS ── */
-    .steps { margin-top: 56px; }
-    .step {
-      display: grid; grid-template-columns: 72px 1fr;
-      gap: 0 36px; padding: 52px 0;
-      border-bottom: 1px solid var(--bdr); align-items: start;
-    }
-    .step:last-child { border-bottom: none; }
-    .step-n {
-      font-family: var(--serif); font-style: italic; font-size: 3.2rem;
-      line-height: 1; color: rgba(224,155,32,0.18); text-align: right;
-      letter-spacing: -0.02em; padding-top: 2px; transition: color 0.3s;
-    }
-    .step:hover .step-n { color: rgba(224,155,32,0.38); }
-    .step-title { font-family: var(--serif); font-size: clamp(1.3rem,2.2vw,1.8rem); font-weight: 400; line-height: 1.2; color: var(--text); margin-bottom: 12px; }
-    .step-desc { font-size: 1rem; color: var(--muted-1); line-height: 1.78; max-width: 640px; }
-
-    .install-pill {
-      display: inline-flex; align-items: center; gap: 12px;
-      padding: 11px 18px; border-radius: 8px;
-      background: var(--bg-card); border: 1px solid var(--bdr-md);
-      font-family: var(--mono); font-size: 0.87rem; color: var(--muted-3);
-      margin-top: 20px;
-    }
-
-    /* Code window */
-    .cwin {
-      margin-top: 24px; border-radius: 12px;
-      border: 1px solid var(--bdr); overflow: hidden;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.38);
-    }
-    .cwin-bar {
-      display: flex; align-items: center; gap: 6px;
-      padding: 11px 16px; border-bottom: 1px solid var(--bdr);
-      background: rgba(255,255,255,0.014);
-    }
-    .cdot { width:10px; height:10px; border-radius:50%; }
-    .cdot-r{background:#ff5f57;} .cdot-y{background:#febc2e;} .cdot-g{background:#28c840;}
-    .cwin-name { margin-left:8px; font-family:var(--mono); font-size:0.71rem; color:var(--muted-2); }
-    .cwin pre {
-      padding: 20px 22px; font-family: var(--mono); font-size: 0.84rem;
-      line-height: 1.88; overflow-x: auto; color: var(--muted-3);
-    }
-    .kw{color:#c792ea;} .fn{color:var(--amber-hi);} .st{color:#a8d9a8;}
-    .cm{color:#403c38;font-style:italic;} .ot{color:var(--emerald);} .nx{color:#82aaff;}
-
-
-    /* ── COMPLIANCE ── */
-    .comp-layout {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 80px; align-items: start; margin-top: 56px;
-    }
-    .check-list { list-style: none; display: flex; flex-direction: column; gap: 18px; }
-    .check-item { display: flex; align-items: flex-start; gap: 14px; font-size: 1rem; color: var(--muted-1); line-height: 1.7; }
-    .tick {
-      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
-      background: var(--emerald-dim); border: 1px solid var(--emerald-bdr);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .tick svg { width:10px; height:10px; stroke:var(--emerald); fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
-    .deadline-strip {
-      margin-top: 36px; padding: 18px 22px; border-radius: 10px;
-      background: var(--red-dim); border: 1px solid var(--red-bdr);
-      display: flex; align-items: center; gap: 14px;
-    }
-    .dl-dot { width:8px; height:8px; border-radius:50%; background:var(--red); flex-shrink:0; animation: rdot 1.8s ease infinite; }
-    @keyframes rdot { 0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,0.4)} 50%{box-shadow:0 0 0 7px rgba(224,82,82,0)} }
-    .dl-text { font-size: 0.875rem; color: var(--text); font-weight: 500; line-height: 1.55; }
-    .dl-text span { display: block; font-size: 0.8rem; color: var(--muted-1); font-weight: 400; margin-top: 3px; }
-
-    /* Report panel */
-    .report-panel {
-      background: var(--bg-card); border: 1px solid var(--bdr-md); border-radius: 18px;
-      overflow: hidden; box-shadow: 0 18px 64px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
-    }
-    .panel-header {
-      padding: 16px 22px; border-bottom: 1px solid var(--bdr);
-      background: rgba(255,255,255,0.016);
-      display: flex; align-items: center; gap: 8px;
-    }
-    .panel-dot { width:8px; height:8px; border-radius:50%; background:var(--emerald); box-shadow:0 0 8px rgba(34,200,138,0.6); }
-    .panel-lbl { font-size: 0.77rem; font-weight: 600; color: var(--muted-1); letter-spacing: 0.04em; }
-    .panel-body { padding: 22px; }
-    .grade-row { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid var(--bdr); }
-    .grade-badge {
-      width: 64px; height: 64px; border-radius: 13px; flex-shrink: 0;
-      background: var(--emerald-dim); border: 2px solid var(--emerald-bdr);
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--serif); font-size: 2.5rem; color: var(--emerald);
-      box-shadow: 0 0 22px rgba(34,200,138,0.14);
-    }
-    .grade-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.10em; color: var(--muted-2); margin-bottom: 4px; }
-    .grade-val { font-weight: 600; font-size: 1.05rem; color: var(--text); }
-    .m-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--bdr); font-size: 0.875rem; }
-    .m-row:last-child { border-bottom: none; }
-    .m-name { color: var(--muted-1); flex: 1; }
-    .m-track { width: 72px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; margin: 0 14px; overflow: hidden; }
-    .m-fill  { height: 100%; border-radius: 2px; background: var(--emerald); width: 0%; transition: width 1.2s var(--spring); }
-    .m-val   { font-family: var(--mono); font-size: 0.82rem; font-weight: 600; color: var(--text); min-width: 60px; text-align: right; }
-
-
-    /* ── CTA ── */
-    .cta-section {
-      padding: clamp(80px,10vw,144px) clamp(16px,5vw,56px);
-      background: var(--bg-2); border-top: 1px solid var(--bdr);
-      text-align: center; position: relative; overflow: hidden;
-    }
-    .cta-section::before {
-      content:''; position:absolute; width:700px; height:700px; border-radius:50%;
-      top:50%; left:50%; transform:translate(-50%,-50%);
-      background: radial-gradient(circle, rgba(224,155,32,0.08) 0%, transparent 70%);
-      pointer-events:none;
-    }
-    .cta-h2 { font-family:var(--serif); font-size:clamp(2.2rem,4.5vw,3.8rem); font-weight:400; letter-spacing:-0.02em; line-height:1.1; color:var(--text); margin-bottom:20px; }
-    .cta-h2 em { font-style:italic; color:var(--amber-hi); }
-    .cta-sub { font-size:1.1rem; color:var(--muted-1); max-width:480px; margin:0 auto 44px; line-height:1.72; }
-    .cta-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-
-    /* ── FOOTER ── */
-    footer { background:var(--bg); border-top:1px solid var(--bdr); padding:clamp(48px,6vw,80px) clamp(16px,5vw,56px) 36px; }
-    .footer-grid { max-width:1080px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; padding-bottom:48px; border-bottom:1px solid var(--bdr); }
-    .footer-brand-name { font-family:var(--serif); font-size:1.15rem; color:var(--text); margin-bottom:12px; }
-    .footer-brand-name em { font-style:italic; color:var(--amber-hi); }
-    .footer-brand p { font-size:0.875rem; color:var(--muted-2); line-height:1.7; max-width:230px; }
-    .footer-col h5 { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted-2); margin-bottom:16px; }
-    .footer-col ul { list-style:none; display:flex; flex-direction:column; gap:10px; }
-    .footer-col a { font-size:0.875rem; color:var(--muted-2); text-decoration:none; transition:color 0.15s; }
-    .footer-col a:hover { color:var(--text); }
-    .footer-bottom { max-width:1080px; margin:26px auto 0; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--muted-2); flex-wrap:wrap; gap:12px; }
-    .footer-bottom a { color:var(--muted-1); text-decoration:none; }
-    .footer-bottom a:hover { color:var(--text); }
-
-    /* ── RESPONSIVE ── */
-    @media(max-width:880px) {
-      .hero-grid { grid-template-columns:1fr; }
-      .hero-term { display:none; }
-      .cap-grid { grid-template-columns:1fr 1fr; }
-      .bench-cards { grid-template-columns:1fr; }
-      .bench-vs { display:none; }
-      .comp-layout { grid-template-columns:1fr; gap:44px; }
-      .nav-links { display:none; }
-      .footer-grid { grid-template-columns:1fr 1fr; }
-      .stats-grid { grid-template-columns:repeat(3,1fr); }
-    }
-    @media(max-width:560px) {
-      .cap-grid { grid-template-columns:1fr; }
-      .footer-grid { grid-template-columns:1fr; }
-      .stats-grid { grid-template-columns:repeat(2,1fr); }
-      .step { grid-template-columns:52px 1fr; gap:0 18px; }
-      .step-n { font-size:2.4rem; }
-    }
-  </style>
+/* ─── ANIMATIONS ────────────────────────────────────────────────────── */
+.fu{opacity:0;transform:translateY(22px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
+.fu.in{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+</style>
 </head>
 <body>
 
-<div id="prog"></div>
+<!-- ─── ANNOUNCEMENT ─────────────────────────────────────────────── -->
+<div class="topbar">
+  EU AI Act enforcement: August 2, 2026 — Full Annex IV evidence packages, automated.
+  <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">View on GitHub →</a>
+</div>
 
-<!-- NAV -->
-<nav id="nav">
-  <a class="nav-logo" href="#">
-    <div class="logo-mark">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 5v2M12 17v2M5 12h2M17 12h2M7.05 7.05l1.41 1.41M15.54 15.54l1.41 1.41M7.05 16.95l1.41-1.41M15.54 8.46l1.41-1.41"/></svg>
+<!-- ─── NAV ─────────────────────────────────────────────────────── -->
+<nav aria-label="Main navigation">
+  <a href="/" class="nav-logo" aria-label="Glassbox AI home">
+    <div class="nav-mark">
+      <svg fill="none" viewBox="0 0 13 13" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1.5" y="1.5" width="10" height="10" rx="2"/>
+        <path d="M4 6.5h5M6.5 4v5"/>
+      </svg>
     </div>
-    Glass<em>box</em>
+    Glassbox AI
   </a>
-  <ul class="nav-links">
-    <li><a href="#how">How it works</a></li>
-    <li><a href="#capabilities">Capabilities</a></li>
-    <li><a href="#compliance">Compliance</a></li>
-    <li><a href="#research">Research</a></li>
-  </ul>
-  <div class="nav-right">
-    <a class="nav-ghost" href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">
-      <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-      GitHub
+  <div class="nav-cx">
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#coverage">EU AI Act</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Docs</a></li>
+    </ul>
+  </div>
+  <div class="nav-r">
+    <a href="https://pypi.org/project/glassbox-mech-interp/" class="nav-ghost">PyPI</a>
+    <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="nav-cta">
+      Live demo
+      <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 10L10 2M6 2h4v4"/>
+      </svg>
     </a>
-    <a class="nav-cta magnetic" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">Generate Report</a>
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero-wrap">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-
-  <div class="hero-grid">
-    <!-- Text -->
-    <div>
-      <div class="badge"><span class="badge-dot"></span> v3.4.0 &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Open Source</div>
-      <h1 class="hero-h1">The compliance<br>audit your model<br><em>cannot</em> fake.</h1>
-      <p class="hero-sub">Glassbox traces the exact attention heads causally responsible for any transformer prediction. Structured output for EU AI Act Annex IV — in 1.2 seconds, 3 forward passes.</p>
-      <div class="hero-btns">
-        <a class="btn-p" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">
-          Generate Annex IV Report
-          <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-        </a>
-        <a class="btn-g" href="https://arxiv.org/abs/2603.09988" target="_blank">Read the Paper</a>
-      </div>
-      <div class="install-row">
-        <span><span class="dollar">$</span> pip install glassbox-mech-interp</span>
-        <button class="copy-btn" onclick="navigator.clipboard.writeText('pip install glassbox-mech-interp').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1800)})">Copy</button>
-      </div>
+<!-- ─── HERO ─────────────────────────────────────────────────────── -->
+<section class="hero-wrap" aria-label="Hero">
+  <div class="hmesh" aria-hidden="true"></div>
+  <div class="hgrid" aria-hidden="true"></div>
+  <div class="hero">
+    <div class="hbadge">
+      <span class="bdot" aria-hidden="true"></span>
+      EU AI Act · Annex IV · August 2026
     </div>
 
-    <!-- Animated terminal -->
-    <div class="hero-term">
-      <div class="term-bar">
-        <span class="tdot tdot-r"></span>
-        <span class="tdot tdot-y"></span>
-        <span class="tdot tdot-g"></span>
-        <span class="term-title-txt">glassbox — compliance analysis</span>
-      </div>
-      <div class="term-body" id="term-output">
-        <span class="cursor" id="term-cursor"></span>
-      </div>
-    </div>
-  </div>
+    <h1 class="htitle">
+      The compliance layer<br>
+      <span class="dim">for</span> <span class="shine">production AI.</span>
+    </h1>
 
-  <div class="scroll-hint">
-    <span>Scroll</span>
-    <div class="scroll-line"></div>
+    <p class="hsub">
+      Glassbox maps your LLM's internal attention circuits to EU AI Act Annex IV requirements.
+      One function call generates a complete, regulator-ready evidence package.
+    </p>
+
+    <div class="hactions">
+      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn-p">
+        <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="7.5" r="6.5"/>
+          <polygon points="6,5.2 10.5,7.5 6,9.8" fill="currentColor" stroke="none"/>
+        </svg>
+        Try live demo
+      </a>
+      <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn-s">
+        <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M7.5 1C3.91 1 1 3.91 1 7.5c0 2.87 1.86 5.3 4.44 6.16.32.06.44-.14.44-.31v-1.08c-1.8.39-2.18-.87-2.18-.87-.3-.75-.72-.95-.72-.95-.59-.4.04-.39.04-.39.65.04 1 .67 1 .67.58 1 1.53.71 1.9.54.06-.42.23-.71.41-.87-1.44-.16-2.95-.72-2.95-3.2 0-.71.25-1.29.67-1.74-.07-.17-.29-.82.06-1.72 0 0 .55-.18 1.8.67a6.27 6.27 0 013.26 0c1.25-.85 1.8-.67 1.8-.67.35.9.13 1.55.06 1.72.42.45.67 1.03.67 1.74 0 2.49-1.52 3.04-2.96 3.2.23.2.44.6.44 1.21v1.79c0 .17.12.37.44.31A6.5 6.5 0 0014 7.5C14 3.91 11.09 1 7.5 1z"/>
+        </svg>
+        View on GitHub
+      </a>
+    </div>
+
+    <div class="pip" role="complementary" aria-label="Install command">
+      <span class="pr" aria-hidden="true">$</span>
+      <span class="pc">pip install glassbox-mech-interp</span>
+      <button class="pip-cp" onclick="copyPip(this)" aria-label="Copy install command">Copy</button>
+    </div>
+
+    <div class="hstats" role="list" aria-label="Key metrics">
+      <div class="si" role="listitem"><div class="sn">3.4<sup>M</sup></div><div class="sl">Downloads</div></div>
+      <div class="si" role="listitem"><div class="sn">8</div><div class="sl">Annex IV sections</div></div>
+      <div class="si" role="listitem"><div class="sn">&lt;2<sup>s</sup></div><div class="sl">Per audit</div></div>
+      <div class="si" role="listitem"><div class="sn">MIT</div><div class="sl">License</div></div>
+    </div>
   </div>
 </section>
 
-<!-- MARQUEE -->
-<div class="marquee-wrap">
-  <div class="marquee-track" id="mq-track"></div>
+<!-- ─── TRUST BAR ─────────────────────────────────────────────────── -->
+<div class="trustbar" aria-label="Trust signals">
+  <span class="tl-label">Open source · Production ready</span>
+  <span class="tsep" aria-hidden="true"></span>
+  <div class="tbadges">
+    <span class="tb">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="7" cy="7" r="6"/><path d="M4.5 7l2 2 3-3"/></svg>
+      Python 3.9+
+    </span>
+    <span class="tb">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M7 3L3 6.5V12h8V6.5L7 3z"/><path d="M5 12V9h4v3"/></svg>
+      TransformerLens
+    </span>
+    <span class="tb">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="2" y="3" width="10" height="9" rx="1.5"/><path d="M2 6.5h10M5 3V2M9 3V2"/></svg>
+      EU Reg 2024/1689
+    </span>
+    <span class="tb">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M7 1v4M7 9v4M1 7h4M9 7h4"/><circle cx="7" cy="7" r="2"/></svg>
+      HuggingFace Hub
+    </span>
+    <span class="tb">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="2" y="4" width="10" height="8" rx="1.5"/><path d="M5 4V3a2 2 0 014 0v1"/></svg>
+      Docker ready
+    </span>
+    <span class="tb">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 11l3-6 3 4 2-2 2 4"/></svg>
+      MLflow + CI/CD
+    </span>
+  </div>
 </div>
 
-<!-- STATS -->
-<section class="section alt">
-  <div class="inner">
-    <div class="stats-grid">
-      <div class="stat-item rv"><div class="stat-num"><span class="cnt" data-t="37" data-s="×">0×</span></div><div class="stat-lbl">Faster than ACDC<br>baseline</div></div>
-      <div class="stat-item rv d1"><div class="stat-num"><span class="cnt" data-t="1.2" data-s="s" data-d="1">0s</span></div><div class="stat-lbl">Circuit discovery<br>on CPU</div></div>
-      <div class="stat-item rv d2"><div class="stat-num"><span class="cnt" data-t="3">0</span></div><div class="stat-lbl">Forward passes<br>total</div></div>
-      <div class="stat-item rv d3"><div class="stat-num"><span class="cnt" data-t="9">0</span>/<span>9</span></div><div class="stat-lbl">Annex IV sections<br>covered</div></div>
-      <div class="stat-item rv d4"><div class="stat-num">Aug <em>'26</em></div><div class="stat-lbl">EU AI Act<br>enforcement</div></div>
+<!-- ─── FEATURES ──────────────────────────────────────────────────── -->
+<section class="sec" id="features" aria-labelledby="feat-h">
+  <div class="sec-in">
+    <div class="feat-hd">
+      <div>
+        <div class="slabel fu">
+          <svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 5.5h9M5.5 1l4.5 4.5-4.5 4.5"/></svg>
+          Features
+        </div>
+        <h2 class="stitle fu" id="feat-h">Built for how compliance<br>actually works.</h2>
+      </div>
+      <p class="ssub fu" style="max-width:340px">Every feature maps to a specific EU AI Act article. No guesswork. No manual documentation. No dashboards.</p>
+    </div>
+
+    <div class="feat-grid">
+      <!-- 1 -->
+      <div class="fc fu">
+        <div class="ficon">
+          <svg fill="none" viewBox="0 0 20 20" stroke="var(--indigo-l)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 2L3 6.5V18h14V6.5L10 2z"/><path d="M7 18v-5h6v5"/>
+          </svg>
+        </div>
+        <div class="ftitle">Circuit Analysis</div>
+        <div class="fdesc">Attribution patching reveals which attention heads causally drive predictions. Discovers minimal faithful circuits with mathematical rigor.</div>
+        <a href="#coverage" class="flink">Article 9 — Risk management <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 10L10 2M6 2h4v4"/></svg></a>
+      </div>
+      <!-- 2 -->
+      <div class="fc fu d1">
+        <div class="ficon" style="background:rgba(14,165,233,.1);border-color:rgba(14,165,233,.2)">
+          <svg fill="none" viewBox="0 0 20 20" stroke="var(--sky-l)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 10h6M7 7h6M7 13h4"/>
+          </svg>
+        </div>
+        <div class="ftitle">Annex IV Automation</div>
+        <div class="fdesc">Generates all eight mandatory documentation sections automatically. System description, risk classification, bias testing — every field.</div>
+        <a href="#coverage" class="flink" style="color:var(--sky-l)">Article 11 — Documentation <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 10L10 2M6 2h4v4"/></svg></a>
+      </div>
+      <!-- 3 -->
+      <div class="fc fu d2">
+        <div class="ficon" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.2)">
+          <svg fill="none" viewBox="0 0 20 20" stroke="#4ade80" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="10" r="8"/><path d="M6.5 10l2.5 2.5 5-5"/>
+          </svg>
+        </div>
+        <div class="ftitle">Plain English Explainability</div>
+        <div class="fdesc">NaturalLanguageExplainer converts circuit metrics into plain English summaries with article citations. Non-technical stakeholders understand.</div>
+        <a href="#coverage" class="flink" style="color:#4ade80">Article 13 — Transparency <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 10L10 2M6 2h4v4"/></svg></a>
+      </div>
+      <!-- 4 -->
+      <div class="fc fu">
+        <div class="ficon" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)">
+          <svg fill="none" viewBox="0 0 20 20" stroke="#fbbf24" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="4.5" cy="5" r="2"/><circle cx="15.5" cy="5" r="2"/><circle cx="10" cy="15" r="2"/>
+            <path d="M6.5 5h7M6 7l-2 6M14 7l2 6"/>
+          </svg>
+        </div>
+        <div class="ftitle">Multi-Agent Audit</div>
+        <div class="fdesc">Traces causal handoffs across agent chains. Assigns liability scores per agent and generates full liability reports for multi-model deployments.</div>
+        <a href="#coverage" class="flink" style="color:#fbbf24">Article 9(2) — Control <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 10L10 2M6 2h4v4"/></svg></a>
+      </div>
+      <!-- 5 -->
+      <div class="fc fu d1">
+        <div class="ficon" style="background:rgba(192,132,252,.1);border-color:rgba(192,132,252,.2)">
+          <svg fill="none" viewBox="0 0 20 20" stroke="var(--purple)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 10h12M10 4v12"/><path d="M6.3 6.3l7.4 7.4M13.7 6.3l-7.4 7.4"/>
+          </svg>
+        </div>
+        <div class="ftitle">Steering Vectors</div>
+        <div class="fdesc">Export representation engineering vectors that steer model behavior. Provides mathematical proof of controllability — what regulators actually need.</div>
+        <a href="#coverage" class="flink" style="color:var(--purple)">Article 9(2)(b) — Oversight <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 10L10 2M6 2h4v4"/></svg></a>
+      </div>
+      <!-- 6 -->
+      <div class="fc fu d2">
+        <div class="ficon" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2)">
+          <svg fill="none" viewBox="0 0 20 20" stroke="#f87171" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 5h14M3 10h14M3 15h8"/><circle cx="16" cy="15" r="2.5"/>
+            <path d="M16 12.5V14M16 16v1.5"/>
+          </svg>
+        </div>
+        <div class="ftitle">CI/CD Integration</div>
+        <div class="fdesc">GitHub Actions hook auto-fails CI if compliance grade drops. MLflow logs circuit metrics. Slack and Teams alerts on CircuitDiff anomalies.</div>
+        <a href="#coverage" class="flink" style="color:#f87171">Article 9 — Monitoring <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 10L10 2M6 2h4v4"/></svg></a>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- FINDING -->
-<section class="finding">
-  <div class="inner-sm">
-    <div class="eyebrow" style="justify-content:center">Core Research Finding</div>
-    <em class="finding-num rv" style="transition-delay:.10s">r = 0.009</em>
-    <p class="finding-claim rv" style="transition-delay:.20s">Correlation between a model's output confidence and its internal faithfulness.</p>
-    <p class="finding-sub rv" style="transition-delay:.30s">A model can output <strong>Mary</strong> with 94% certainty while the attention circuit responsible for that answer has nothing to do with genuine reasoning. Confidence scores cannot catch this. <strong>Glassbox can.</strong></p>
+<hr class="divider">
+
+<!-- ─── HOW IT WORKS ──────────────────────────────────────────────── -->
+<section class="demo-wrap" id="how-it-works" aria-labelledby="demo-h">
+  <div class="demo-in">
+    <div>
+      <div class="slabel fu">
+        <svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="4.5"/><path d="M5.5 3v2.5l1.5 1.5"/></svg>
+        How it works
+      </div>
+      <h2 class="stitle fu" id="demo-h" style="max-width:380px">Three steps to full Annex IV compliance.</h2>
+      <p class="ssub fu" style="margin-bottom:44px">From install to a regulator-ready evidence package in under five minutes.</p>
+
+      <ol class="steps">
+        <li class="step fu">
+          <div class="snum">01</div>
+          <div>
+            <div class="stept">Install</div>
+            <div class="stepd">One pip command. No API keys. No cloud services. Runs entirely on CPU. Works fully offline for air-gapped environments.</div>
+          </div>
+        </li>
+        <li class="step fu d1">
+          <div class="snum">02</div>
+          <div>
+            <div class="stept">Analyze</div>
+            <div class="stepd">Pass any HuggingFace-compatible model. Glassbox runs attribution patching and maps attention circuits to Annex IV documentation sections.</div>
+          </div>
+        </li>
+        <li class="step fu d2">
+          <div class="snum">03</div>
+          <div>
+            <div class="stept">Export</div>
+            <div class="stepd">Receive a signed evidence vault ZIP, HuggingFace model card, and graded compliance report. Submit directly to auditors or notified bodies.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="cwin fu">
+      <div class="ctbar">
+        <div class="tlights" aria-hidden="true">
+          <span class="tl tl-r"></span><span class="tl tl-y"></span><span class="tl tl-g"></span>
+        </div>
+        <span class="cfname">audit.py</span>
+        <div class="ctabs" role="tablist">
+          <button class="ctab on" data-tab="py" role="tab" aria-selected="true">Python</button>
+          <button class="ctab" data-tab="out" role="tab" aria-selected="false">Output</button>
+        </div>
+      </div>
+
+      <div class="cbody on" id="tab-py" role="tabpanel"><pre>
+<span class="kw">from</span> <span class="cl">glassbox</span> <span class="kw">import</span> <span class="fn">GlassboxV2</span>, <span class="fn">AnnexIVReport</span>
+<span class="kw">from</span> <span class="cl">transformer_lens</span> <span class="kw">import</span> <span class="fn">HookedTransformer</span>
+
+<span class="cm"># Load any HuggingFace-compatible model</span>
+<span class="fn">model</span> = <span class="fn">HookedTransformer</span>.<span class="fn">from_pretrained</span>(<span class="st">"gpt2"</span>)
+<span class="fn">gb</span>    = <span class="fn">GlassboxV2</span>(<span class="fn">model</span>)
+
+<span class="cm"># Run full EU AI Act Annex IV audit</span>
+<span class="fn">result</span> = <span class="fn">gb</span>.<span class="fn">full_audit</span>(
+    <span class="fn">prompt</span>     = <span class="st">"The European AI Act requires..."</span>,
+    <span class="fn">correct</span>    = <span class="st">" compliance"</span>,
+    <span class="fn">model_name</span> = <span class="st">"GPT-2 small"</span>,
+    <span class="fn">deployment</span> = <span class="st">"Financial Services"</span>,
+)
+
+<span class="cm"># Build and export evidence vault</span>
+<span class="fn">vault</span> = <span class="fn">result</span>.<span class="fn">build_annex_iv_vault</span>()
+<span class="fn">vault</span>.<span class="fn">export</span>(<span class="st">"annex_iv_evidence.zip"</span>)
+
+<span class="cm"># Push model card to HuggingFace Hub</span>
+<span class="fn">result</span>.<span class="fn">push_to_hub</span>(<span class="st">"your-org/gpt2-compliance"</span>)
+</pre></div>
+
+      <div class="cbody" id="tab-out" role="tabpanel"><pre>
+<span class="dim-t">Audit complete — 291ms</span>
+
+<span class="ok">┌──────────────────────────────────────────────┐</span>
+<span class="ok">│  Annex IV Evidence Package                   │</span>
+<span class="ok">│                                              │</span>
+<span class="ok">│  ✓  Section 1  System description            │</span>
+<span class="ok">│  ✓  Section 2  Risk classification           │</span>
+<span class="ok">│  ✓  Section 3  Monitoring &amp; control          │</span>
+<span class="ok">│  ✓  Section 4  Data &amp; training provenance    │</span>
+<span class="ok">│  ✓  Section 5  Bias &amp; fairness testing       │</span>
+<span class="ok">│  ✓  Section 6  Lifecycle management          │</span>
+<span class="ok">│  ✓  Section 7  Explainability  (Art. 13)     │</span>
+<span class="ok">│  ✓  Section 8  Human oversight (Art. 14)     │</span>
+<span class="ok">│                                              │</span>
+<span class="ok">│  Explainability Grade:  A  (F1 = 0.89)       │</span>
+<span class="ok">│  Risk class:  High-risk  (Article 6)         │</span>
+<span class="ok">│  Circuit F1:  0.89  — FAITHFUL               │</span>
+<span class="ok">└──────────────────────────────────────────────┘</span>
+
+<span class="dim-t">Exported:  annex_iv_evidence.zip  (4 files)</span>
+<span class="dim-t">Model card pushed  →  HuggingFace Hub ✓</span>
+</pre></div>
+    </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="section" id="how">
-  <div class="inner-md">
-    <div class="rv">
-      <div class="eyebrow">How it works</div>
-      <h2 class="h2">Three steps from prompt<br>to compliance report.</h2>
+<!-- ─── EU AI ACT COVERAGE ────────────────────────────────────────── -->
+<section class="sec" id="coverage" aria-labelledby="cov-h">
+  <div class="sec-in">
+    <div class="slabel fu">
+      <svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="1" width="9" height="9" rx="1.5"/><path d="M3.5 3.5h4M3.5 6h2"/></svg>
+      EU AI Act
     </div>
-    <div class="steps">
-      <div class="step rv">
-        <div class="step-n">01</div>
-        <div>
-          <div class="step-title">Install and point at your model.</div>
-          <p class="step-desc">Works with any TransformerLens-compatible model — GPT-2, GPT-Neo, Llama, Mistral, Pythia. No proprietary dependencies, no cloud required.</p>
-          <div class="install-pill">
-            <span><span class="dollar">$</span> pip install glassbox-mech-interp</span>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText('pip install glassbox-mech-interp').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1800)})">Copy</button>
-          </div>
-        </div>
+    <h2 class="stitle fu" id="cov-h">Full Annex IV coverage.<br>Every article mapped.</h2>
+    <p class="ssub fu">
+      Glassbox covers every section of Annex IV and the key transparency and oversight articles of EU Regulation 2024/1689. Nothing left to manual documentation.
+    </p>
+
+    <div class="art-grid">
+      <div class="ac fu">
+        <div class="anum">Article 9</div>
+        <div class="atitle">Risk Management System</div>
+        <div class="adesc">Circuit analysis identifies and quantifies risks. Attribution patching provides causal, mathematically rigorous evidence for the risk register.</div>
+        <div class="atag"><svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 5.5l2 2 4.5-4.5"/></svg> Covered</div>
       </div>
-      <div class="step rv">
-        <div class="step-n">02</div>
-        <div>
-          <div class="step-title">Run one function call.</div>
-          <p class="step-desc">Pass a prompt and a contrastive token pair. Glassbox runs attribution patching and greedy circuit discovery in O(3 + 2p) forward passes.</p>
-          <div class="cwin">
-            <div class="cwin-bar"><span class="cdot cdot-r"></span><span class="cdot cdot-y"></span><span class="cdot cdot-g"></span><span class="cwin-name">analyze.py</span></div>
-            <pre><span class="kw">from</span> glassbox <span class="kw">import</span> GlassboxV2
-<span class="kw">from</span> transformer_lens <span class="kw">import</span> HookedTransformer
-
-gb = <span class="fn">GlassboxV2</span>(HookedTransformer.<span class="fn">from_pretrained</span>(<span class="st">"gpt2"</span>))
-
-result = gb.<span class="fn">analyze</span>(
-    prompt    = <span class="st">"When Mary and John went to the store, John gave a drink to"</span>,
-    correct   = <span class="st">" Mary"</span>,
-    incorrect = <span class="st">" John"</span>,
-)</pre>
-          </div>
-        </div>
+      <div class="ac fu d1">
+        <div class="anum">Article 10</div>
+        <div class="atitle">Data &amp; Data Governance</div>
+        <div class="adesc">BiasAnalyzer and SAE feature attribution document training data provenance and bias sources per Art. 10(2)(f) and Art. 10(5).</div>
+        <div class="atag"><svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 5.5l2 2 4.5-4.5"/></svg> Covered</div>
       </div>
-      <div class="step rv">
-        <div class="step-n">03</div>
-        <div>
-          <div class="step-title">Get a structured compliance package.</div>
-          <p class="step-desc">Minimum faithful circuit, three faithfulness metrics with 95% CIs, and a complete Annex IV evidence draft ready for regulatory submission.</p>
-          <div class="cwin">
-            <div class="cwin-bar"><span class="cdot cdot-r"></span><span class="cdot cdot-y"></span><span class="cdot cdot-g"></span><span class="cwin-name">output</span></div>
-            <pre><span class="ot"># Circuit: causal heads identified</span>
-result[<span class="st">"circuit"</span>]     <span class="cm">→ [(9,9), (9,6), (10,0)]</span>
-
-<span class="ot"># Faithfulness metrics + 95% CIs</span>
-result[<span class="st">"faithfulness"</span>] <span class="cm">→ { sufficiency: 1.00,</span>
-                        <span class="cm">    comprehensiveness: 0.47,</span>
-                        <span class="cm">    f1: 0.64, grade: "B" }</span>
-
-<span class="ot"># Annex IV evidence package</span>
-result[<span class="st">"annex_iv"</span>]     <span class="cm">→ 9-section structured dict</span>
-                        <span class="cm">    mapped to EU AI Act articles</span></pre>
-          </div>
-        </div>
+      <div class="ac fu d2">
+        <div class="anum">Article 11</div>
+        <div class="atitle">Technical Documentation</div>
+        <div class="adesc">Full Annex IV 8-section evidence vault generated in one call. JSON + HTML output ready for submission to a notified body or regulator.</div>
+        <div class="atag"><svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 5.5l2 2 4.5-4.5"/></svg> Covered</div>
+      </div>
+      <div class="ac fu d3">
+        <div class="anum">Article 13</div>
+        <div class="atitle">Transparency &amp; Explainability</div>
+        <div class="adesc">NaturalLanguageExplainer produces plain English summaries with article citations. Explainability grades A–F for non-technical stakeholders.</div>
+        <div class="atag"><svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 5.5l2 2 4.5-4.5"/></svg> Covered</div>
+      </div>
+      <div class="ac fu">
+        <div class="anum">Article 14</div>
+        <div class="atitle">Human Oversight</div>
+        <div class="adesc">Steering vector exports and controllability proofs provide mathematical evidence of human override capability for high-risk systems.</div>
+        <div class="atag"><svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 5.5l2 2 4.5-4.5"/></svg> Covered</div>
+      </div>
+      <div class="ac fu d1">
+        <div class="anum">Article 15</div>
+        <div class="atitle">Accuracy &amp; Robustness</div>
+        <div class="adesc">Faithfulness F1 score and stability_suite() provide quantitative accuracy and robustness metrics required by Art. 15(1).</div>
+        <div class="atag"><svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 5.5l2 2 4.5-4.5"/></svg> Covered</div>
+      </div>
+      <div class="ac fu d2">
+        <div class="anum">Article 72</div>
+        <div class="atitle">Post-Market Monitoring</div>
+        <div class="adesc">CircuitDiff compares model versions mechanistically. CI/CD integration auto-flags compliance drift after any fine-tuning or model update.</div>
+        <div class="atag"><svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 5.5l2 2 4.5-4.5"/></svg> Covered</div>
+      </div>
+      <div class="ac fu d3">
+        <div class="anum">Annex IV</div>
+        <div class="atitle">All 8 Documentation Sections</div>
+        <div class="adesc">The only open-source tool that generates the complete Annex IV package automatically. Every section, every field, regulator-ready.</div>
+        <div class="atag"><svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M2 5.5l2 2 4.5-4.5"/></svg> Covered</div>
       </div>
     </div>
   </div>
 </section>
 
+<hr class="divider">
 
-<!-- COMPLIANCE -->
-<section class="section alt" id="compliance">
-  <div class="inner">
-    <div class="rv">
-      <div class="eyebrow">EU AI Act</div>
-      <h2 class="h2">Annex IV documentation,<br><em>automatically generated.</em></h2>
-      <p class="lead" style="max-width:560px;margin-top:14px">Enforcement starts August 2026. Article 11 requires technical documentation for every high-risk AI system. Glassbox produces all nine sections.</p>
+<!-- ─── PRICING ───────────────────────────────────────────────────── -->
+<section class="sec" id="pricing" aria-labelledby="price-h">
+  <div class="sec-in" style="text-align:center">
+    <div class="slabel fu" style="justify-content:center">
+      <svg fill="none" viewBox="0 0 11 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="3" width="9" height="6.5" rx="1.5"/><path d="M3.5 3V2a2 2 0 014 0v1"/></svg>
+      Pricing
     </div>
-    <div class="comp-layout">
-      <div class="rv-l">
-        <ul class="check-list">
-          <li class="check-item"><span class="tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></span>Identifies which specific components (layer, head) causally drove a prediction — maps to Annex IV §7 explainability</li>
-          <li class="check-item"><span class="tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></span>Sufficiency score quantifies how much of the prediction the circuit explains — direct evidence for Article 13(1)</li>
-          <li class="check-item"><span class="tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></span>Comprehensiveness score measures causal necessity — distinguishes genuine explanations from post-hoc correlation</li>
-          <li class="check-item"><span class="tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></span>Structured JSON output suitable for direct import into GRC systems and audit documentation</li>
-          <li class="check-item"><span class="tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></span>Bootstrap CIs provide statistical grounding — regulators assess confidence, not just point estimates</li>
-          <li class="check-item"><span class="tick"><svg viewBox="0 0 12 12"><polyline points="2 6 5 9 10 3"/></svg></span>Every approximation is explicitly disclosed — meets the EU AI Act's transparency requirements without ambiguity</li>
+    <h2 class="stitle fu" id="price-h">Start free. Scale when ready.</h2>
+    <p class="ssub fu" style="margin:0 auto;max-width:460px">
+      The core engine is MIT licensed and free forever. Enterprise support and custom integrations for regulated industries.
+    </p>
+
+    <div class="pgrid">
+      <div class="pc fu">
+        <div class="pname">Open Source</div>
+        <div class="pdesc">Everything you need for EU AI Act compliance. Full source code. No restrictions.</div>
+        <div class="pprice">Free</div>
+        <div class="pper">Forever. MIT License.</div>
+        <ul class="pitems">
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Full Annex IV documentation automation</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Circuit analysis &amp; attribution patching</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Multi-agent audit &amp; steering vectors</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>HuggingFace Hub &amp; MLflow integration</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Slack &amp; Teams alerts, GitHub Actions CI gate</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Community support via GitHub Issues</li>
         </ul>
-        <div class="deadline-strip">
-          <span class="dl-dot"></span>
-          <div class="dl-text">EU AI Act enforcement — August 2026<span>High-risk systems in finance, healthcare, HR, and legal must comply with Articles 11–15 and Annex IV.</span></div>
-        </div>
+        <a href="https://pypi.org/project/glassbox-mech-interp/" class="pbtn ol">Get started free</a>
       </div>
-      <div class="report-panel rv-r" id="compliance-panel">
-        <div class="panel-header">
-          <span class="panel-dot"></span>
-          <span class="panel-lbl">Annex IV Report &nbsp;·&nbsp; Generated</span>
-        </div>
-        <div class="panel-body">
-          <div class="grade-row">
-            <div class="grade-badge">B</div>
-            <div>
-              <div class="grade-lbl">Compliance Grade</div>
-              <div class="grade-val">Conditionally Compliant</div>
-            </div>
-          </div>
-          <div class="m-row"><span class="m-name">Faithfulness F1</span><div class="m-track"><div class="m-fill" data-w="64"></div></div><span class="m-val">0.64</span></div>
-          <div class="m-row"><span class="m-name">Sufficiency</span><div class="m-track"><div class="m-fill" data-w="100"></div></div><span class="m-val">1.00</span></div>
-          <div class="m-row"><span class="m-name">Comprehensiveness</span><div class="m-track"><div class="m-fill" data-w="47"></div></div><span class="m-val">0.47</span></div>
-          <div class="m-row"><span class="m-name">Circuit heads</span><div class="m-track"></div><span class="m-val" style="font-size:.74rem">(9,9) (9,6) (10,0)</span></div>
-          <div class="m-row"><span class="m-name">Annex IV sections</span><div class="m-track"><div class="m-fill" data-w="100"></div></div><span class="m-val">9 / 9</span></div>
-        </div>
+
+      <div class="pc feat fu d1">
+        <div class="pbadge">Enterprise</div>
+        <div class="pname">Enterprise</div>
+        <div class="pdesc">For teams deploying high-risk AI in regulated industries — finance, healthcare, legal, HR.</div>
+        <div class="pprice">Custom</div>
+        <div class="pper">Annual contract. Volume pricing.</div>
+        <ul class="pitems">
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Everything in Open Source</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Priority support &amp; SLA guarantee</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Custom integrations &amp; on-prem Docker deployment</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Audit-ready packages for notified bodies</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>Dedicated compliance engineer</li>
+          <li class="pi"><svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M2.5 7.5l3 3 6-6"/></svg>BSL 1.1 commercial license (→ Apache 2.0 in 2036)</li>
+        </ul>
+        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox AI Enterprise" class="pbtn sl">Contact sales</a>
       </div>
     </div>
   </div>
 </section>
 
-
-<!-- CTA -->
-<section class="cta-section">
-  <div class="inner-sm">
-    <h2 class="cta-h2 rv">Ready to audit your model?</h2>
-    <p class="cta-sub rv d1">No registration. No API key. Open source, runs locally. The live demo generates a full compliance report in 60 seconds.</p>
-    <div class="cta-btns rv d2">
-      <a class="btn-p magnetic" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">
-        Open the Live Demo
-        <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+<!-- ─── CTA ───────────────────────────────────────────────────────── -->
+<section class="cta-sec" aria-labelledby="cta-h">
+  <div class="cta-in">
+    <h2 class="cta-title fu" id="cta-h">
+      August 2026 is<br>closer than you think.
+    </h2>
+    <p class="cta-sub fu">
+      The EU AI Act enforcement deadline is August 2, 2026. Every high-risk AI system needs complete Annex IV documentation. Start generating it today — in five minutes.
+    </p>
+    <div class="cta-acts fu">
+      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn-p">
+        <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="7.5" r="6.5"/><polygon points="6,5.2 10.5,7.5 6,9.8" fill="currentColor" stroke="none"/>
+        </svg>
+        Try live demo
       </a>
-      <a class="btn-g" href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">pip install glassbox-mech-interp</a>
+      <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn-s">View on GitHub</a>
     </div>
+    <div class="cta-mono fu">pip install glassbox-mech-interp</div>
   </div>
 </section>
 
-<!-- FOOTER -->
+<!-- ─── FOOTER ────────────────────────────────────────────────────── -->
 <footer>
-  <div class="footer-grid">
-    <div class="footer-brand">
-      <div class="footer-brand-name">Glass<em>box</em></div>
-      <p>Causal mechanistic interpretability and EU AI Act Annex IV compliance tooling for transformer models. Open source, MIT licensed.</p>
+  <div class="ft-in">
+    <div class="ft-top">
+      <div>
+        <div class="ft-logo">
+          <div class="ft-mark">
+            <svg fill="none" viewBox="0 0 12 12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="1" width="10" height="10" rx="2"/><path d="M3.5 6h5M6 3.5v5"/>
+            </svg>
+          </div>
+          Glassbox AI
+        </div>
+        <div class="ft-tag">EU AI Act Annex IV compliance automation for production LLMs. Open source, MIT licensed. August 2026 ready.</div>
+        <div class="ft-soc">
+          <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="sbtn" aria-label="GitHub">
+            <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7.5 1C3.91 1 1 3.91 1 7.5c0 2.87 1.86 5.3 4.44 6.16.32.06.44-.14.44-.31v-1.08c-1.8.39-2.18-.87-2.18-.87-.3-.75-.72-.95-.72-.95-.59-.4.04-.39.04-.39.65.04 1 .67 1 .67.58 1 1.53.71 1.9.54.06-.42.23-.71.41-.87-1.44-.16-2.95-.72-2.95-3.2 0-.71.25-1.29.67-1.74-.07-.17-.29-.82.06-1.72 0 0 .55-.18 1.8.67a6.27 6.27 0 013.26 0c1.25-.85 1.8-.67 1.8-.67.35.9.13 1.55.06 1.72.42.45.67 1.03.67 1.74 0 2.49-1.52 3.04-2.96 3.2.23.2.44.6.44 1.21v1.79c0 .17.12.37.44.31A6.5 6.5 0 0014 7.5C14 3.91 11.09 1 7.5 1z"/></svg>
+          </a>
+          <a href="https://pypi.org/project/glassbox-mech-interp/" class="sbtn" aria-label="PyPI">
+            <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5.5 2C4.12 2 3 3.12 3 4.5v3C3 8.88 4.12 10 5.5 10H7v2.5a.5.5 0 001 0V10h1.5c1.38 0 2.5-1.12 2.5-2.5v-3C12 3.12 10.88 2 9.5 2h-4z"/></svg>
+          </a>
+          <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="sbtn" aria-label="HuggingFace">
+            <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="6.5"/><path d="M4.5 8.5c0 1.66 1.34 3 3 3s3-1.34 3-3"/><circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="6" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://arxiv.org/abs/2603.09988" class="sbtn" aria-label="arXiv paper">
+            <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="1.5" width="11" height="12" rx="1.5"/><path d="M5 5.5h5M5 8h5M5 10.5h3"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="ft-col">
+        <div class="ft-ctitle">Product</div>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#coverage">EU AI Act coverage</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a></li>
+        </ul>
+      </div>
+
+      <div class="ft-col">
+        <div class="ft-ctitle">Developers</div>
+        <ul>
+          <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">GitHub</a></li>
+          <li><a href="https://pypi.org/project/glassbox-mech-interp/">PyPI package</a></li>
+          <li><a href="https://arxiv.org/abs/2603.09988">arXiv paper</a></li>
+          <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/METHODOLOGY.md">Methodology</a></li>
+          <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/releases">Changelog</a></li>
+        </ul>
+      </div>
+
+      <div class="ft-col">
+        <div class="ft-ctitle">Legal</div>
+        <ul>
+          <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/LICENSE">MIT License</a></li>
+          <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/LICENSE-COMMERCIAL">BSL 1.1 Commercial</a></li>
+          <li><a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689">EU AI Act text</a></li>
+          <li><a href="mailto:mahale.ajay01@gmail.com">Contact</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="footer-col">
-      <h5>Product</h5>
-      <ul>
-        <li><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">Live Demo</a></li>
-        <li><a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI Package</a></li>
-        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">GitHub</a></li>
-      </ul>
+
+    <div class="ft-bot">
+      <div class="ft-copy">&copy; 2026 Glassbox AI &nbsp;&middot;&nbsp; Built for EU AI Act compliance &nbsp;&middot;&nbsp; BSL 1.1 + MIT dual licence</div>
+      <div class="ft-legal">
+        <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/LICENSE">MIT License</a>
+        <a href="mailto:mahale.ajay01@gmail.com">Contact</a>
+        <a href="https://arxiv.org/abs/2603.09988">Paper</a>
+      </div>
     </div>
-    <div class="footer-col">
-      <h5>Research</h5>
-      <ul>
-        <li><a href="https://arxiv.org/abs/2603.09988" target="_blank">arXiv Paper</a></li>
-        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool#readme" target="_blank">Documentation</a></li>
-        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/METHODOLOGY.md" target="_blank">Methodology</a></li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h5>Contact</h5>
-      <ul>
-        <li><a href="mailto:mahale.ajay01@gmail.com">mahale.ajay01@gmail.com</a></li>
-        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues" target="_blank">File an Issue</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2026 Ajay Pravin Mahale &nbsp;·&nbsp; <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/LICENSE">MIT License</a></span>
-    <span>Glassbox — See inside every prediction.</span>
   </div>
 </footer>
 
 <script>
-/* ── SCROLL PROGRESS ── */
-const prog = document.getElementById('prog');
-window.addEventListener('scroll', () => {
-  prog.style.width = (window.scrollY / (document.documentElement.scrollHeight - innerHeight) * 100) + '%';
-}, { passive: true });
-
-/* ── NAV SCROLL STATE ── */
-const navEl = document.getElementById('nav');
-window.addEventListener('scroll', () => navEl.classList.toggle('scrolled', scrollY > 20), { passive: true });
-navEl.classList.toggle('scrolled', scrollY > 20);
-
-/* ── REVEAL ON SCROLL ── */
-const rvObs = new IntersectionObserver(es => {
-  es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); rvObs.unobserve(e.target); } });
-}, { threshold: 0.07, rootMargin: '0px 0px -36px 0px' });
-document.querySelectorAll('.rv,.rv-l,.rv-r').forEach(el => rvObs.observe(el));
-
-/* ── ANIMATED COUNTERS ── */
-function runCounter(el) {
-  const target = parseFloat(el.dataset.t);
-  const dec    = parseInt(el.dataset.d || '0');
-  const suf    = el.dataset.s || '';
-  const dur    = 1700;
-  const t0     = performance.now();
-  (function tick(now) {
-    const p = Math.min((now - t0) / dur, 1);
-    const e = 1 - Math.pow(1 - p, 4);
-    el.textContent = (dec ? (target * e).toFixed(dec) : Math.round(target * e)) + suf;
-    if (p < 1) requestAnimationFrame(tick);
-  })(t0);
+/* ── Copy pip command ─────────────────────────────────────────── */
+function copyPip(btn) {
+  navigator.clipboard.writeText('pip install glassbox-mech-interp').then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('ok'); }, 2200);
+  }).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = 'pip install glassbox-mech-interp';
+    document.body.appendChild(t);
+    t.select(); document.execCommand('copy'); document.body.removeChild(t);
+    btn.textContent = 'Copied!'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 2200);
+  });
 }
-const cntObs = new IntersectionObserver(es => {
-  es.forEach(e => { if (e.isIntersecting) { e.target.querySelectorAll('.cnt').forEach(runCounter); cntObs.unobserve(e.target); } });
-}, { threshold: 0.3 });
-document.querySelectorAll('.stats-grid').forEach(el => cntObs.observe(el));
 
-/* ── METRIC BAR FILL ── */
-const barObs = new IntersectionObserver(es => {
-  es.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.querySelectorAll('.m-fill').forEach(b => { setTimeout(() => { b.style.width = b.dataset.w + '%'; }, 200); });
-      barObs.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.3 });
-const cpanel = document.getElementById('compliance-panel');
-if (cpanel) barObs.observe(cpanel);
-
-
-/* ── MAGNETIC BUTTONS ── */
-document.querySelectorAll('.magnetic').forEach(btn => {
-  btn.addEventListener('mouseenter', () => { btn.style.transition = 'transform 0.12s cubic-bezier(0.16,1,0.3,1)'; });
-  btn.addEventListener('mousemove', e => {
-    const r = btn.getBoundingClientRect();
-    const x = (e.clientX - r.left - r.width  / 2) * 0.22;
-    const y = (e.clientY - r.top  - r.height / 2) * 0.22;
-    btn.style.transform = `translate(${x}px,${y}px)`;
-  });
-  btn.addEventListener('mouseleave', () => {
-    btn.style.transition = 'transform 0.55s cubic-bezier(0.16,1,0.3,1)';
-    btn.style.transform = '';
+/* ── Code tab switching ───────────────────────────────────────── */
+document.querySelectorAll('.ctab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const win = btn.closest('.cwin');
+    win.querySelectorAll('.ctab').forEach(t => { t.classList.remove('on'); t.setAttribute('aria-selected','false'); });
+    win.querySelectorAll('.cbody').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on'); btn.setAttribute('aria-selected','true');
+    const panel = document.getElementById('tab-' + btn.dataset.tab);
+    if (panel) panel.classList.add('on');
   });
 });
 
-/* ── MARQUEE ── */
-const mqItems = ['EU AI Act','Annex IV','Mechanistic Interpretability','Circuit Discovery','Causal Faithfulness','Attribution Patching','Compliance Automation','Bootstrap CIs','Logit Lens','FCAS Metric','Open Source','MIT License','Transformer Analysis','GDPR Ready'];
-const mqTrack = document.getElementById('mq-track');
-if (mqTrack) {
-  const chunk = mqItems.map(i => `<div class="mq-item">${i}<span class="mq-dot"></span></div>`).join('');
-  mqTrack.innerHTML = chunk + chunk;
-}
-
-/* ── TERMINAL TYPING ── */
-const termOut = document.getElementById('term-output');
-const termCur = document.getElementById('term-cursor');
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function typeText(text, el) {
-  for (const ch of text) {
-    el.textContent += ch;
-    await sleep(26 + Math.random() * 20);
-  }
-}
-
-function addOutLine(html, delay = 0) {
-  return new Promise(res => {
-    const d = document.createElement('div');
-    d.className = 't-o'; d.innerHTML = html; d.style.opacity = '0';
-    termOut.insertBefore(d, termCur);
-    setTimeout(() => { d.style.opacity = '1'; d.style.transition = 'opacity 0.28s'; res(); }, delay);
-  });
-}
-
-async function runTerm() {
-  await sleep(1100);
-
-  // Step 1: install command
-  const l1 = document.createElement('div'); l1.className = 'tl';
-  const p1 = document.createElement('span'); p1.className = 't-p'; p1.textContent = '$';
-  const c1 = document.createElement('span'); c1.className = 't-c'; c1.style.marginLeft = '8px';
-  l1.append(p1, c1); termOut.insertBefore(l1, termCur);
-  await sleep(180); await typeText('pip install glassbox-mech-interp', c1); await sleep(320);
-
-  await addOutLine('<span class="t-g">✓</span> <span class="t-dim">Downloading glassbox-mech-interp-3.4.0...</span>'); await sleep(220);
-  await addOutLine('<span class="t-g">✓</span> <span class="t-dim">Installed in 1.4s</span>'); await sleep(420);
-
-  // blank
-  termOut.insertBefore(document.createElement('div'), termCur);
-
-  // Step 2: analyze
-  const l2 = document.createElement('div'); l2.className = 'tl';
-  const p2 = document.createElement('span'); p2.className = 't-p'; p2.textContent = '$';
-  const c2 = document.createElement('span'); c2.className = 't-c'; c2.style.marginLeft = '8px';
-  l2.append(p2, c2); termOut.insertBefore(l2, termCur);
-  await sleep(200); await typeText('python analyze.py --model gpt2', c2); await sleep(380);
-
-  const outLines = [
-    '<span class="t-dim">Loading model </span><span class="t-a">gpt2</span><span class="t-dim">...</span>',
-    '<span class="t-dim">Running attribution patching...</span>',
-    '<span class="t-dim">Discovering minimum faithful circuit...</span>',
-    '<span class="t-dim">Computing bootstrap CIs (n=500)...</span>',
-  ];
-  for (const l of outLines) { await addOutLine(l); await sleep(250); }
-  await sleep(340);
-
-  // Results
-  termOut.insertBefore(document.createElement('div'), termCur);
-  const results = [
-    '<span class="t-g">✓</span> <span class="t-dim">Analysis complete in </span><span class="t-a">1.2s</span>',
-    '',
-    '<span class="t-a">Circuit:</span>   <span class="t-v">[(9,9), (9,6), (10,0)]</span>',
-    '<span class="t-a">Grade:</span>     <span class="t-g">B  (Conditionally Compliant)</span>',
-    '<span class="t-a">F1:</span>        <span class="t-dim">0.64  [0.61 – 0.67]</span>',
-    '<span class="t-a">Sufficiency:</span> <span class="t-g">1.00 ✓</span>',
-    '<span class="t-a">Annex IV:</span>  <span class="t-g">9/9 sections generated ✓</span>',
-  ];
-  for (const l of results) { await addOutLine(l); await sleep(175); }
-}
-
-if (document.fonts) { document.fonts.ready.then(runTerm); } else { runTerm(); }
+/* ── Scroll fade-up animations ────────────────────────────────── */
+const obs = new IntersectionObserver(
+  entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+  { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+);
+document.querySelectorAll('.fu').forEach(el => obs.observe(el));
 </script>
 </body>
 </html>
