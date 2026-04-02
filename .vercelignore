@@ -1,0 +1,14 @@
+# Exclude Python backend — not deployed on Vercel (runs on HuggingFace Spaces)
+# Without this, Vercel tries to build api/*.py as serverless functions,
+# fails (no requirements.txt for torch/FastAPI), and silently stops auto-deploys.
+api/
+mcp/
+glassbox/
+dashboard/
+tests/
+scripts/
+requirements/
+*.py
+*.toml
+*.cfg
+*.ini
