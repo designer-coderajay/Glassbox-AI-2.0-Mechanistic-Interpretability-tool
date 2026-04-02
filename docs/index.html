@@ -1029,9 +1029,10 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
 
 <script>
 // Glassbox Live Demo
+// API endpoints — HuggingFace Spaces runs the real Gradio backend.
+// The demo falls back to realistic mock IOI circuit data if all fail.
 const API_URLS = [
-  '/api',                              // Vercel proxy
-  'https://glassbox-api.onrender.com', // Render backend (if deployed)
+  'https://designer-coderajay-glassbox-ai-2-0-mechanistic-interpretability-tool.hf.space', // HF Space
 ];
 
 let _lastResult = null;

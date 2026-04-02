@@ -4,17 +4,13 @@
   "buildCommand": null,
   "installCommand": null,
   "framework": null,
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index.py" }
-  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     }
   ]
