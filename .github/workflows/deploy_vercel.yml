@@ -57,7 +57,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          # VERCEL_ORG_ID and VERCEL_PROJECT_ID env vars are picked up
-          # automatically by the CLI in CI — no .vercel/project.json needed.
-          vercel deploy docs/ --prod --yes --token=$VERCEL_TOKEN
+          # Deploy from repo root — vercel.json sets outputDirectory: "docs"
+          # VERCEL_ORG_ID + VERCEL_PROJECT_ID link the CLI to existing project.
+          vercel --prod --yes --token=$VERCEL_TOKEN
           echo "Deployed → https://project-gu05p.vercel.app"
