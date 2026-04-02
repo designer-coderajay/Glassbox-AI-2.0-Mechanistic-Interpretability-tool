@@ -1,7 +1,7 @@
 """
-Glassbox 3.4 — Causal Mechanistic Interpretability + EU AI Act Compliance
+Glassbox 3.6 — Causal Mechanistic Interpretability + EU AI Act Compliance
 =========================================================================
-HuggingFace Space — v3.4.0
+HuggingFace Space — v3.6.0
 
 Tabs:
   1. Circuit Analysis   — attribution patching, MFC discovery, faithfulness metrics
@@ -1141,7 +1141,7 @@ Enforcement starts **August 2026**. High-risk AI systems must explain decisions 
 """
 
 with gr.Blocks(
-    title="Glassbox 3.4 — EU AI Act Compliance",
+    title="Glassbox 3.6 — EU AI Act Compliance",
     css=GB_CSS,
     theme=gr.themes.Base(
         primary_hue="indigo",

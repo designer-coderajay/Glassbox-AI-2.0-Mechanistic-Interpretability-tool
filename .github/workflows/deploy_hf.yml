@@ -106,10 +106,9 @@ jobs:
         if: steps.token-check.outputs.available == 'true'
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          SHORT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-
           python3 - <<PYEOF
           import os
           from huggingface_hub import HfApi
@@ -121,12 +120,8 @@ jobs:
               folder_path="hf_payload",
               repo_id=repo_id,
               repo_type="space",
-              commit_message=f"deploy: {os.environ.get('COMMIT_MSG','update')} — GitHub @ {os.environ.get('SHORT_SHA','HEAD')}",
+              commit_message=f"deploy: {os.environ.get('COMMIT_MSG','update')} @ {os.environ.get('SHORT_SHA','HEAD')[:7]}",
               ignore_patterns=["*.pyc", "__pycache__"],
           )
           print(f"Space updated: https://huggingface.co/spaces/{repo_id}")
           PYEOF
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          SHORT_SHA: ${{ github.sha }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
