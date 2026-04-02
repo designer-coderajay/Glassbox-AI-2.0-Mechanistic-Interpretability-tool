@@ -1,8 +1,8 @@
 # Glassbox AI — Proprietary Methodology
 
 **Author:** Ajay Pravin Mahale (`mahale.ajay01@gmail.com`)
-**Version documented:** 3.4.0
-**Date:** 2026-03-21
+**Version documented:** 3.6.0
+**Date:** 2026-04-02
 **Status:** Proprietary — All rights reserved
 
 > This document describes the intellectual property embodied in the Glassbox AI

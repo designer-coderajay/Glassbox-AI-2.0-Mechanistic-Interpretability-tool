@@ -32,7 +32,8 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
-- [What's New in v3.6.0](#whats-new-in-v350)
+- [What's New in v3.6.0](#whats-new-in-v360)
+- [What's New in v3.5.0](#whats-new-in-v350)
 - [What's New in v3.4.0](#whats-new-in-v340)
 - [What's New in v3.3.0](#whats-new-in-v330)
 - [What's New in v3.1.0](#whats-new-in-v310)
@@ -112,6 +113,15 @@ No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/
 - **Claude Code plugin**: Full `.claude/` directory with 6 agents, 6 skills, 5 commands
 - **MCP server**: Model Context Protocol integration with 5 tools (circuit discovery, faithfulness metrics, full Annex IV compliance report, attention patterns, logit lens)
 - **Bug fixes**: MCP class reference, analyze() signature, deterministic circuit sorting, input validation
+
+---
+
+## What's New in v3.5.0
+
+- **Claude Code plugin** (`.claude/`): 6 specialized agents, 6 skills, 5 slash commands for mechanistic interpretability workflows
+- **FastMCP server** (`mcp/`): Model Context Protocol integration with 5 tools — circuit discovery, faithfulness metrics, full Annex IV compliance report, attention patterns, logit lens
+- **Brand asset** (`assets/glassbox_brand.png`): 1400×800 circuit-trace visualization with attribution heatmap
+- **Bug fixes**: Non-deterministic circuit sort (added secondary `(layer, head)` key), `analyze()` input validation, MCP class reference and parameter names corrected
 
 ---
 

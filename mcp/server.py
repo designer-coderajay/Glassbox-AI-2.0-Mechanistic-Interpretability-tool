@@ -263,9 +263,9 @@ def _blocking_circuit_discovery(params: CircuitAnalysisInput) -> str:
             "paper_results_gpt2_ioi": {
                 "model": "gpt2",
                 "top_circuit_heads": [
-                    {"layer": 9, "head": 9, "attribution_score": 0.584},
-                    {"layer": 9, "head": 6, "attribution_score": 0.211},
-                    {"layer": 10, "head": 0, "attribution_score": 0.208},
+                    {"layer": 9, "head": 9, "attribution_score": 0.431},
+                    {"layer": 9, "head": 6, "attribution_score": 0.584},
+                    {"layer": 10, "head": 0, "attribution_score": 0.312},
                 ],
                 "faithfulness": {
                     "sufficiency": 1.00,

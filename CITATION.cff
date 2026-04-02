@@ -1,18 +1,18 @@
 cff-version: 1.2.0
 message: "If you use Glassbox in your research, please cite it as below."
 type: software
-title: "Glassbox 3.0: Mechanistic Interpretability, EU AI Act Compliance, Bias Analysis, and Enterprise Audit Infrastructure"
-version: 3.0.0
-date-released: "2026-03-20"
+title: "Glassbox 3.6.0: Mechanistic Interpretability, EU AI Act Compliance, Bias Analysis, and Enterprise Audit Infrastructure"
+version: 3.6.0
+date-released: "2026-04-02"
 license: MIT
 repository-code: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
-url: "https://glassbox-ai-2-0-mechanistic.onrender.com"
+url: "https://project-gu05p.vercel.app"
 authors:
   - family-names: Mahale
     given-names: Ajay
     email: mahale.ajay01@gmail.com
 abstract: >
-  Glassbox 2.9 is a free, open-source mechanistic interpretability and EU AI Act
+  Glassbox 3.6.0 is a free, open-source mechanistic interpretability and EU AI Act
   compliance audit toolkit for transformer language models, built on TransformerLens.
   It implements attribution patching in O(3) forward passes,
   auto-discovers minimum faithful circuits (MFC),
@@ -30,6 +30,8 @@ abstract: >
   a BiasAnalyzer for demographic parity and counterfactual fairness testing
   per EU AI Act Article 10(2)(f), a webhook system for async job delivery,
   and a multi-audit history dashboard for compliance trend analysis.
+  Key finding (arXiv:2603.09988): r=0.009 structural overlap between faithful
+  circuits and attention heads, sufficiency=1.00, comprehensiveness=0.22, F1=0.64.
 keywords:
   - mechanistic-interpretability
   - attribution-patching
@@ -72,10 +74,10 @@ references:
     url: "https://arxiv.org/abs/2406.04093"
 preferred-citation:
   type: software
-  title: "Glassbox 3.0: Mechanistic Interpretability and EU AI Act Enterprise Compliance Toolkit"
+  title: "Glassbox 3.6.0: Mechanistic Interpretability and EU AI Act Enterprise Compliance Toolkit"
   authors:
     - family-names: Mahale
       given-names: Ajay
   year: 2026
-  version: 3.0.0
+  version: 3.6.0
   url: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"

@@ -1,11 +1,11 @@
 # Glassbox AI — Benchmark Results
 
-**Version:** 3.4.0
-**Last updated:** 2026-03-21
+**Version:** 3.6.0
+**Last updated:** 2026-04-02
 
 All benchmarks measure wall-clock time from `gb.analyze()` call to returned
 result dict, on a single CPU core unless stated. Every approximation is
-disclosed. Results are reproducible with `scripts/benchmark_v340.py`.
+disclosed. Results are reproducible with `scripts/benchmark.py`.
 
 ---
 
@@ -134,13 +134,13 @@ production-scale models.
 
 ## 9. Reproducibility
 
-All GPT-2 benchmarks above are reproducible using `scripts/benchmark_v340.py`:
+All GPT-2 benchmarks above are reproducible using `scripts/benchmark.py`:
 
 ```bash
 pip install glassbox-mech-interp
-python scripts/benchmark_v340.py --model gpt2 --task ioi --seed 42
-python scripts/benchmark_v340.py --model gpt2 --task credit --seed 42
-python scripts/benchmark_v340.py --suite full --output results/bench_v340.json
+python scripts/benchmark.py --model gpt2 --task ioi --seed 42
+python scripts/benchmark.py --model gpt2 --task credit --seed 42
+python scripts/benchmark.py --suite full --output results/bench_v340.json
 ```
 
 Hardware used for the published results:

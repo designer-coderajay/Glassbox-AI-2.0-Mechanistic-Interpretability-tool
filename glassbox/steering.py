@@ -1,7 +1,7 @@
 """
 glassbox/steering.py
 =====================
-Steering Vector Export — Glassbox v3.4.0
+Steering Vector Export — Glassbox v3.6.0
 
 Implements behaviour-steering via Representation Engineering (Zou et al., 2023)
 and activation patching (Li et al., 2023).  No LLM dependency: all operations
@@ -205,7 +205,7 @@ class SteeringVectorExporter:
         Print progress messages.
     """
 
-    _VERSION = "3.4.0"
+    _VERSION = "3.6.0"
 
     def __init__(
         self,

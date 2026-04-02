@@ -10,7 +10,7 @@ inputs:
   api_url:
     description: 'Glassbox API endpoint. Use the public hosted API or your self-hosted instance.'
     required: false
-    default: 'https://glassbox-ai-2-0-mechanistic.onrender.com'
+    default: 'https://designer-coderajay-glassbox-ai-2-0-mechanistic-interpretability-tool.hf.space'
 
   model_name:
     description: 'Model to audit (TransformerLens-compatible for white-box, e.g. gpt2, gpt2-medium)'
