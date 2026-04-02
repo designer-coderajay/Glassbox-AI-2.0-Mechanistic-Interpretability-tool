@@ -1,7 +1,8 @@
 name: Deploy to HuggingFace Space
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Auto-syncs dashboard/app.py → HuggingFace Space on every push to main.
+# Syncs dashboard/app.py + glassbox library → HuggingFace Space on push to main.
+# Uses huggingface_hub Python API (upload_folder) — no git LFS needed.
 #
 # One-time setup required:
 #   1. Go to https://huggingface.co/settings/tokens
@@ -21,7 +22,7 @@ on:
 
 jobs:
   deploy:
-    name: Sync dashboard to HuggingFace Space
+    name: Sync to HuggingFace Space
     runs-on: ubuntu-latest
 
     steps:
@@ -29,6 +30,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install huggingface_hub
+        run: pip install "huggingface_hub>=0.22.0" --quiet
 
       - name: Check HF_TOKEN availability
         id: token-check
@@ -39,28 +48,35 @@ jobs:
             echo "available=true" >> $GITHUB_OUTPUT
           else
             echo "available=false" >> $GITHUB_OUTPUT
-            echo "::notice::HF_TOKEN not set - skipping HuggingFace deploy. Add it in repo Settings > Secrets."
+            echo "::notice::HF_TOKEN not set — skipping HuggingFace deploy."
           fi
 
-      - name: Push to HuggingFace Space
+      - name: Build Space payload
         if: steps.token-check.outputs.available == 'true'
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone "https://user:${HF_TOKEN}@huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" hf_space
+          mkdir -p hf_payload
+          cp dashboard/app.py hf_payload/app.py
 
-          # ── 1. Copy dashboard app ─────────────────────────────────────────
-          cp dashboard/app.py hf_space/app.py
+          SHORT_SHA=$(git rev-parse --short HEAD)
 
-          # ── 2. Write Space README with Python 3.11 pinned.
-          #       Python 3.13 removed audioop from stdlib; pydub (pulled in by
-          #       gradio) fails to import on 3.13. Pinning to 3.11 is the
-          #       canonical HF fix — no code changes required.
-          cat > hf_space/README.md << 'RDME'
+          cat > hf_payload/requirements.txt << 'REQS'
+          gradio==4.43.0
+          numpy>=1.24.0
+          matplotlib>=3.7.0
+          Pillow>=9.0.0
+          transformer-lens>=1.19.0
+          glassbox-mech-interp>=3.6.0
+          torch>=2.3.0
+          einops>=0.6.1
+          fancy_einsum>=0.0.3
+          jaxtyping>=0.2.20
+          REQS
+
+          cat > hf_payload/README.md << RDME
           ---
           title: Glassbox AI
           emoji: 🔬
-          colorFrom: blue
+          colorFrom: indigo
           colorTo: blue
           sdk: gradio
           sdk_version: "4.43.0"
@@ -74,60 +90,43 @@ jobs:
           Mechanistic interpretability + EU AI Act Annex IV compliance toolkit.
           One function call generates a regulation-mapped evidence package for any LLM.
 
-          **pip install:** `pip install glassbox-mech-interp`
+          **Version**: 3.6.0 (GitHub @ ${SHORT_SHA})
 
-          **Docs:** https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+          **pip install:** \`pip install glassbox-mech-interp\`
+
+          **Website:** https://project-gu05p.vercel.app
+
+          **GitHub:** https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
           RDME
 
-          # Strip leading whitespace from heredoc
-          sed -i 's/^[[:space:]]*//' hf_space/README.md
+          echo "Payload built — files:"
+          ls -la hf_payload/
 
-          # ── 3. Pin to the exact version that has NaturalLanguageExplainer,
-          #       MultiAgentAudit, SteeringVectorExporter, AnnexIVEvidenceVault.
-          #       torch CPU-only keeps the HF Space build fast (<5 min).
-          cat > hf_space/requirements.txt << 'REQS'
-          gradio==4.43.0
-          numpy>=1.24.0
-          matplotlib>=3.7.0
-          Pillow>=9.0.0
-          transformer-lens>=1.19.0
-          glassbox-mech-interp>=3.5.0
-          torch>=2.3.0
-          einops>=0.6.1
-          fancy_einsum>=0.0.3
-          jaxtyping>=0.2.20
-          REQS
+      - name: Upload to HuggingFace Space
+        if: steps.token-check.outputs.available == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
 
-          # Strip leading whitespace from heredoc
-          sed -i 's/^[[:space:]]*//' hf_space/requirements.txt
+          python3 - <<PYEOF
+          import os
+          from huggingface_hub import HfApi
 
-          # ── 4. Remove stale root-level files that shadow the pip-installed
-          #       glassbox package and cause "ModuleNotFoundError" on Space boot.
-          cd hf_space
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          repo_id = "designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
 
-          for stale in __init__.py core.py alignment.py utils.py Dockerfile; do
-            if [ -f "$stale" ]; then
-              git rm --force --ignore-unmatch "$stale"
-              echo "Removed stale file: $stale"
-            fi
-          done
-
-          # ── 5. Commit and push ────────────────────────────────────────────
-          git config user.email "github-actions@github.com"
-          git config user.name "GitHub Actions"
-
-          SHORT_SHA=$(git -C .. rev-parse --short HEAD)
-          COMMIT_TITLE=$(git -C .. log -1 --pretty=format:"%s")
-
-          git add app.py requirements.txt README.md
-          git add -u
-
-          # Force stage even if nothing staged (touch ensures rebuild on HF)
-          if git diff --staged --quiet; then
-            touch app.py
-            git add app.py
-          fi
-
-          git commit -m "deploy: ${COMMIT_TITLE} — GitHub @ ${SHORT_SHA}"
-          git push
-          echo "HF Space updated from commit ${SHORT_SHA}: ${COMMIT_TITLE}"
+          api.upload_folder(
+              folder_path="hf_payload",
+              repo_id=repo_id,
+              repo_type="space",
+              commit_message=f"deploy: {os.environ.get('COMMIT_MSG','update')} — GitHub @ {os.environ.get('SHORT_SHA','HEAD')}",
+              ignore_patterns=["*.pyc", "__pycache__"],
+          )
+          print(f"Space updated: https://huggingface.co/spaces/{repo_id}")
+          PYEOF
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          SHORT_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
