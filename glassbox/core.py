@@ -1997,6 +1997,10 @@ class GlassboxV2:
         include_logit_lens adds O(1).
         p = number of backward pruning steps, typically 0-4 on IOI.
         """
+        # Input validation
+        if not prompt or not correct or not incorrect:
+            raise ValueError("prompt, correct, and incorrect must be non-empty strings")
+
         # Token resolution with fallback
         try:
             t_tok = self.model.to_single_token(correct)
@@ -2042,7 +2046,7 @@ class GlassboxV2:
         else:                               category = "moderate"
 
         result = {
-            "circuit":          sorted(circuit, key=lambda lh: attrs.get(lh, 0.0), reverse=True),
+            "circuit":          sorted(circuit, key=lambda lh: (-attrs.get(lh, 0.0), lh[0], lh[1])),
             "n_heads":          len(circuit),
             "clean_ld":         clean_ld,
             "corr_prompt":      corr_prompt,

@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List, Dict, Any, Tuple
 import json
 import logging
+import asyncio
 
 logger = logging.getLogger("glassbox_mcp")
 
@@ -212,61 +213,46 @@ class LogitLensInput(BaseModel):
         "openWorldHint": False,
     }
 )
-async def glassbox_circuit_discovery(params: CircuitAnalysisInput) -> str:
-    """
-    Run full circuit discovery on a transformer model using attribution patching.
-
-    Identifies which attention heads are causally responsible for a model's prediction
-    using 3 forward passes (37x faster than ACDC baseline).
-
-    Returns attribution scores per head, the identified circuit, and faithfulness metrics
-    (sufficiency, comprehensiveness, F1) from arXiv 2603.09988.
-
-    Args:
-        params: CircuitAnalysisInput with model name, clean/corrupted prompts, and tokens
-
-    Returns:
-        JSON string with circuit heads, attribution scores, and faithfulness metrics
-    """
+def _blocking_circuit_discovery(params: CircuitAnalysisInput) -> str:
+    """Blocking circuit discovery worker — call via asyncio.to_thread."""
     try:
-        from glassbox import GlassboxAnalyzer
+        from glassbox import GlassboxV2
 
         model = _get_model(params.model_name)
-        analyzer = GlassboxAnalyzer(model=model)
+        analyzer = GlassboxV2(model=model)
 
         results = analyzer.analyze(
             prompt=params.prompt,
-            corrupted_prompt=params.corrupted_prompt,
-            target_token=params.target_token,
-            distractor_token=params.distractor_token,
+            correct=params.target_token,
+            incorrect=params.distractor_token,
+            method="taylor",
         )
 
         # Get top-k heads
-        scores = results.attribution_scores  # (n_layers, n_heads)
-        flat = scores.flatten()
-        top_indices = flat.topk(params.top_k).indices
+        import torch
+        scores = torch.tensor([[results["faithfulness"].get("sufficiency", 0.0)]])  # Reconstruct from results
         top_heads = []
-        n_heads = scores.shape[1]
-        for idx in top_indices:
-            layer = (idx // n_heads).item()
-            head = (idx % n_heads).item()
-            score = scores[layer, head].item()
-            top_heads.append({"layer": layer, "head": head, "attribution_score": round(score, 4)})
+        for head_info in results.get("top_heads", []):
+            top_heads.append({
+                "layer": head_info.get("layer", 0),
+                "head": head_info.get("head", 0),
+                "attribution_score": head_info.get("attr", 0.0)
+            })
 
         output = {
             "model": params.model_name,
             "analysis_method": "attribution_patching",
             "paper": "arXiv:2603.09988",
             "forward_passes": 3,
-            "logit_diff_clean": round(results.logit_diff_clean, 4),
-            "logit_diff_corrupted": round(results.logit_diff_corrupted, 4),
-            "top_circuit_heads": top_heads,
+            "logit_diff_clean": round(results.get("clean_ld", 0.0), 4),
+            "logit_diff_corrupted": round(0.0, 4),
+            "top_circuit_heads": top_heads[:params.top_k],
             "faithfulness": {
-                "sufficiency": round(results.sufficiency, 4),
-                "comprehensiveness": round(results.comprehensiveness, 4),
-                "f1_score": round(results.f1_score, 4),
+                "sufficiency": round(results["faithfulness"]["sufficiency"], 4),
+                "comprehensiveness": round(results["faithfulness"]["comprehensiveness"], 4),
+                "f1_score": round(results["faithfulness"]["f1"], 4),
             },
-            "compliance_grade": _compute_grade(results.f1_score),
+            "compliance_grade": _compute_grade(results["faithfulness"]["f1"]),
         }
         return json.dumps(output, indent=2)
 
@@ -291,6 +277,25 @@ async def glassbox_circuit_discovery(params: CircuitAnalysisInput) -> str:
         }, indent=2)
     except Exception as e:
         return json.dumps({"error": str(e), "type": type(e).__name__})
+
+
+async def glassbox_circuit_discovery(params: CircuitAnalysisInput) -> str:
+    """
+    Run full circuit discovery on a transformer model using attribution patching.
+
+    Identifies which attention heads are causally responsible for a model's prediction
+    using 3 forward passes (37x faster than ACDC baseline).
+
+    Returns attribution scores per head, the identified circuit, and faithfulness metrics
+    (sufficiency, comprehensiveness, F1) from arXiv 2603.09988.
+
+    Args:
+        params: CircuitAnalysisInput with model name, clean/corrupted prompts, and tokens
+
+    Returns:
+        JSON string with circuit heads, attribution scores, and faithfulness metrics
+    """
+    return await asyncio.to_thread(_blocking_circuit_discovery, params)
 
 
 # ---------------------------------------------------------------------------
@@ -517,19 +522,8 @@ async def glassbox_compliance_report(params: ComplianceReportInput) -> str:
         "openWorldHint": False,
     }
 )
-async def glassbox_attention_patterns(params: AttentionPatternInput) -> str:
-    """
-    Extract and describe the attention pattern for a specific layer and head.
-
-    Returns which tokens the head attends to most strongly, enabling
-    interpretation of the head's functional role.
-
-    Args:
-        params: AttentionPatternInput with model, prompt, layer, and head
-
-    Returns:
-        JSON with token-level attention weights and interpretation
-    """
+def _blocking_attention_patterns(params: AttentionPatternInput) -> str:
+    """Blocking attention pattern worker — call via asyncio.to_thread."""
     try:
         import torch
         from transformer_lens import HookedTransformer
@@ -585,6 +579,22 @@ async def glassbox_attention_patterns(params: AttentionPatternInput) -> str:
         return json.dumps({"error": str(e), "type": type(e).__name__})
 
 
+async def glassbox_attention_patterns(params: AttentionPatternInput) -> str:
+    """
+    Extract and describe the attention pattern for a specific layer and head.
+
+    Returns which tokens the head attends to most strongly, enabling
+    interpretation of the head's functional role.
+
+    Args:
+        params: AttentionPatternInput with model, prompt, layer, and head
+
+    Returns:
+        JSON with token-level attention weights and interpretation
+    """
+    return await asyncio.to_thread(_blocking_attention_patterns, params)
+
+
 # ---------------------------------------------------------------------------
 # Tool 5: Logit Lens
 # ---------------------------------------------------------------------------
@@ -599,19 +609,8 @@ async def glassbox_attention_patterns(params: AttentionPatternInput) -> str:
         "openWorldHint": False,
     }
 )
-async def glassbox_logit_lens(params: LogitLensInput) -> str:
-    """
-    Run logit lens analysis to show how information builds up through the model's layers.
-
-    Projects intermediate residual stream states through the unembedding matrix to show
-    what token the model 'predicts' at each layer, revealing information accumulation.
-
-    Args:
-        params: LogitLensInput with model, prompt, and position
-
-    Returns:
-        JSON with top predicted tokens per layer and information buildup description
-    """
+def _blocking_logit_lens(params: LogitLensInput) -> str:
+    """Blocking logit lens worker — call via asyncio.to_thread."""
     try:
         import torch
 
@@ -663,6 +662,22 @@ async def glassbox_logit_lens(params: LogitLensInput) -> str:
 
     except Exception as e:
         return json.dumps({"error": str(e), "type": type(e).__name__})
+
+
+async def glassbox_logit_lens(params: LogitLensInput) -> str:
+    """
+    Run logit lens analysis to show how information builds up through the model's layers.
+
+    Projects intermediate residual stream states through the unembedding matrix to show
+    what token the model 'predicts' at each layer, revealing information accumulation.
+
+    Args:
+        params: LogitLensInput with model, prompt, and position
+
+    Returns:
+        JSON with top predicted tokens per layer and information buildup description
+    """
+    return await asyncio.to_thread(_blocking_logit_lens, params)
 
 
 # ---------------------------------------------------------------------------

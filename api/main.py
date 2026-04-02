@@ -38,6 +38,7 @@ Dependencies
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -67,9 +68,10 @@ for h in logging.root.handlers:
     h.addFilter(_StripKeyFilter())
 
 try:
-    from fastapi import FastAPI, HTTPException, BackgroundTasks, Header
+    from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, WebSocket, WebSocketDisconnect, Request
     from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
     from fastapi.staticfiles import StaticFiles
+    from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel, Field
     _FASTAPI_AVAILABLE = True
 except ImportError:
@@ -156,6 +158,9 @@ _REPORT_STORE:   Dict[str, Dict[str, Any]] = {}
 _PDF_STORE:      Dict[str, Path]          = {}
 _JOB_STORE:      Dict[str, Dict[str, Any]] = {}   # async job status: {id: {status, result, error, created_at}}
 _WEBHOOK_STORE:  Dict[str, Dict[str, Any]] = {}   # webhook_id -> {url, events, secret, created_at, active}
+
+# Rate limiting store (IP -> list of timestamps)
+_RATE_STORE:     Dict[str, List[float]]   = {}
 
 
 # ---------------------------------------------------------------------------
@@ -245,16 +250,69 @@ def create_app() -> "FastAPI":
         license_info={"name": "Apache 2.0"},
     )
 
+    # Add CORS middleware for Vercel and local development
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["https://project-gu05p.vercel.app", "http://localhost:3000", "*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Rate limiting middleware (20 requests per minute per IP)
+    @app.middleware("http")
+    async def rate_limit(request: Request, call_next):
+        client = request.client.host if request.client else "unknown"
+        now = time.time()
+        calls = [t for t in _RATE_STORE.get(client, []) if now - t < 60]
+        if len(calls) >= 20:
+            return JSONResponse({"error": "rate limit exceeded (20/min)"}, status_code=429)
+        calls.append(now)
+        _RATE_STORE[client] = calls
+        return await call_next(request)
+
     # ------------------------------------------------------------------
     # Health check
     # ------------------------------------------------------------------
     @app.get("/health")
     def health():
         return {
-            "status": "healthy",
-            "glassbox_version": _get_version(),
+            "status": "ok",
+            "version": _get_version(),
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
+
+    # ------------------------------------------------------------------
+    # WebSocket endpoint for streaming analysis progress
+    # ------------------------------------------------------------------
+    @app.websocket("/ws/{job_id}")
+    async def websocket_progress(websocket: WebSocket, job_id: str):
+        """
+        WebSocket endpoint to stream progress updates for a given job_id.
+        Polls job status and sends updates every second for max 60 seconds.
+        """
+        await websocket.accept()
+        try:
+            for i in range(60):  # max 60 seconds
+                job = _JOB_STORE.get(job_id)
+                if not job:
+                    await websocket.send_json({"type": "error", "error": "job not found"})
+                    break
+                await websocket.send_json({
+                    "type": "progress",
+                    "status": job["status"],
+                    "percent": job.get("percent", 0),
+                    "message": job.get("message", "Processing..."),
+                })
+                if job["status"] in ("completed", "failed"):
+                    await websocket.send_json({
+                        "type": job["status"],
+                        "report_id": job.get("report_id"),
+                        "error": job.get("error")
+                    })
+                    break
+                await asyncio.sleep(1)
+        except WebSocketDisconnect:
+            pass
 
     # ------------------------------------------------------------------
     # API info
@@ -534,11 +592,12 @@ def create_app() -> "FastAPI":
         }
 
         def _run_job():
-            _JOB_STORE[job_id]["status"] = "running"
+            _JOB_STORE[job_id].update({"status": "running", "percent": 0, "message": "Initializing audit..."})
             try:
                 from glassbox.audit import BlackBoxAuditor, ModelProvider
                 from glassbox.compliance import AnnexIVReport
 
+                _JOB_STORE[job_id].update({"percent": 15, "message": f"Loading {req.target_model}..."})
                 provider = ModelProvider(req.target_provider)
                 auditor  = BlackBoxAuditor(
                     model_provider=provider,
@@ -546,6 +605,7 @@ def create_app() -> "FastAPI":
                     api_key=x_provider_api_key,
                 )
                 logger.info("[JOB:%s] black-box audit: %s/%s", job_id, req.target_provider, req.target_model)
+                _JOB_STORE[job_id].update({"percent": 35, "message": "Running sensitivity analysis..."})
                 result = auditor.audit(
                     decision_prompt    =req.decision_prompt,
                     expected_positive  =req.expected_positive,
@@ -554,6 +614,7 @@ def create_app() -> "FastAPI":
                     n_rephrases        =req.n_rephrases,
                     n_sensitivity_steps=req.n_sensitivity_steps,
                 )
+                _JOB_STORE[job_id].update({"percent": 65, "message": "Generating Annex IV report..."})
                 ctx   = _parse_context(req.deployment_context)
                 annex = AnnexIVReport(
                     model_name         =req.target_model,
@@ -565,6 +626,7 @@ def create_app() -> "FastAPI":
                 annex.add_analysis(result, use_case=req.use_case)
                 json_report = annex.to_json()
                 report_id   = uuid.uuid4().hex[:8].upper()
+                _JOB_STORE[job_id].update({"percent": 85, "message": "Finalizing report..."})
                 _REPORT_STORE[report_id] = {
                     "json":       json_report,
                     "mode":       "black_box_async",
@@ -576,11 +638,11 @@ def create_app() -> "FastAPI":
                         pdf_path = Path(tmp.name)
                     annex.to_pdf(str(pdf_path))
                     _PDF_STORE[report_id] = pdf_path
-                _JOB_STORE[job_id].update({"status": "completed", "report_id": report_id})
+                _JOB_STORE[job_id].update({"status": "completed", "report_id": report_id, "percent": 100, "message": "Complete!"})
                 _fire_webhooks("job.completed", {"job_id": job_id, "report_id": report_id, "status": "completed"})
             except Exception as exc:
                 logger.error("[JOB:%s] failed: %s", job_id, exc)
-                _JOB_STORE[job_id].update({"status": "failed", "error": str(exc)[:300]})
+                _JOB_STORE[job_id].update({"status": "failed", "error": str(exc)[:300], "percent": 0})
                 _fire_webhooks("job.failed", {"job_id": job_id, "error": str(exc)[:300], "status": "failed"})
 
         background_tasks.add_task(_run_job)

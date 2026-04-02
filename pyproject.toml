@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "3.5.0"
+version     = "3.6.0"
 description = "Mechanistic interpretability + EU AI Act compliance. Attribution patching, CircuitDiff, bias analysis, multi-audit dashboard, stability suite, tamper-evident audit log. Dual-licensed (MIT core + BSL 1.1 compliance engine)."
 readme      = "README.md"
 license     = { text = "MIT AND LicenseRef-BUSL-1.1" }
@@ -97,7 +97,7 @@ hf = [
 mlflow = [
     "mlflow>=2.10.0",
 ]
-notify = []
+notify = []  # Webhook-based; no extra pip deps needed
 all = [
     "sae-lens>=3.0",
     "reportlab>=3.6.0",

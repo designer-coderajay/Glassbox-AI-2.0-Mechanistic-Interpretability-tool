@@ -1,6 +1,6 @@
 <div align="center">
 
-# Glassbox 3.4.0
+# Glassbox 3.6.0
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 
@@ -32,6 +32,7 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
+- [What's New in v3.6.0](#whats-new-in-v350)
 - [What's New in v3.4.0](#whats-new-in-v340)
 - [What's New in v3.3.0](#whats-new-in-v330)
 - [What's New in v3.1.0](#whats-new-in-v310)
@@ -67,7 +68,7 @@
 |---------|-----|-------------|
 | **Website** | [project-gu05p.vercel.app](https://project-gu05p.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
 | **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.4.0 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.6.0 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
 ---
@@ -103,6 +104,14 @@ print(result["faithfulness"])
 ```
 
 No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) — no install required.
+
+---
+
+## What's New in v3.6.0
+
+- **Claude Code plugin**: Full `.claude/` directory with 6 agents, 6 skills, 5 commands
+- **MCP server**: Model Context Protocol integration with 5 tools (circuit discovery, faithfulness metrics, full Annex IV compliance report, attention patterns, logit lens)
+- **Bug fixes**: MCP class reference, analyze() signature, deterministic circuit sorting, input validation
 
 ---
 
@@ -893,7 +902,7 @@ python scripts/benchmark_v340.py --model gpt2 --task credit --seed 42
 python scripts/benchmark_v340.py --suite standard --output results/bench_v340.json
 ```
 
-See [`BENCHMARKS.md`](BENCHMARKS.md) for full methodology, hardware specs, and planned Llama-2-7B / Mistral-7B benchmarks (v3.5.0).
+See [`BENCHMARKS.md`](BENCHMARKS.md) for full methodology, hardware specs, and planned Llama-2-7B / Mistral-7B benchmarks (v3.6.0).
 
 ---
 
@@ -1140,15 +1149,15 @@ git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Inte
 cd Glassbox-AI-2.0-Mechanistic-Interpretability-tool
 
 # API only
-docker build --target api -t glassbox-api:3.4.0 .
-docker run -p 8000:8000 glassbox-api:3.4.0
+docker build --target api -t glassbox-api:3.6.0 .
+docker run -p 8000:8000 glassbox-api:3.6.0
 # REST API:    http://localhost:8000
 # Swagger UI:  http://localhost:8000/docs
 # Health:      http://localhost:8000/health
 
 # Dashboard only
-docker build --target dashboard -t glassbox-dashboard:3.4.0 .
-docker run -p 7860:7860 glassbox-dashboard:3.4.0
+docker build --target dashboard -t glassbox-dashboard:3.6.0 .
+docker run -p 7860:7860 glassbox-dashboard:3.6.0
 ```
 
 ### Production stack — API + Dashboard + Redis cache
@@ -1169,8 +1178,8 @@ docker compose --profile production up
 
 ```bash
 # On a machine with internet access — export the image
-docker build --target api -t glassbox-api:3.4.0 .
-docker save glassbox-api:3.4.0 | gzip > glassbox-api-3.4.0.tar.gz
+docker build --target api -t glassbox-api:3.6.0 .
+docker save glassbox-api:3.6.0 | gzip > glassbox-api-3.6.0.tar.gz
 
 # Transfer to air-gapped machine (USB, internal file share, etc.)
 # On the air-gapped machine:
@@ -1180,7 +1189,7 @@ docker load < glassbox-api-3.4.0.tar.gz
 docker run -p 8000:8000 \
   -e HF_HUB_OFFLINE=1 \
   -v /path/to/model/cache:/app/.cache/huggingface \
-  glassbox-api:3.4.0
+  glassbox-api:3.6.0
 ```
 
 ### Environment variables

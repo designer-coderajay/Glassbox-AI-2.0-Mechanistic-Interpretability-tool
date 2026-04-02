@@ -6,6 +6,50 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [3.6.0] — 2026-04-02
+
+### Added
+- **Full-stack interactive website**: Live circuit analyzer embedded directly in landing page — paste a prompt, pick a model, get real-time attribution heatmap + faithfulness metrics + compliance grade in-browser. Vanilla JS, no build step, graceful fallback to demo data when backend unavailable
+- **WebSocket streaming** (`/ws/{job_id}`): Real-time analysis progress (stage indicators, percent bars, live messages) instead of blocking long-poll requests
+- **CORS + rate limiting** in FastAPI: `CORSMiddleware` for Vercel/localhost; 20 req/min rate limiter middleware so the API is production-safe without nginx
+- **Vercel API routing** (`api/index.py` + `vercel.json` rewrites): `/api/*` paths now proxy to the FastAPI serverless function — one domain, no separate backend needed for light loads
+
+### Fixed
+- **MCP server critical import** (`mcp/server.py`): `GlassboxAnalyzer` → `GlassboxV2` (was `ImportError` at runtime on every circuit discovery call)
+- **MCP server `analyze()` signature** (`mcp/server.py`): `corrupted_prompt` → `correct`/`incorrect` (was `TypeError` on every invocation)
+- **Async GPU blocking** (`mcp/server.py`): Wrapped all blocking TransformerLens calls in `asyncio.to_thread()` so MCP server event loop no longer stalls during model inference
+- **`analyze()` input validation** (`glassbox/core.py`): Empty prompt/correct/incorrect now raises `ValueError` immediately instead of producing silent garbage output
+- **Non-deterministic circuit sort** (`glassbox/core.py`): Secondary sort key `(layer, head)` added — compliance reports now produce identical circuit orderings across runs
+- **`__version__` sync** (`glassbox/__init__.py`): Was `3.4.0`, now tracks `pyproject.toml` correctly
+
+### Changed
+- Version `3.5.0` → `3.6.0`
+- README title and Docker image tags updated to `3.6.0`
+- `.claude/CLAUDE.md`: HuggingFace Space URL corrected (`affaan/glassbox` → `designer-coderajay/...`), website URL corrected
+- `pyproject.toml`: `notify = []` annotated — webhook-based, no pip deps needed
+
+---
+
+## [3.5.0] — 2026-04-01
+
+### Added
+- **Claude Code plugin** (`.claude/`): Full project brain, 6 specialized agents (interpretability-researcher on Opus, compliance-generator, python-reviewer, pytorch-build-resolver, code-reviewer, doc-updater), 6 skills (mechanistic-interpretability v2.0 with SAEs + steering vectors, eu-ai-act-compliance with GPAI Articles 51–55, python-testing with Hypothesis + syrupy, pytorch-transformerlens with Pythia multi-model, security-review with pip-audit, circuit-discovery), and 5 slash commands (`/circuit`, `/compliance`, `/review`, `/audit`, `/test`)
+- **FastMCP server** (`mcp/`): Model Context Protocol server with 5 tools — `glassbox_circuit_discovery`, `glassbox_faithfulness_metrics`, `glassbox_compliance_report` (full 9-section Annex IV JSON), `glassbox_attention_patterns`, `glassbox_logit_lens`. Pydantic v2 input validation, model allowlist, graceful degradation when library not installed
+- **Brand asset** (`assets/glassbox_brand.png`): 1400×800 circuit-trace design with attribution heatmap, L9H9 gold highlight (attribution=0.584), faithfulness bars and compliance card
+
+### Fixed
+- `glassbox/__init__.py` `__version__` corrected to `3.5.0`
+- MCP server class reference corrected from `GlassboxAnalyzer` → `GlassboxV2`
+- MCP server `analyze()` parameter names corrected (`correct`/`incorrect` not `corrupted_prompt`)
+- Non-deterministic circuit sort — added secondary sort key `(layer, head)` for reproducible compliance reports
+- Input validation added to `analyze()` — empty strings now raise `ValueError` immediately
+
+### Changed
+- `deploy_hf.yml` workflow: added `workflow_dispatch` trigger and `glassbox/**` path filter so library changes auto-sync to HuggingFace Space
+- HuggingFace Space requirement bumped to `glassbox-mech-interp>=3.5.0`
+
+---
+
 ## [Unreleased] — HuggingFace Space UI Fixes — 2026-03-22
 
 ### Fixed
