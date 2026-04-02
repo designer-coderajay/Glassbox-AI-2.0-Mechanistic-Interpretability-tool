@@ -146,7 +146,7 @@ export interface AttentionPatternsResponse {
 export interface GlassboxClientOptions {
   /**
    * Base URL of the Glassbox API.
-   * Default: 'https://glassbox-ai-2-0-mechanistic.onrender.com'
+   * Default: 'https://designer-coderajay-glassbox-ai-2-0-mechanistic-interpretability-tool.hf.space'
    */
   baseUrl?: string
   /** Request timeout in milliseconds. Default: 120_000 (2 minutes). */
@@ -183,7 +183,7 @@ export class GlassboxClient {
   private readonly _fetch: typeof fetch
 
   constructor(options: GlassboxClientOptions = {}) {
-    this.baseUrl = (options.baseUrl ?? 'https://glassbox-ai-2-0-mechanistic.onrender.com').replace(/\/$/, '')
+    this.baseUrl = (options.baseUrl ?? 'https://designer-coderajay-glassbox-ai-2-0-mechanistic-interpretability-tool.hf.space').replace(/\/$/, '')
     this.timeoutMs = options.timeoutMs ?? 120_000
     this._fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
   }

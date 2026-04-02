@@ -354,7 +354,7 @@ class HeatmapWidget:
     Example
     -------
     >>> import requests
-    >>> resp = requests.post("https://glassbox-ai-2-0-mechanistic.onrender.com/v1/audit/analyze", json={...})
+    >>> resp = requests.post("https://designer-coderajay-glassbox-ai-2-0-mechanistic-interpretability-tool.hf.space/v1/audit/analyze", json={...})
     >>> from glassbox.widget import HeatmapWidget
     >>> HeatmapWidget(resp.json()).show()
     """

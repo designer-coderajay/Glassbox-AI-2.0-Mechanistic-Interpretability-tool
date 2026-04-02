@@ -45,8 +45,9 @@ print(f"  F1               = {faith['f1']:.1%}")
 print(f"  Category         = {faith['category']}")
 
 # ── bootstrap confidence intervals ────────────────────────────────────────────
-from glassbox import GlassboxV2   # already imported
-bs = gb.bootstrap_faithfulness_metrics(
+# bootstrap_metrics() returns nested dicts:
+#   { "sufficiency": {"mean": …, "std": …, "ci_lo": …, "ci_hi": …, "n": …}, … }
+bs = gb.bootstrap_metrics(
     prompt    = "When Mary and John went to the store, John gave a drink to",
     correct   = " Mary",
     incorrect = " John",
@@ -54,5 +55,5 @@ bs = gb.bootstrap_faithfulness_metrics(
     alpha     = 0.05,
 )
 print(f"\nBootstrap 95% CI (n=50):")
-print(f"  Sufficiency CI       = [{bs['sufficiency_ci'][0]:.3f}, {bs['sufficiency_ci'][1]:.3f}]")
-print(f"  Comprehensiveness CI = [{bs['comprehensiveness_ci'][0]:.3f}, {bs['comprehensiveness_ci'][1]:.3f}]")
+print(f"  Sufficiency CI       = [{bs['sufficiency']['ci_lo']:.3f}, {bs['sufficiency']['ci_hi']:.3f}]")
+print(f"  Comprehensiveness CI = [{bs['comprehensiveness']['ci_lo']:.3f}, {bs['comprehensiveness']['ci_hi']:.3f}]")

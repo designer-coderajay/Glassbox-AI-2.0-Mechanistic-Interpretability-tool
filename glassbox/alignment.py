@@ -12,7 +12,7 @@ def fcas(circuit_a, circuit_b, n_layers_a, n_layers_b, top_k=5):
     compatibility and will be removed in a future version.
     """
     warnings.warn(
-        "glassbox.alignment.fcas() is deprecated and will be removed in v3.0. "
+        "glassbox.alignment.fcas() is deprecated and will be removed in a future version. "
         "Use GlassboxV2.functional_circuit_alignment(heads_a, heads_b, top_k=...) "
         "instead. See glassbox/alignment.py for migration instructions.",
         DeprecationWarning,

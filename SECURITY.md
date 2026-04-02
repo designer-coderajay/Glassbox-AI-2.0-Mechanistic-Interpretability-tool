@@ -28,7 +28,7 @@ docker build -t glassbox .
 docker run -p 8000:8000 glassbox
 ```
 
-The hosted instance at `https://glassbox-ai-2-0-mechanistic.onrender.com` is provided for evaluation and testing only. Do not use the hosted instance for production compliance workflows involving sensitive data.
+The hosted instance at `https://designer-coderajay-glassbox-ai-2-0-mechanistic-interpretability-tool.hf.space` is provided for evaluation and testing only. Do not use the hosted instance for production compliance workflows involving sensitive data.
 
 ---
 
