@@ -1,9 +1,9 @@
 <div align="center">
 
-# Glassbox 4.1.0
+# Glassbox 4.2.0
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
-**18/18 mathematical frameworks. Foundationally rigorous. Production-ready.**
+**21 mathematical frameworks. ACDC + GQA/RMSNorm multi-arch + cross-model comparison. Production-ready.**
 
 [![PyPI version](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue)](https://pypi.org/project/glassbox-mech-interp/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/glassbox-mech-interp?color=blue&label=downloads%2Fmonth)](https://pypistats.org/packages/glassbox-mech-interp)
@@ -33,6 +33,7 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
+- [What's New in v4.2.0](#whats-new-in-v420)
 - [What's New in v4.1.0](#whats-new-in-v410)
 - [What's New in v4.0.0](#whats-new-in-v400)
 - [What's New in v3.7.0](#whats-new-in-v370)
@@ -75,7 +76,7 @@
 |---------|-----|-------------|
 | **Website** | [project-gu05p.vercel.app](https://project-gu05p.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
 | **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.1.0 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.2.0 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
 ---
@@ -111,6 +112,117 @@ print(result["faithfulness"])
 ```
 
 No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) — no install required.
+
+---
+
+## What's New in v4.2.0
+
+Glassbox v4.2.0 extends from 18 to **21 mathematical frameworks**, adding three architecturally significant capabilities: the full ACDC algorithm (Conmy et al. NeurIPS 2023) for exact edge-level circuit discovery, a multi-architecture adapter making all frameworks work on Llama-3 / Mistral / Phi-3 / Gemma (GQA + RMSNorm), and cross-model circuit comparison with normalised Jaccard similarity.
+
+### 1. AutomatedCircuitDiscovery — ACDC (Conmy et al. 2023)
+
+Attribution patching identifies which heads matter. ACDC discovers the exact minimal directed circuit — which edges between heads are causally necessary.
+
+For each directed edge (sender u → receiver v) in topological order, ACDC patches u's per-head contribution to the residual stream with the corrupted activation and measures KL divergence. If KL < τ = 0.10, the edge is pruned. The remaining edges form the minimal faithful circuit.
+
+This is exact causal evidence, not a Taylor approximation. The literature (Syed et al. 2024) shows EAP (attribution patching) agrees with ACDC in ~85-95% of cases — ACDC is preferred when exactness is required for compliance or publication.
+
+```python
+from glassbox import AutomatedCircuitDiscovery
+
+acd   = AutomatedCircuitDiscovery(model, threshold=0.10)
+result = acd.discover(clean_tokens, corrupted_tokens)
+
+print(result.summary())
+# ACDC Circuit: 18/144 edges retained | KL=0.023 | Faithful=True | τ=0.100
+
+print(result.faithfulness_grade())   # "STRONG" | "PARTIAL" | "WEAK"
+print(result.circuit.head_nodes())   # {(3,0), (7,3), (9,9), ...}
+```
+
+### 2. MultiArchAdapter — GQA + RMSNorm Support
+
+All Glassbox frameworks previously assumed standard Multi-Head Attention (GPT-2 style). v4.2.0 adds explicit architecture adaptation for:
+
+- **GQA models** (Llama-3 8B: 32 query / 8 KV heads, Mistral 7B: 32Q / 8KV, Phi-3): KV attribution scores redistributed equally across the G sharing query heads
+- **RMSNorm models** (all Llama, Mistral, Phi-3, Gemma): folds γ into W_Q/K/V without the bias term that LayerNorm requires (RMSNorm: no mean subtraction, no additive β)
+
+```python
+from glassbox import MultiArchAdapter
+from transformer_lens import HookedTransformer
+
+model   = HookedTransformer.from_pretrained("meta-llama/Llama-3-8B")
+adapter = MultiArchAdapter.from_model(model)
+
+report = adapter.architecture_report()
+print(report.summary())
+# Model: meta-llama/Llama-3-8B
+# Norm: RMSNorm | Attention: GQA (32Q / 8KV = 4 query heads per KV group)
+# GQA mapping: {0: [0,1,2,3], 1: [4,5,6,7], ...}
+
+# Adjust raw attributions for GQA
+raw_attr = {(l, h): score for (l, h), score in result["attributions"].items()}
+adjusted = adapter.adjust_attributions_for_gqa(raw_attr)
+```
+
+### 3. CrossModelComparison — Circuit Stability Across Architectures
+
+Runs mechanistic interpretability on multiple model families and computes pairwise circuit similarity. Answers: do GPT-2 and Llama-3 use the same heads for the same task?
+
+Normalises head positions to (layer/n_layers, head/n_heads) ∈ [0,1)² before comparison, so GPT-2's L9H9 can be compared to Llama-3's L27H24. Uses Jaccard similarity on 10×10 grid bins + Pearson r on normalised attribution vectors.
+
+```python
+from glassbox import CrossModelComparison, ModelAnalysisConfig, compare_models
+
+configs = [
+    ModelAnalysisConfig(
+        model_name="gpt2",
+        clean_prompt="When Mary and John went to the store, John gave a drink to",
+        corrupted_prompt="When Alice and Bob went to the store, Bob gave a drink to",
+        target_token=" Mary",
+        distractor_token=" John",
+    ),
+    ModelAnalysisConfig(
+        model_name="EleutherAI/pythia-160m",
+        clean_prompt="When Mary and John went to the store, John gave a drink to",
+        corrupted_prompt="When Alice and Bob went to the store, Bob gave a drink to",
+        target_token=" Mary",
+        distractor_token=" John",
+    ),
+]
+
+report = compare_models(configs, top_k_circuit=10)
+print(report.summary())
+print(report.attribution_table())
+```
+
+### Mathematical Completeness: 21 Frameworks
+
+| Framework | v4.1.0 | v4.2.0 |
+|-----------|--------|--------|
+| Attribution Patching (Nanda 2023) | ✓ | ✓ |
+| Edge Attribution Patching (Syed 2024) | ✓ | ✓ |
+| Causal Scrubbing (Chan et al. 2022) | ✓ | ✓ |
+| Distributed Alignment Search (Geiger 2023) | ✓ | ✓ |
+| Hessian Error Bounds (Pearlmutter 1994) | ✓ | ✓ |
+| Folded LayerNorm Correction | ✓ | ✓ |
+| Benjamini-Hochberg FDR | ✓ | ✓ |
+| SAE Polysemanticity | ✓ | ✓ |
+| Multi-Corruption Robustness | ✓ | ✓ |
+| Held-Out Validation | ✓ | ✓ |
+| Sample Size Gate (Fisher Z) | ✓ | ✓ |
+| Head Composition (Elhage 2021) | ✓ | ✓ |
+| Bootstrap CI | ✓ | ✓ |
+| Minimum Faithful Circuit (MFC) | ✓ | ✓ |
+| Circuit Diff (v-to-v) | ✓ | ✓ |
+| Bias Analysis (counterfactual) | ✓ | ✓ |
+| Multi-Agent Liability | ✓ | ✓ |
+| Logit Lens | ✓ | ✓ |
+| **ACDC (Conmy 2023)** | — | ✓ |
+| **GQA Multi-Arch Adapter** | — | ✓ |
+| **Cross-Model Comparison** | — | ✓ |
+
+**Score: 18 → 21 frameworks**
 
 ---
 
@@ -206,30 +318,33 @@ print(all_results[0].target_layer)  # 9 — concept strongest at layer 9
 
 Maps to **Art. 15(1)** robustness — localises concept encoding for controlled interventions.
 
-### Mathematical Completeness: 18/18 ✓
+### Mathematical Completeness: 18/18 ✓ (extended to 21 in v4.2.0)
 
-| Framework | v3.6.0 | v3.7.0 | v4.0.0 | v4.1.0 |
-|---|---|---|---|---|
-| Attribution patching (Nanda 2023) | ✓ | ✓ | ✓ | ✓ |
-| Sufficiency / Comprehensiveness / F1 | ✓ | ✓ | ✓ | ✓ |
-| Fisher Z cross-model comparison | ✓ | ✓ | ✓ | ✓ |
-| Edge Attribution Patching (Syed 2024) | ✓ | ✓ | ✓ | ✓ |
-| BCa Bootstrap CIs | ✓ | ✓ | ✓ | ✓ |
-| Bonferroni correction | ✓ | ✓ | ✓ | ✓ |
-| Welch's t-test cross-model | ✓ | ✓ | ✓ | ✓ |
-| Multi-corruption robustness | — | ✓ | ✓ | ✓ |
-| SampleSizeGate (power analysis) | — | ✓ | ✓ | ✓ |
-| Held-out validation (gen gap) | — | ✓ | ✓ | ✓ |
-| Folded LayerNorm correction | — | — | ✓ | ✓ |
-| Benjamini-Hochberg FDR | — | — | ✓ | ✓ |
-| SAE polysemanticity entropy | — | — | ✓ | ✓ |
-| Hessian error bounds (Pearlmutter) | — | — | — | ✓ |
-| Causal scrubbing (Chan/Anthropic) | — | — | — | ✓ |
-| Distributed Alignment Search | — | — | — | ✓ |
-| Jaccard circuit similarity | ✓ | ✓ | ✓ | ✓ |
-| Cohen's d effect size | ✓ | ✓ | ✓ | ✓ |
+| Framework | v3.6.0 | v3.7.0 | v4.0.0 | v4.1.0 | v4.2.0 |
+|---|---|---|---|---|---|
+| Attribution patching (Nanda 2023) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Sufficiency / Comprehensiveness / F1 | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Fisher Z cross-model comparison | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Edge Attribution Patching (Syed 2024) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| BCa Bootstrap CIs | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Bonferroni correction | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Welch's t-test cross-model | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Multi-corruption robustness | — | ✓ | ✓ | ✓ | ✓ |
+| SampleSizeGate (power analysis) | — | ✓ | ✓ | ✓ | ✓ |
+| Held-out validation (gen gap) | — | ✓ | ✓ | ✓ | ✓ |
+| Folded LayerNorm correction | — | — | ✓ | ✓ | ✓ |
+| Benjamini-Hochberg FDR | — | — | ✓ | ✓ | ✓ |
+| SAE polysemanticity entropy | — | — | ✓ | ✓ | ✓ |
+| Hessian error bounds (Pearlmutter) | — | — | — | ✓ | ✓ |
+| Causal scrubbing (Chan/Anthropic) | — | — | — | ✓ | ✓ |
+| Distributed Alignment Search | — | — | — | ✓ | ✓ |
+| Jaccard circuit similarity | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Cohen's d effect size | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **ACDC edge-circuit (Conmy 2023)** | — | — | — | — | ✓ |
+| **GQA/RMSNorm multi-arch adapter** | — | — | — | — | ✓ |
+| **Cross-model circuit comparison** | — | — | — | — | ✓ |
 
-**Score: 7/18 → 10/18 → 13/18 → 18/18**
+**Score: 7 → 10 → 13 → 18 → 21**
 
 ---
 

@@ -6,6 +6,38 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.2.0] — 2026-04-04
+
+### Added
+
+- **`glassbox/acdc.py`** — `AutomatedCircuitDiscovery`: full ACDC algorithm (Conmy et al., NeurIPS 2023, arXiv:2304.14997). Edge-level circuit pruning via exact KL divergence — for each directed edge (sender u → receiver v), patches u's residual-stream contribution with the corrupted activation and measures KL(p_patched ‖ p_clean). Edges with KL < τ are pruned; retained edges form the minimal faithful circuit. `ACDCEdge`, `ACDCCircuit`, `ACDCResult` (with `faithfulness_grade`: STRONG/PARTIAL/WEAK). Uses TransformerLens `hook_result` for per-head residual-stream contributions.
+- **`glassbox/multi_arch.py`** — `MultiArchAdapter`: architecture-aware adapter enabling all Glassbox frameworks on non-GPT-2 models. Handles Grouped Query Attention (GQA — Llama-3 8B/70B, Mistral 7B, Phi-3) and RMSNorm (all Llama, Mistral, Phi-3, Gemma). `ArchitectureConfig.from_transformer_lens()` auto-detects from model config. `GQAAttentionMapper` redistributes KV head attribution scores across sharing query heads (equal split, 1/G). `RMSNormFolding` folds γ scale into W_Q/K/V (no bias term, unlike LayerNorm). Architecture registry: 11 families.
+- **`glassbox/cross_model.py`** — `CrossModelComparison`: runs mechanistic interpretability on multiple model families sequentially, then computes pairwise circuit similarity. Jaccard similarity on normalised (layer/n_layers, head/n_heads) circuit positions with 10×10 grid binning. Pearson r on normalised attribution vectors. Consensus head detection (heads in ≥50% of models). `CrossModelReport.attribution_table()` for markdown comparison tables. `compare_models()` one-shot wrapper. Memory-safe: explicit `del model` + `gc.collect()` between model loads.
+
+### Mathematical Foundation
+- ACDC edge KL: KL(p ‖ q) = Σ p(x)·(log p(x) − log q(x)); τ = 0.10 (Conmy et al.); faithful if KL(circuit) < 0.80
+- GQA redistribution: score[q] += kv_score[kv_head_for(q)] / heads_per_kv_group
+- RMSNorm folding: W_Q^folded = diag(γ) · W_Q; bias_ratio = 0.0 (no additive β in RMSNorm)
+- Cross-model Jaccard: sim(C1, C2) = |bin(C1) ∩ bin(C2)| / |bin(C1) ∪ bin(C2)|; bin_size = 0.1
+- Attribution correlation: Pearson r on normalised attribution vectors aligned by normalised position bins
+
+### EU AI Act Mapping
+- Art. 13(1) Transparency: ACDC provides exact causal edge evidence (not approximate node-level Taylor)
+- Art. 15(1) Robustness: Cross-model comparison validates circuit stability across model families
+- Art. 10 Data Governance: MultiArchAdapter ensures consistent analysis across architecture families
+
+### Framework Count
+After v4.2.0: **21 mathematical frameworks implemented**
+- 18 from v4.1.0 baseline (attribution patching through DAS)
+- v4.2.0 adds: ACDC, GQA multi-arch, cross-model comparison
+
+### Constants
+- `ACDC_KL_THRESHOLD = 0.10` (Conmy et al. IOI default)
+- `ACDC_FAITHFULNESS_THRESHOLD = 0.80`
+- `SUPPORTED_ARCHITECTURES`: 11 families (gpt2, llama-2, llama-3, llama-3-70b, mistral, phi-2, phi-3, gemma, pythia, gpt-j, qwen2)
+
+---
+
 ## [4.1.1] — 2026-04-04
 
 ### Fixed

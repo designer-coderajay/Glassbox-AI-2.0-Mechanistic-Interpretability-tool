@@ -125,12 +125,21 @@ glassbox/
                           non-hypothesised activations, CS score 0-1 (v4.1.0)
   das.py                <- DistributedAlignmentSearch: PCA subspace encoding
                           concept via interchange interventions, DAS score (v4.1.0)
+  acdc.py               <- AutomatedCircuitDiscovery: edge-level ACDC algorithm
+                          (Conmy et al. NeurIPS 2023); exact KL-divergence pruning,
+                          ACDCEdge, ACDCCircuit, ACDCResult (v4.2.0)
+  multi_arch.py         <- MultiArchAdapter: architecture-aware adapter for GQA
+                          (Llama-3, Mistral, Phi-3) and RMSNorm models; GQAAttentionMapper,
+                          RMSNormFolding, ArchitectureConfig (v4.2.0)
+  cross_model.py        <- CrossModelComparison: run all frameworks across model
+                          families; Jaccard circuit similarity, attribution correlation,
+                          consensus head detection (v4.2.0)
 """
 
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "4.1.1"
+__version__ = "4.2.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -238,6 +247,18 @@ from glassbox.risk_register import RiskEntry, RiskRegister
 # Circuit Diff — mechanistic diff between model versions (v3.1.0)
 # ---------------------------------------------------------------------------
 from glassbox.circuit_diff import CircuitDiff, CircuitDiffResult
+
+# ---------------------------------------------------------------------------
+# Cross-Model Circuit Comparison — robustness across architectures (v4.2.0)
+# ---------------------------------------------------------------------------
+from glassbox.cross_model import (
+    CrossModelComparison,
+    CrossModelReport,
+    CrossModelSimilarity,
+    SingleModelResult,
+    ModelAnalysisConfig,
+    compare_models,
+)
 
 # ---------------------------------------------------------------------------
 # OpenTelemetry Tracing — self-hosted deployments (v3.1.0)
@@ -427,6 +448,32 @@ from glassbox.das import (
 )
 
 # ---------------------------------------------------------------------------
+# Automated Circuit Discovery (ACDC) — edge-level KL pruning (v4.2.0)
+# ---------------------------------------------------------------------------
+from glassbox.acdc import (
+    AutomatedCircuitDiscovery,
+    ACDCEdge,
+    ACDCCircuit,
+    ACDCResult,
+    ACDC_KL_THRESHOLD,
+    ACDC_FAITHFULNESS_THRESHOLD,
+)
+
+# ---------------------------------------------------------------------------
+# Multi-Architecture Adapter — GQA + RMSNorm support (v4.2.0)
+# ---------------------------------------------------------------------------
+from glassbox.multi_arch import (
+    MultiArchAdapter,
+    ArchitectureConfig,
+    ArchitectureReport,
+    GQAAttentionMapper,
+    RMSNormFolding,
+    SUPPORTED_ARCHITECTURES,
+    RMSNORM_ARCHITECTURES,
+    GQA_ARCHITECTURES,
+)
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
@@ -462,6 +509,13 @@ __all__ = [
     # Circuit diff — model version comparison (v3.1.0)
     "CircuitDiff",
     "CircuitDiffResult",
+    # Cross-model circuit comparison — robustness across architectures (v4.2.0)
+    "CrossModelComparison",
+    "CrossModelReport",
+    "CrossModelSimilarity",
+    "SingleModelResult",
+    "ModelAnalysisConfig",
+    "compare_models",
     # OpenTelemetry tracing (v3.1.0)
     "setup_telemetry",
     "teardown_telemetry",
@@ -561,6 +615,22 @@ __all__ = [
     "DistributedAlignmentSearch",
     "DASResult",
     "DAS_SCORE_THRESHOLD",
+    # Automated Circuit Discovery — ACDC (v4.2.0)
+    "AutomatedCircuitDiscovery",
+    "ACDCEdge",
+    "ACDCCircuit",
+    "ACDCResult",
+    "ACDC_KL_THRESHOLD",
+    "ACDC_FAITHFULNESS_THRESHOLD",
+    # Multi-Architecture Adapter — GQA + RMSNorm (v4.2.0)
+    "MultiArchAdapter",
+    "ArchitectureConfig",
+    "ArchitectureReport",
+    "GQAAttentionMapper",
+    "RMSNormFolding",
+    "SUPPORTED_ARCHITECTURES",
+    "RMSNORM_ARCHITECTURES",
+    "GQA_ARCHITECTURES",
     # Meta
     "__version__",
     # Deprecated
