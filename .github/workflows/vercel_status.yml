@@ -1,0 +1,105 @@
+name: Vercel Deployment Status
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The Vercel GitHub App triggers deployments that get CANCELED because the
+# production site is already deployed via Vercel CLI. When Vercel cancels its
+# own GitHub-triggered build it posts a "failure" commit status, making commits
+# look red even though the site is fully live.
+#
+# This workflow fires on every push to main and:
+#   1. Posts a "pending" status immediately (so GitHub shows a spinner)
+#   2. Deploys to Vercel via CLI using the saved token
+#   3. Posts "success" with the live URL once the deploy is ready
+#
+# Required secrets (Settings → Secrets and variables → Actions):
+#   VERCEL_TOKEN   — Vercel personal access token (Settings → Tokens)
+#   VERCEL_ORG_ID  — team_lKQMS6ZfVVe1y9KXXN7Kt6jJ
+#   VERCEL_PROJECT_ID — prj_Am5pxHcNUDNAiTwR2hAJl9HFEnf2
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "vercel.json"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Post pending status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'pending',
+              target_url: 'https://project-gu05p.vercel.app',
+              description: 'Deploying to Vercel…',
+              context: 'Vercel'
+            });
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Create .vercel/project.json
+        run: |
+          mkdir -p .vercel
+          echo '{"projectId":"${{ secrets.VERCEL_PROJECT_ID }}","orgId":"${{ secrets.VERCEL_ORG_ID }}"}' > .vercel/project.json
+
+      - name: Deploy to Vercel production
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          DEPLOY_URL=$(vercel deploy --prod --yes --token "$VERCEL_TOKEN" 2>&1 | grep -E "^https://" | tail -1)
+          echo "deploy_url=${DEPLOY_URL:-https://project-gu05p.vercel.app}" >> $GITHUB_OUTPUT
+
+      - name: Post success status
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              target_url: 'https://project-gu05p.vercel.app',
+              description: 'Deployed to Vercel',
+              context: 'Vercel'
+            });
+
+      - name: Post failure status
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'failure',
+              target_url: 'https://vercel.com/designer-coderajays-projects/project-gu05p',
+              description: 'Vercel deploy failed — check logs',
+              context: 'Vercel'
+            });
