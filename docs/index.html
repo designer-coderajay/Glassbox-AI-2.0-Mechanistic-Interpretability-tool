@@ -374,8 +374,8 @@ pre{font-family:var(--mono);font-size:13px;line-height:1.85;overflow-x:auto;colo
 .pprice{font-size:46px;font-weight:800;letter-spacing:-.04em;margin-bottom:5px;line-height:1}
 .pprice sup{font-size:22px;font-weight:700;vertical-align:super;margin-right:2px}
 .pper{font-size:13px;color:var(--t2);margin-bottom:32px}
-.pitems{list-style:none;display:flex;flex-direction:column;gap:13px;margin-bottom:32px}
-.pi{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--t2);line-height:1.5}
+.pitems{list-style:none;display:flex;flex-direction:column;gap:13px;margin-bottom:32px;text-align:left}
+.pi{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--t2);line-height:1.5;text-align:left}
 .pi svg{width:15px;height:15px;color:var(--green);flex-shrink:0;margin-top:2px}
 .pbtn{
   display:block;width:100%;padding:13px 24px;border-radius:var(--r2);
@@ -531,7 +531,7 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
     </div>
 
     <div class="hstats" role="list" aria-label="Key metrics">
-      <div class="si" role="listitem"><div class="sn">3.4<sup>M</sup></div><div class="sl">Downloads</div></div>
+      <div class="si" role="listitem"><div class="sn" id="dl-count">1.1<sup>K</sup></div><div class="sl">Downloads</div></div>
       <div class="si" role="listitem"><div class="sn">8</div><div class="sl">Annex IV sections</div></div>
       <div class="si" role="listitem"><div class="sn">&lt;2<sup>s</sup></div><div class="sl">Per audit</div></div>
       <div class="si" role="listitem"><div class="sn">MIT</div><div class="sl">License</div></div>
@@ -1294,6 +1294,24 @@ const obs = new IntersectionObserver(
   { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
 );
 document.querySelectorAll('.fu').forEach(el => obs.observe(el));
+
+/* ── Live PyPI download counter ────────────────────────────────── */
+(function(){
+  const el = document.getElementById('dl-count');
+  if(!el) return;
+  fetch('https://pypistats.org/api/packages/glassbox-mech-interp/overall?mirrors=false')
+    .then(r => r.json())
+    .then(d => {
+      const total = (d.data||[]).reduce((s,r) => s + (r.downloads||0), 0);
+      if(total <= 0) return;
+      let label;
+      if(total >= 1e6)      label = (total/1e6).toFixed(1).replace(/\.0$/,'') + '<sup>M</sup>';
+      else if(total >= 1e3) label = (total/1e3).toFixed(1).replace(/\.0$/,'') + '<sup>K</sup>';
+      else                  label = total.toString();
+      el.innerHTML = label;
+    })
+    .catch(()=>{ /* keep fallback 1.1K */ });
+})();
 </script>
 </body>
 </html>
