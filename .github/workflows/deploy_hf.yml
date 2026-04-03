@@ -60,17 +60,18 @@ jobs:
           SHORT_SHA=$(git rev-parse --short HEAD)
 
           cat > hf_payload/requirements.txt << 'REQS'
-          gradio==4.43.0
+          --extra-index-url https://download.pytorch.org/whl/cpu
+          torch==2.3.0+cpu
           numpy>=1.24.0
           scipy>=1.9.0
           matplotlib>=3.7.0
           Pillow>=9.0.0
-          transformer-lens>=1.19.0
-          glassbox-mech-interp>=4.1.1
-          torch>=2.3.0
           einops>=0.6.1
-          fancy_einsum>=0.0.3
+          fancy-einsum>=0.0.3
           jaxtyping>=0.2.20
+          beartype>=0.14.1,<0.15.0
+          transformer-lens==2.17.0
+          glassbox-mech-interp>=4.1.1
           REQS
 
           cat > hf_payload/README.md << RDME
@@ -91,7 +92,7 @@ jobs:
           Mechanistic interpretability + EU AI Act Annex IV compliance toolkit.
           One function call generates a regulation-mapped evidence package for any LLM.
 
-          **Version**: 4.1.0 (GitHub @ ${SHORT_SHA})
+          **Version**: 4.1.1 (GitHub @ ${SHORT_SHA})
 
           **pip install:** \`pip install glassbox-mech-interp\`
 
