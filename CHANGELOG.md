@@ -6,6 +6,16 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.2.1] — 2026-04-04
+
+### Fixed
+
+- **`glassbox/acdc.py`** — Critical crash: `hook(resid_pre, hook_ctx)` renamed to `hook(resid_pre, hook=None)`. TransformerLens passes the hook point as a keyword argument `hook=`; the positional parameter name `hook_ctx` caused `TypeError: got an unexpected keyword argument 'hook'` on every `AutomatedCircuitDiscovery.discover()` call. ACDC was completely non-functional in v4.2.0.
+- **`glassbox/cross_model.py`** — `CrossModelReport.summary` and `CrossModelReport.attribution_table` promoted to `@property`. Previously they were plain methods, so `report.summary` returned a bound-method object instead of the string. All docstring examples updated accordingly.
+- **`glassbox/evidence_vault.py`** — Hardcoded `_VERSION = "3.6.0"` replaced with dynamic lookup via `importlib.metadata.version("glassbox-mech-interp")`. The AnnexIV vault was stamping every report with the wrong version (3.6.0) regardless of the installed package version.
+
+---
+
 ## [4.2.0] — 2026-04-04
 
 ### Added

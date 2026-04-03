@@ -285,6 +285,7 @@ class CrossModelReport:
     similarities: List[CrossModelSimilarity]
     consensus_heads: List[Tuple[float, float]]
 
+    @property
     def summary(self) -> str:
         """
         Human-readable summary of cross-model comparison.
@@ -361,6 +362,7 @@ class CrossModelReport:
             "consensus_heads": [list(h) for h in self.consensus_heads],
         }
 
+    @property
     def attribution_table(self) -> str:
         """
         ASCII table: models (rows) × normalised positions (cols),
@@ -464,7 +466,7 @@ class CrossModelComparison:
     >>> cmp = CrossModelComparison(configs, top_k_circuit=10, device="cuda")
     >>> report = cmp.run(use_glassbox=True)
     >>> print(report.summary())
-    >>> print(report.attribution_table())
+    >>> print(report.attribution_table)
     """
 
     def __init__(

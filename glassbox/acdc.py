@@ -527,7 +527,7 @@ class AutomatedCircuitDiscovery:
         for r_layer, edges in edges_by_receiver_layer.items():
             # Create hook for this receiver layer
             def make_hook(r_layer_val, edges_val, clean_cache_val, corr_cache_val):
-                def hook(resid_pre, hook_ctx):
+                def hook(resid_pre, hook=None):  # noqa: ARG001
                     patched_resid = resid_pre.clone()
 
                     for edge in edges_val:

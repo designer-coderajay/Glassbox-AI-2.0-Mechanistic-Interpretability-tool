@@ -1,7 +1,7 @@
 """
 glassbox/evidence_vault.py
 ===========================
-Annex IV Evidence Vault — Glassbox v3.6.0
+Annex IV Evidence Vault
 
 Builds a machine-readable, human-auditable evidence package that satisfies
 Regulation (EU) 2024/1689 (EU AI Act) Annex IV documentation requirements for
@@ -44,10 +44,11 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-# ---------------------------------------------------------------------------
-# Version
-# ---------------------------------------------------------------------------
-_VERSION = "3.6.0"
+try:
+    from importlib.metadata import version as _pkg_version
+    _VERSION = _pkg_version("glassbox-mech-interp")
+except Exception:
+    _VERSION = "unknown"
 _REGULATION = "Regulation (EU) 2024/1689 — EU AI Act"
 
 # ---------------------------------------------------------------------------
