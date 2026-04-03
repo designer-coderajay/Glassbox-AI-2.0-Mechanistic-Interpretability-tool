@@ -6,6 +6,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.1.1] — 2026-04-04
+
+### Fixed
+- **Missing `scipy` core dependency** — `glassbox/fdr.py` and `glassbox/validation.py` import `scipy.stats` but `scipy>=1.9` was not listed in `pyproject.toml` `dependencies`. HuggingFace Space was crashing at startup with `ModuleNotFoundError: No module named 'scipy'`.
+- **PyPI project description stale** — `pyproject.toml` description and README were updated after the v4.1.0 tag was pushed, so PyPI showed the old description. This patch tag bakes the correct description into the published package.
+- **HuggingFace Space requirements** — `scipy>=1.9.0` added to Space `requirements.txt` in `deploy_hf.yml`. Pin updated to `glassbox-mech-interp>=4.1.1`.
+
+### No API or behaviour changes
+This is a pure packaging fix. All v4.1.0 functionality is unchanged.
+
+---
+
 ## [4.1.0] — 2026-04-03
 
 ### Added

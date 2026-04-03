@@ -62,10 +62,11 @@ jobs:
           cat > hf_payload/requirements.txt << 'REQS'
           gradio==4.43.0
           numpy>=1.24.0
+          scipy>=1.9.0
           matplotlib>=3.7.0
           Pillow>=9.0.0
           transformer-lens>=1.19.0
-          glassbox-mech-interp>=4.1.0
+          glassbox-mech-interp>=4.1.1
           torch>=2.3.0
           einops>=0.6.1
           fancy_einsum>=0.0.3

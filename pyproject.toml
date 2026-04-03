@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "4.1.0"
+version     = "4.1.1"
 description = "Mechanistic interpretability + EU AI Act Annex IV compliance. 18/18 mathematical frameworks: attribution patching, causal scrubbing, DAS, Hessian bounds, BH FDR, folded LayerNorm, SAE polysemanticity, multi-corruption, held-out validation. Foundationally rigorous. Dual-licensed (MIT core + BSL 1.1 compliance engine)."
 readme      = "README.md"
 license     = { text = "MIT AND LicenseRef-BUSL-1.1" }
@@ -73,6 +73,7 @@ dependencies = [
     "transformer_lens>=1.0",
     "einops",
     "numpy",
+    "scipy>=1.9",
 ]
 
 
