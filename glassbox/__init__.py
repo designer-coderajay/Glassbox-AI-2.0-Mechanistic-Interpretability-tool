@@ -107,12 +107,17 @@ glassbox/
   cli.py                <- glassbox-ai CLI entry point
   alignment.py          <- DEPRECATED: thin shim kept for back-compat
   utils.py              <- shared utilities
+  corruption.py         <- MultiCorruptionPipeline: 4 corruption strategies
+                          (name_swap, random_token, gaussian_noise, mean_ablation)
+                          + RobustnessReport (v3.7.0 — perturbation sensitivity)
+  validation.py         <- SampleSizeGate (n<20 block, n<50 warn) +
+                          HeldOutValidator (50/50 split, gap < 0.10) (v3.7.0)
 """
 
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "3.6.0"
+__version__ = "3.7.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -324,6 +329,31 @@ from glassbox.evidence_vault import (
 )
 
 # ---------------------------------------------------------------------------
+# Multi-Corruption Pipeline — 4 corruption strategies + robustness (v3.7.0)
+# ---------------------------------------------------------------------------
+from glassbox.corruption import (
+    CorruptionStrategy,
+    CorruptionResult,
+    RobustnessReport,
+    MultiCorruptionPipeline,
+    ROBUSTNESS_DELTA,
+)
+
+# ---------------------------------------------------------------------------
+# Statistical Validation Gates — SampleSizeGate + HeldOutValidator (v3.7.0)
+# ---------------------------------------------------------------------------
+from glassbox.validation import (
+    SampleSizeGate,
+    SampleSizeError,
+    SampleSizeWarning,
+    HeldOutValidator,
+    HeldOutValidationResult,
+    N_HARD_MINIMUM,
+    N_SOFT_MINIMUM,
+    GENERALIZATION_GAP_THRESHOLD,
+)
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
@@ -413,6 +443,21 @@ __all__ = [
     "AnnexIVEvidenceVault",
     "VaultEntry",
     "build_annex_iv_vault",
+    # Multi-Corruption Pipeline (v3.7.0)
+    "CorruptionStrategy",
+    "CorruptionResult",
+    "RobustnessReport",
+    "MultiCorruptionPipeline",
+    "ROBUSTNESS_DELTA",
+    # Statistical Validation Gates (v3.7.0)
+    "SampleSizeGate",
+    "SampleSizeError",
+    "SampleSizeWarning",
+    "HeldOutValidator",
+    "HeldOutValidationResult",
+    "N_HARD_MINIMUM",
+    "N_SOFT_MINIMUM",
+    "GENERALIZATION_GAP_THRESHOLD",
     # Meta
     "__version__",
     # Deprecated

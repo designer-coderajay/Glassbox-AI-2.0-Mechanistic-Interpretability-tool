@@ -6,6 +6,30 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [3.7.0] — 2026-04-03
+
+### Added
+- **`glassbox/corruption.py`** — `MultiCorruptionPipeline` with 4 corruption strategies (`CorruptionStrategy` enum):
+  - `NAME_SWAP`: Bidirectional IO⇔S name swap (Wang et al. 2022 standard)
+  - `RANDOM_TOKEN`: Replace IO/S tokens with `Uniform(V)` random vocabulary token
+  - `GAUSSIAN_NOISE`: Add `N(0, σ²·I)` noise to token embeddings (σ = std of clean embeddings)
+  - `MEAN_ABLATION`: Replace last-position residual stream with dataset mean (zero ablation fallback)
+  - `RobustnessReport`: aggregated across all corruptions; flags `perturbation_sensitive` when `max_k |S_k − S̄| ≥ 0.10`
+  - `CorruptionResult` dataclass: per-strategy S/Comp/F1/LD metrics
+- **`glassbox/validation.py`** — Statistical validation gates:
+  - `SampleSizeGate`: raises `SampleSizeError` (n<20, hard block) or `SampleSizeWarning` (n<50, soft warn)
+  - `HeldOutValidator`: 50/50 train/test split; flags `overfit` when `|F1_train − F1_test| ≥ 0.10`
+
+### Changed
+- Version `3.6.0` → `3.7.0`
+
+### Mathematical Foundation
+- Robustness criterion: ∀k : |S_k(C) − S̄| < δ = 0.10
+- Power analysis: n_min = ((z_{α/2} + z_β) / atanh(ρ_min))² + 3; n≥50 → 80% power at |ρ|≥0.25
+- Generalisation gap: gap = |F1_train − F1_test| < δ_gen = 0.10
+
+---
+
 ## [3.6.0] — 2026-04-02
 
 ### Added
