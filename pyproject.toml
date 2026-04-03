@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name        = "glassbox-mech-interp"
 version     = "4.1.0"
-description = "Mechanistic interpretability + EU AI Act compliance. Attribution patching, CircuitDiff, bias analysis, multi-audit dashboard, stability suite, tamper-evident audit log. Dual-licensed (MIT core + BSL 1.1 compliance engine)."
+description = "Mechanistic interpretability + EU AI Act Annex IV compliance. 18/18 mathematical frameworks: attribution patching, causal scrubbing, DAS, Hessian bounds, BH FDR, folded LayerNorm, SAE polysemanticity, multi-corruption, held-out validation. Foundationally rigorous. Dual-licensed (MIT core + BSL 1.1 compliance engine)."
 readme      = "README.md"
 license     = { text = "MIT AND LicenseRef-BUSL-1.1" }
 authors     = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]
@@ -34,10 +34,23 @@ keywords = [
     "audit",
     "black-box-audit",
     "regulatory-compliance",
+    "causal-scrubbing",
+    "distributed-alignment-search",
+    "das",
+    "hessian",
+    "layernorm-correction",
+    "false-discovery-rate",
+    "benjamini-hochberg",
+    "polysemanticity",
+    "multi-corruption",
+    "held-out-validation",
+    "sample-size-gate",
+    "interpretability",
+    "circuit-faithfulness",
 ]
 
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",

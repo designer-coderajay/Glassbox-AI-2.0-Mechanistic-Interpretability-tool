@@ -65,7 +65,7 @@ jobs:
           matplotlib>=3.7.0
           Pillow>=9.0.0
           transformer-lens>=1.19.0
-          glassbox-mech-interp>=3.6.0
+          glassbox-mech-interp>=4.1.0
           torch>=2.3.0
           einops>=0.6.1
           fancy_einsum>=0.0.3
@@ -90,7 +90,7 @@ jobs:
           Mechanistic interpretability + EU AI Act Annex IV compliance toolkit.
           One function call generates a regulation-mapped evidence package for any LLM.
 
-          **Version**: 3.6.0 (GitHub @ ${SHORT_SHA})
+          **Version**: 4.1.0 (GitHub @ ${SHORT_SHA})
 
           **pip install:** \`pip install glassbox-mech-interp\`
 

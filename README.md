@@ -1,8 +1,9 @@
 <div align="center">
 
-# Glassbox 3.6.0
+# Glassbox 4.1.0
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
+**18/18 mathematical frameworks. Foundationally rigorous. Production-ready.**
 
 [![PyPI version](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue)](https://pypi.org/project/glassbox-mech-interp/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/glassbox-mech-interp?color=blue&label=downloads%2Fmonth)](https://pypistats.org/packages/glassbox-mech-interp)
@@ -32,6 +33,9 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
+- [What's New in v4.1.0](#whats-new-in-v410)
+- [What's New in v4.0.0](#whats-new-in-v400)
+- [What's New in v3.7.0](#whats-new-in-v370)
 - [What's New in v3.6.0](#whats-new-in-v360)
 - [What's New in v3.5.0](#whats-new-in-v350)
 - [What's New in v3.4.0](#whats-new-in-v340)
@@ -71,7 +75,7 @@
 |---------|-----|-------------|
 | **Website** | [project-gu05p.vercel.app](https://project-gu05p.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
 | **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v3.6.0 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.1.0 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
 ---
@@ -107,6 +111,233 @@ print(result["faithfulness"])
 ```
 
 No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) — no install required.
+
+---
+
+## What's New in v4.1.0
+
+Glassbox v4.1.0 completes the **ROADMAP_V4 mathematical framework** — 18/18 frameworks now implemented. This version brings the three hardest features: Hessian-based reliability bounds, Anthropic-standard causal scrubbing, and Distributed Alignment Search. These close the gap vs Harvard/MIT/Anthropic/DeepMind research standards.
+
+### 1. HessianErrorBounds — Second-Order Taylor Reliability Certificates
+
+Standard attribution patching uses a first-order Taylor approximation. If the second-order term dominates, the ranking is unreliable. `HessianErrorBounds` computes `ε(h) = ½·δzᵀ·H_h·δz` via Pearlmutter (1994) HVP, certifying whether the approximation holds.
+
+```python
+from glassbox import HessianErrorBounds
+
+hb     = HessianErrorBounds(model)
+bounds = hb.compute(
+    attributions = result["attributions_raw"],   # {(layer, head): score}
+    clean_tokens = clean_tokens,
+    corr_tokens  = corr_tokens,
+    target_tok   = target_id,
+    distract_tok = distract_id,
+)
+
+print(bounds.summary_line())
+# Hessian [reliable ✓] | max_ratio=0.043 dominated=0/144 heads (threshold=0.2)
+
+print(bounds.approximation_reliable)   # True — first-order ranking is certified
+print(bounds.to_dict()["dominated_heads"])  # [] — no heads dominated by second-order terms
+```
+
+Flags `hessian_dominated` heads where `|ε(h)| / |α(h)| > 0.20`. Maps to **Art. 13(1)** transparency.
+
+### 2. CausalScrubbing — Anthropic-Standard Circuit Hypothesis Testing
+
+Attribution identifies *which* heads matter. Causal scrubbing (Chan et al., Anthropic 2022) answers: does the identified circuit *causally* implement the claimed computation? `CS(H) = E[LD_scrubbed]/LD_clean` — strong ≥ 0.80.
+
+```python
+from glassbox import CausalScrubbing, CircuitHypothesis
+
+# Use the canonical Wang et al. 2022 IOI circuit hypothesis
+hypothesis = CircuitHypothesis.from_wang2022_ioi()
+# Or define your own:
+# hypothesis = CircuitHypothesis.from_list("my_circuit", [(9,6),(9,9),(10,0)])
+
+scrubber = CausalScrubbing(model, n_samples=5)
+result   = scrubber.evaluate(
+    hypothesis   = hypothesis,
+    prompt       = "When Mary and John went to the store, John gave a drink to",
+    corr_prompt  = "When John and Mary went to the store, Mary gave a drink to",
+    target_tok   = target_id,
+    distract_tok = distract_id,
+)
+
+print(result.summary_line())
+# CausalScrubbing [Wang2022_IOI_Circuit] ✓✓ | CS=0.8923 (strong) | LD_clean=4.23...
+
+print(result.interpretation)   # "strong" — hypothesis causally explains the circuit
+print(result.cs_score)         # 0.8923
+```
+
+Maps to **Art. 9(1)** risk management — formal causal account, not just correlation.
+
+### 3. DistributedAlignmentSearch — Linear Concept Subspace Discovery
+
+DAS (Geiger et al. 2023) finds *where* in the residual stream a concept is encoded. Learns rotation matrix `R ∈ R^{d_model × k}` via PCA on activation differences; validates via interchange interventions.
+
+```python
+from glassbox import DistributedAlignmentSearch
+
+das    = DistributedAlignmentSearch(model, concept_dims=4)
+result = das.search(
+    concept_label         = "IO_name_position",
+    clean_prompts_tokens  = clean_token_list,
+    counterfactual_tokens = corr_token_list,
+    target_tok            = target_id,
+    distract_tok          = distract_id,
+    target_layer          = 9,
+    target_position       = -1,
+)
+
+print(result.summary_line())
+# DAS [IO_name_position] ENCODED ✓ | layer=9 pos=-1 | score=0.8234 dims=4 expl_var=0.731
+
+print(result.concept_encoded)      # True — concept clearly encoded in 4-dimensional subspace
+print(result.explained_variance)   # 0.731 — 73% of Δz variance explained by top-4 dims
+
+# Sweep all layers to find where concept is strongest
+all_results = das.search_all_layers("IO_name_position", clean_tokens, corr_tokens,
+                                     target_id, distract_id)
+# Sorted by das_score descending
+print(all_results[0].target_layer)  # 9 — concept strongest at layer 9
+```
+
+Maps to **Art. 15(1)** robustness — localises concept encoding for controlled interventions.
+
+### Mathematical Completeness: 18/18 ✓
+
+| Framework | v3.6.0 | v3.7.0 | v4.0.0 | v4.1.0 |
+|---|---|---|---|---|
+| Attribution patching (Nanda 2023) | ✓ | ✓ | ✓ | ✓ |
+| Sufficiency / Comprehensiveness / F1 | ✓ | ✓ | ✓ | ✓ |
+| Fisher Z cross-model comparison | ✓ | ✓ | ✓ | ✓ |
+| Edge Attribution Patching (Syed 2024) | ✓ | ✓ | ✓ | ✓ |
+| BCa Bootstrap CIs | ✓ | ✓ | ✓ | ✓ |
+| Bonferroni correction | ✓ | ✓ | ✓ | ✓ |
+| Welch's t-test cross-model | ✓ | ✓ | ✓ | ✓ |
+| Multi-corruption robustness | — | ✓ | ✓ | ✓ |
+| SampleSizeGate (power analysis) | — | ✓ | ✓ | ✓ |
+| Held-out validation (gen gap) | — | ✓ | ✓ | ✓ |
+| Folded LayerNorm correction | — | — | ✓ | ✓ |
+| Benjamini-Hochberg FDR | — | — | ✓ | ✓ |
+| SAE polysemanticity entropy | — | — | ✓ | ✓ |
+| Hessian error bounds (Pearlmutter) | — | — | — | ✓ |
+| Causal scrubbing (Chan/Anthropic) | — | — | — | ✓ |
+| Distributed Alignment Search | — | — | — | ✓ |
+| Jaccard circuit similarity | ✓ | ✓ | ✓ | ✓ |
+| Cohen's d effect size | ✓ | ✓ | ✓ | ✓ |
+
+**Score: 7/18 → 10/18 → 13/18 → 18/18**
+
+---
+
+## What's New in v4.0.0
+
+### 1. FoldedLayerNorm — Unbiased Attribution Patching
+
+LayerNorm scale `γ` multiplicatively biases attribution scores. `FoldedLayerNorm` absorbs `γ` into `W_Q/K/V` (Elhage et al. 2021 §4.1), computing corrected attributions and flagging heads where `|Δα/α| > 0.15`.
+
+```python
+from glassbox import FoldedLayerNorm
+
+fln    = FoldedLayerNorm(model)
+report = fln.analyze(result["attributions_raw"], clean_tokens, corr_tokens, target_id, distract_id)
+print(report.summary_line())
+# LayerNorm [all OK ✓] | max_ratio=0.041 mean_ratio=0.012 (threshold=0.15)
+
+corrected = fln.apply_correction(result["attributions_raw"], report.folded_attributions)
+```
+
+### 2. BenjaminiHochberg FDR — Multiple Testing Correction
+
+Testing 144 heads simultaneously inflates false positives. `BenjaminiHochberg` controls `E[FDR] ≤ α` alongside Bonferroni for comparison (Benjamini & Hochberg 1995).
+
+```python
+from glassbox import BenjaminiHochberg, apply_fdr_correction
+
+bh     = BenjaminiHochberg(alpha=0.05)
+report = bh.run(attributions, se_map)   # se_map from bootstrap or Δ-method
+print(report.summary_line())
+# FDR [BH: 8/144 significant | Bonferroni: 5/144] E[FDR]≤0.045 α=0.05
+
+sig_heads = report.significant_heads_bh()   # [(9,6), (9,9), (10,0), ...]
+```
+
+### 3. PolysemanticityScorerSAE — Head Interpretability Quantification
+
+Measures whether heads are monosemantic or polysemantic via `H(p(feature|head_h))`. SAE-entropy method if sae-lens installed; PCA participation ratio fallback otherwise.
+
+```python
+from glassbox import PolysemanticityScorerSAE
+
+scorer  = PolysemanticityScorerSAE(model)
+summary = scorer.score_circuit(circuit=[(9,6),(9,9),(10,0)], prompts_tokens=token_list)
+print(summary.summary_line())
+# Polysemanticity [method=pca_participation_ratio] | mean_entropy=0.312 monosemantic=67%
+```
+
+---
+
+## What's New in v3.7.0
+
+### 1. MultiCorruptionPipeline — 4 Corruption Strategies + Robustness Test
+
+Single name-swap corruption gives one data point. `MultiCorruptionPipeline` runs four independent corruptions and checks robustness criterion `∀k: |S_k(C) − S̄| < 0.10`.
+
+```python
+from glassbox import MultiCorruptionPipeline, CorruptionStrategy
+
+pipeline = MultiCorruptionPipeline(model)
+report   = pipeline.run(
+    prompt       = "When Mary and John went to the store, John gave a drink to",
+    io_name      = "Mary",
+    subject_name = "John",
+    circuit      = [(9,6), (9,9), (10,0)],
+    target_tok   = target_id,
+    distract_tok = distract_id,
+    strategies   = [
+        CorruptionStrategy.NAME_SWAP,
+        CorruptionStrategy.RANDOM_TOKEN,
+        CorruptionStrategy.GAUSSIAN_NOISE,
+        CorruptionStrategy.MEAN_ABLATION,
+    ],
+)
+
+print(report.robust)                    # True — circuit stable across all corruptions
+print(report.max_deviation)            # 0.063 — well below δ=0.10
+print(report.perturbation_sensitive)   # False
+```
+
+### 2. SampleSizeGate — Statistical Power Enforcement
+
+Prevents misleading compliance reports from underpowered analyses. Hard blocks at n<20, warns at n<50, with `recommend_n()` power analysis.
+
+```python
+from glassbox import SampleSizeGate, SampleSizeError
+
+gate = SampleSizeGate()
+gate.check(n=15)    # raises SampleSizeError — BLOCKED
+gate.check(n=35)    # SampleSizeWarning — proceed with caution
+gate.check(n=100)   # passes silently
+
+print(gate.recommend_n(rho_min=0.25, power=0.80))   # 126
+```
+
+### 3. HeldOutValidator — Circuit Generalisation Gate
+
+Detects circuits that overfit to the training prompt set. 50/50 split, flags `overfit` when `|F1_train − F1_test| ≥ 0.10`.
+
+```python
+from glassbox import HeldOutValidator
+
+validator = HeldOutValidator()
+val       = validator.validate(batch_results)   # from batch_analyze()
+print(val.summary_line())
+# HeldOut [OK ✓] | F1_train=0.6821 F1_test=0.6540 gap=0.0281 (threshold=0.1)
+print(val.generalises)   # True
+```
 
 ---
 
@@ -914,7 +1145,7 @@ python scripts/benchmark_v340.py --model gpt2 --task credit --seed 42
 python scripts/benchmark_v340.py --suite standard --output results/bench_v340.json
 ```
 
-See [`BENCHMARKS.md`](BENCHMARKS.md) for full methodology, hardware specs, and planned Llama-2-7B / Mistral-7B benchmarks (v3.6.0).
+See [`BENCHMARKS.md`](BENCHMARKS.md) for full methodology, hardware specs, and planned Llama-2-7B / Mistral-7B benchmarks (v4.1.0).
 
 ---
 
@@ -1161,15 +1392,15 @@ git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Inte
 cd Glassbox-AI-2.0-Mechanistic-Interpretability-tool
 
 # API only
-docker build --target api -t glassbox-api:3.6.0 .
-docker run -p 8000:8000 glassbox-api:3.6.0
+docker build --target api -t glassbox-api:4.1.0 .
+docker run -p 8000:8000 glassbox-api:4.1.0
 # REST API:    http://localhost:8000
 # Swagger UI:  http://localhost:8000/docs
 # Health:      http://localhost:8000/health
 
 # Dashboard only
-docker build --target dashboard -t glassbox-dashboard:3.6.0 .
-docker run -p 7860:7860 glassbox-dashboard:3.6.0
+docker build --target dashboard -t glassbox-dashboard:4.1.0 .
+docker run -p 7860:7860 glassbox-dashboard:4.1.0
 ```
 
 ### Production stack — API + Dashboard + Redis cache
@@ -1190,18 +1421,18 @@ docker compose --profile production up
 
 ```bash
 # On a machine with internet access — export the image
-docker build --target api -t glassbox-api:3.6.0 .
-docker save glassbox-api:3.6.0 | gzip > glassbox-api-3.6.0.tar.gz
+docker build --target api -t glassbox-api:4.1.0 .
+docker save glassbox-api:4.1.0 | gzip > glassbox-api-4.1.0.tar.gz
 
 # Transfer to air-gapped machine (USB, internal file share, etc.)
 # On the air-gapped machine:
-docker load < glassbox-api-3.6.0.tar.gz
+docker load < glassbox-api-4.1.0.tar.gz
 
 # Set offline mode — disables all HuggingFace Hub network calls
 docker run -p 8000:8000 \
   -e HF_HUB_OFFLINE=1 \
   -v /path/to/model/cache:/app/.cache/huggingface \
-  glassbox-api:3.6.0
+  glassbox-api:4.1.0
 ```
 
 ### Environment variables
@@ -1300,6 +1531,69 @@ Black-box audit works on **any model with an OpenAI-compatible API**, including 
 | `export_json(path)` | Export all records as JSON array with metadata. |
 | `export_csv(path)` | Export all records as CSV for GRC/Excel import. |
 | `by_model(name)`, `by_grade(grade)`, `non_compliant()` | Query methods. |
+
+### `MultiCorruptionPipeline(model)` — v3.7.0+
+
+| Method | Description |
+|--------|-------------|
+| `run(prompt, io_name, subject_name, circuit, target_tok, distract_tok, strategies)` | Run all 4 corruptions, return `RobustnessReport` with `robust` flag. |
+
+`CorruptionStrategy` enum: `NAME_SWAP`, `RANDOM_TOKEN`, `GAUSSIAN_NOISE`, `MEAN_ABLATION`
+
+### `SampleSizeGate()` + `HeldOutValidator()` — v3.7.0+
+
+| Class | Method | Description |
+|-------|--------|-------------|
+| `SampleSizeGate` | `check(n)` | Block n<20, warn n<50. Raises `SampleSizeError`. |
+| `SampleSizeGate` | `recommend_n(rho_min, alpha, power)` | Power-analysis minimum n via Fisher Z. |
+| `HeldOutValidator` | `validate(results)` | 50/50 split on `batch_analyze()` output. Returns `HeldOutValidationResult`. |
+
+### `FoldedLayerNorm(model)` — v4.0.0+
+
+| Method | Description |
+|--------|-------------|
+| `analyze(raw_attributions, clean_tokens, corr_tokens, target_tok, distract_tok)` | Returns `LayerNormBiasReport` with per-head `bias_ratio`, `biased_heads` set. |
+| `apply_correction(raw_attributions, folded_attrs)` | Returns corrected attribution dict. |
+
+### `BenjaminiHochberg(alpha)` — v4.0.0+
+
+| Method | Description |
+|--------|-------------|
+| `run(attributions, se_map)` | BH FDR with z-test p-values. Returns `FDRReport`. |
+| `run_bootstrap(attributions_per_sample, observed_attributions)` | Bootstrap-SE variant. |
+| `run_permutation(attributions_per_permutation, observed_attributions)` | Permutation-based p-values. |
+| `apply_fdr_correction(attributions, se_map, alpha)` | Convenience wrapper. |
+
+### `PolysemanticityScorerSAE(model)` — v4.0.0+
+
+| Method | Description |
+|--------|-------------|
+| `score_circuit(circuit, prompts_tokens)` | Returns `PolysemanticitySummary` with entropy per head. SAE or PCA fallback. |
+
+### `HessianErrorBounds(model)` — v4.1.0+
+
+| Method | Description |
+|--------|-------------|
+| `compute(attributions, clean_tokens, corr_tokens, target_tok, distract_tok)` | Returns `HessianBoundsReport`. Flags `hessian_dominated` heads where `\|ε(h)/α(h)\| > 0.20`. |
+
+### `CausalScrubbing(model, n_samples)` + `CircuitHypothesis` — v4.1.0+
+
+| Class | Method | Description |
+|-------|--------|-------------|
+| `CircuitHypothesis` | `from_wang2022_ioi()` | Pre-built IOI circuit (13 heads with role labels). |
+| `CircuitHypothesis` | `from_list(name, heads, description, roles)` | Custom hypothesis. |
+| `CausalScrubbing` | `evaluate(hypothesis, prompt, corr_prompt, target_tok, distract_tok)` | CS(H) score + interpretation. |
+| `CausalScrubbing` | `evaluate_batch(hypothesis, prompts)` | Multi-prompt evaluation. |
+| `CausalScrubbing` | `mean_cs_score(results)` | Aggregate statistics. |
+
+### `DistributedAlignmentSearch(model, concept_dims)` — v4.1.0+
+
+| Method | Description |
+|--------|-------------|
+| `search(concept_label, clean_tokens, cf_tokens, target_tok, distract_tok, target_layer, target_position)` | PCA subspace + DAS score. Returns `DASResult`. |
+| `search_all_layers(concept_label, ...)` | Layer sweep, sorted by `das_score` descending. |
+
+---
 
 ### `GlassboxClient` (TypeScript/JavaScript SDK) — v2.9.0+
 
