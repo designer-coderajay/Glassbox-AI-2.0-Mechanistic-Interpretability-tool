@@ -1517,7 +1517,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         ))
         story.append(Spacer(1, 4))
         story.append(Paragraph(
-            "Source code: https://github.com/designer-coderajay/glassbox-mech-interp | "
+            "Source code: https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool | "
             "PyPI: pip install glassbox-mech-interp",
             styles["legal_ref"],
         ))

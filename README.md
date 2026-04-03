@@ -125,85 +125,6 @@ No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/
 
 ---
 
-## What's New in v3.0.0
-
-Glassbox v3.0.0 is the enterprise compliance release. Five new features ship on top of all v2.9.0 foundations:
-
-### 1. BiasAnalyzer — EU AI Act Article 10(2)(f)
-
-Three bias tests built for regulatory submission. Works offline (pre-computed logprobs) or online (live `model_fn`).
-
-```python
-from glassbox import BiasAnalyzer, BiasReport
-
-ba = BiasAnalyzer()
-
-# Counterfactual fairness — swap demographic attributes, measure probability gap
-result = ba.counterfactual_fairness_test(
-    prompt_template="The {attribute} applied for the loan",
-    groups={"gender": ["male applicant", "female applicant"]},
-    target_tokens=["approved", "denied"],
-    model_fn=my_model,
-)
-print(result.max_gap, result.flagged)   # 0.12, False
-
-# Demographic parity — outcome rate disparity across groups
-dp = ba.demographic_parity_test(
-    prompts_by_group={"male": [...], "female": [...]},
-    target_tokens=["approved"],
-    model_fn=my_model,
-)
-
-# Aggregate into Annex IV Section 5 report
-report = BiasReport()
-report.add_result(result)
-report.add_result(dp)
-print(report.to_markdown())
-```
-
-### 2. Webhooks — CI/CD callbacks
-
-Register a callback URL that fires when async jobs complete. HMAC-SHA256 signed payloads.
-
-```bash
-curl -X POST https://YOUR_API_URL/v1/webhooks \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://yourapp.com/hook","events":["job.completed","job.failed"],"secret":"mysecret"}'
-```
-
-### 3. RiskRegister — Article 9 persistent risk tracking
-
-Track compliance risks across audit sessions. Deduplication, severity ordering, status lifecycle.
-
-```python
-from glassbox import RiskRegister
-
-rr = RiskRegister("risks.json")
-rr.ingest_annex_report(annex, model_name="gpt2")  # auto-extracts Section 5 risks
-
-# Status lifecycle
-rr.set_status(risk_id, "mitigated", notes="Retrained with more data")
-
-# Compliance health
-print(rr.trend_summary())
-# {'compliance_health': 'amber', 'open': 2, 'mitigated': 1, 'total': 3}
-
-# For dashboards and PR comments
-print(rr.to_markdown())
-```
-
-Maps to EU AI Act **Article 9** (risk management system) and **Annex IV Section 5**.
-
-### 4. Multi-Audit History Dashboard
-
-F1 trend chart, grade distribution, audit table with grade trajectory. "Load from API" button connects to `GET /v1/audit/reports`. Toggle with the "Audit History" button in the compliance dashboard.
-
-### 5. Circuit SVG Export
-
-"Download SVG" button in the D3 circuit graph. Exports paper-ready `glassbox-circuit.svg` with inlined dark-mode styles.
-
----
-
 ## What's New in v3.4.0
 
 Glassbox v3.4.0 is the **strategic monopoly release** — three features that no other open-source interpretability tool ships, purpose-built for the August 2026 EU AI Act enforcement deadline.
@@ -483,6 +404,85 @@ result = gb.bootstrap_metrics(prompts, exact_suff=False)
 ```
 
 The paper benchmark: `seed=42`, GPT-2 small (12L/12H/768d), Apple M2 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
+
+---
+
+## What's New in v3.0.0
+
+Glassbox v3.0.0 is the enterprise compliance release. Five new features ship on top of all v2.9.0 foundations:
+
+### 1. BiasAnalyzer — EU AI Act Article 10(2)(f)
+
+Three bias tests built for regulatory submission. Works offline (pre-computed logprobs) or online (live `model_fn`).
+
+```python
+from glassbox import BiasAnalyzer, BiasReport
+
+ba = BiasAnalyzer()
+
+# Counterfactual fairness — swap demographic attributes, measure probability gap
+result = ba.counterfactual_fairness_test(
+    prompt_template="The {attribute} applied for the loan",
+    groups={"gender": ["male applicant", "female applicant"]},
+    target_tokens=["approved", "denied"],
+    model_fn=my_model,
+)
+print(result.max_gap, result.flagged)   # 0.12, False
+
+# Demographic parity — outcome rate disparity across groups
+dp = ba.demographic_parity_test(
+    prompts_by_group={"male": [...], "female": [...]},
+    target_tokens=["approved"],
+    model_fn=my_model,
+)
+
+# Aggregate into Annex IV Section 5 report
+report = BiasReport()
+report.add_result(result)
+report.add_result(dp)
+print(report.to_markdown())
+```
+
+### 2. Webhooks — CI/CD callbacks
+
+Register a callback URL that fires when async jobs complete. HMAC-SHA256 signed payloads.
+
+```bash
+curl -X POST https://YOUR_API_URL/v1/webhooks \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://yourapp.com/hook","events":["job.completed","job.failed"],"secret":"mysecret"}'
+```
+
+### 3. RiskRegister — Article 9 persistent risk tracking
+
+Track compliance risks across audit sessions. Deduplication, severity ordering, status lifecycle.
+
+```python
+from glassbox import RiskRegister
+
+rr = RiskRegister("risks.json")
+rr.ingest_annex_report(annex, model_name="gpt2")  # auto-extracts Section 5 risks
+
+# Status lifecycle
+rr.set_status(risk_id, "mitigated", notes="Retrained with more data")
+
+# Compliance health
+print(rr.trend_summary())
+# {'compliance_health': 'amber', 'open': 2, 'mitigated': 1, 'total': 3}
+
+# For dashboards and PR comments
+print(rr.to_markdown())
+```
+
+Maps to EU AI Act **Article 9** (risk management system) and **Annex IV Section 5**.
+
+### 4. Multi-Audit History Dashboard
+
+F1 trend chart, grade distribution, audit table with grade trajectory. "Load from API" button connects to `GET /v1/audit/reports`. Toggle with the "Audit History" button in the compliance dashboard.
+
+### 5. Circuit SVG Export
+
+"Download SVG" button in the D3 circuit graph. Exports paper-ready `glassbox-circuit.svg` with inlined dark-mode styles.
 
 ---
 
@@ -1193,7 +1193,7 @@ docker save glassbox-api:3.6.0 | gzip > glassbox-api-3.6.0.tar.gz
 
 # Transfer to air-gapped machine (USB, internal file share, etc.)
 # On the air-gapped machine:
-docker load < glassbox-api-3.4.0.tar.gz
+docker load < glassbox-api-3.6.0.tar.gz
 
 # Set offline mode — disables all HuggingFace Hub network calls
 docker run -p 8000:8000 \

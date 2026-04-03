@@ -43,7 +43,7 @@ body:
     id: glassbox-version
     attributes:
       label: Glassbox version
-      placeholder: "2.3.0  (run: python -c 'import glassbox; print(glassbox.__version__)')"
+      placeholder: "3.6.0  (run: python -c 'import glassbox; print(glassbox.__version__)')"
     validations:
       required: true
 

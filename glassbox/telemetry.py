@@ -247,7 +247,7 @@ def setup_telemetry(
             )
         )
         trace.set_tracer_provider(provider)
-        _tracer = trace.get_tracer("glassbox", "3.1.0")
+        _tracer = trace.get_tracer("glassbox", "3.6.0")
         _config = TelemetryConfig(
             service_name       = resolved_service,
             endpoint           = resolved_endpoint,
