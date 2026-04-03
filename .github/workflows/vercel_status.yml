@@ -6,10 +6,14 @@ name: Vercel Deployment Status
 # own GitHub-triggered build it posts a "failure" commit status, making commits
 # look red even though the site is fully live.
 #
-# This workflow fires on every push to main and:
+# This workflow fires on EVERY push to main and:
 #   1. Posts a "pending" status immediately (so GitHub shows a spinner)
 #   2. Deploys to Vercel via CLI using the saved token
 #   3. Posts "success" with the live URL once the deploy is ready
+#
+# IMPORTANT: No paths filter — must run on every push so the CLI success status
+# always overrides the Vercel GitHub App's "Canceled/failure" status regardless
+# of which files changed in the commit.
 #
 # Required secrets (Settings → Secrets and variables → Actions):
 #   VERCEL_TOKEN   — Vercel personal access token (Settings → Tokens)
@@ -20,9 +24,6 @@ name: Vercel Deployment Status
 on:
   push:
     branches: [main]
-    paths:
-      - "docs/**"
-      - "vercel.json"
   workflow_dispatch:
 
 jobs:
