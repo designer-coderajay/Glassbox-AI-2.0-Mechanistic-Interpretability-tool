@@ -16,8 +16,8 @@ name: Vercel Deployment Status
 # of which files changed in the commit.
 #
 # Required secrets (Settings → Secrets and variables → Actions):
-#   VERCEL_TOKEN   — Vercel personal access token (Settings → Tokens)
-#   VERCEL_ORG_ID  — team_lKQMS6ZfVVe1y9KXXN7Kt6jJ
+#   VERCEL_TOKEN      — Vercel personal access token (Settings → Tokens)
+#   VERCEL_ORG_ID     — team_lKQMS6ZfVVe1y9KXXN7Kt6jJ
 #   VERCEL_PROJECT_ID — prj_Am5pxHcNUDNAiTwR2hAJl9HFEnf2
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -25,6 +25,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+
+# Explicit permissions required for GITHUB_TOKEN to write commit statuses
+permissions:
+  statuses: write
+  contents: read
 
 jobs:
   deploy:
