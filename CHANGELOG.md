@@ -6,6 +6,28 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.0.0] — 2026-04-03
+
+### Added
+- **`glassbox/layernorm_correction.py`** — `FoldedLayerNorm`: absorbs LayerNorm scale γ into Q/K/V weight matrices; computes per-head bias Δα(h) = α_folded(h) − α_raw(h); flags heads with |bias_ratio| > 0.15 as `layernorm_biased`. `LayerNormBiasReport` with full per-head bias analysis.
+- **`glassbox/fdr.py`** — `BenjaminiHochberg`: Benjamini-Hochberg FDR control (E[FDR]≤α) for head-level attribution significance. Supports standard z-test, bootstrap SE, and permutation-based p-values. Reports BH and Bonferroni side-by-side. `FDRReport` + `HeadSignificance` dataclasses.
+- **`glassbox/polysemanticity.py`** — `PolysemanticityScorerSAE`: Shannon entropy H(p(feature|head_h)) via SAE feature activations; PCA participation ratio fallback when sae-lens unavailable. `PolysemanticitySummary` with monosemantic_fraction and per-head scores.
+
+### Changed
+- Version `3.7.0` → `4.0.0`
+
+### Mathematical Foundation
+- Folded LN: W_Q^folded = diag(γ)·W_Q; bias_ratio = Δα(h)/|α_raw(h)|; threshold 0.15
+- BH FDR: t_i = (i/K)·α; reject all H₀_(j) for j ≤ i*; E[FDR] = (m₀/K)·α ≤ α
+- Polysemanticity: P(h) = H(p(feature|head)) = -Σ p_f log₂(p_f); P_norm ∈ [0,1]
+
+### EU AI Act Mapping
+- Art. 13(1) Transparency: LayerNorm bias correction enables attribution scores not artificially inflated by scale parameters
+- Art. 9(1) Risk Management: BH FDR prevents false-positive head identifications in compliance reports
+- Art. 15(1) Robustness: Polysemanticity score quantifies interpretability quality of identified circuit heads
+
+---
+
 ## [3.7.0] — 2026-04-03
 
 ### Added

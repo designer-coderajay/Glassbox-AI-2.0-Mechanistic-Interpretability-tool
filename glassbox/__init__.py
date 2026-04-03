@@ -112,12 +112,19 @@ glassbox/
                           + RobustnessReport (v3.7.0 — perturbation sensitivity)
   validation.py         <- SampleSizeGate (n<20 block, n<50 warn) +
                           HeldOutValidator (50/50 split, gap < 0.10) (v3.7.0)
+  layernorm_correction.py <- FoldedLayerNorm: fold LN scale γ into W_Q/K/V,
+                          compute per-head bias Δα(h), flag |bias/α|>0.15 (v4.0.0)
+  fdr.py                <- BenjaminiHochberg: FDR-corrected head significance,
+                          E[FDR]≤α, alongside Bonferroni; HeadSignificance,
+                          FDRReport (v4.0.0)
+  polysemanticity.py    <- PolysemanticityScorerSAE: H(p(feature|head_h)) via
+                          SAE features or PCA participation ratio fallback (v4.0.0)
 """
 
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "3.7.0"
+__version__ = "4.0.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -354,6 +361,36 @@ from glassbox.validation import (
 )
 
 # ---------------------------------------------------------------------------
+# Folded LayerNorm Correction — unbiased attribution patching (v4.0.0)
+# ---------------------------------------------------------------------------
+from glassbox.layernorm_correction import (
+    FoldedLayerNorm,
+    LayerNormBiasReport,
+    LAYERNORM_BIAS_THRESHOLD,
+)
+
+# ---------------------------------------------------------------------------
+# Benjamini-Hochberg FDR Control — multiple testing correction (v4.0.0)
+# ---------------------------------------------------------------------------
+from glassbox.fdr import (
+    BenjaminiHochberg,
+    FDRReport,
+    HeadSignificance,
+    apply_fdr_correction,
+    attribution_to_pvalue,
+    bootstrap_se,
+)
+
+# ---------------------------------------------------------------------------
+# SAE Polysemanticity Score — entropy-based head analysis (v4.0.0)
+# ---------------------------------------------------------------------------
+from glassbox.polysemanticity import (
+    PolysemanticityScorerSAE,
+    PolysemanticitySummary,
+    HeadPolysemanticity,
+)
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
@@ -458,6 +495,21 @@ __all__ = [
     "N_HARD_MINIMUM",
     "N_SOFT_MINIMUM",
     "GENERALIZATION_GAP_THRESHOLD",
+    # Folded LayerNorm Correction (v4.0.0)
+    "FoldedLayerNorm",
+    "LayerNormBiasReport",
+    "LAYERNORM_BIAS_THRESHOLD",
+    # Benjamini-Hochberg FDR (v4.0.0)
+    "BenjaminiHochberg",
+    "FDRReport",
+    "HeadSignificance",
+    "apply_fdr_correction",
+    "attribution_to_pvalue",
+    "bootstrap_se",
+    # SAE Polysemanticity Score (v4.0.0)
+    "PolysemanticityScorerSAE",
+    "PolysemanticitySummary",
+    "HeadPolysemanticity",
     # Meta
     "__version__",
     # Deprecated
