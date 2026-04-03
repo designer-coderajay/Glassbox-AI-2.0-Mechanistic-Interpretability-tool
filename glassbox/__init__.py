@@ -119,12 +119,18 @@ glassbox/
                           FDRReport (v4.0.0)
   polysemanticity.py    <- PolysemanticityScorerSAE: H(p(feature|head_h)) via
                           SAE features or PCA participation ratio fallback (v4.0.0)
+  hessian.py            <- HessianErrorBounds: Pearlmutter HVP for second-order
+                          Taylor error bounds; flags |ε(h)/α(h)|>0.20 (v4.1.0)
+  causal_scrubbing.py   <- CausalScrubbing: CircuitHypothesis dataclass, resample
+                          non-hypothesised activations, CS score 0-1 (v4.1.0)
+  das.py                <- DistributedAlignmentSearch: PCA subspace encoding
+                          concept via interchange interventions, DAS score (v4.1.0)
 """
 
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "4.0.0"
+__version__ = "4.1.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -391,6 +397,36 @@ from glassbox.polysemanticity import (
 )
 
 # ---------------------------------------------------------------------------
+# Hessian Error Bounds — second-order Taylor bounds via Pearlmutter HVP (v4.1.0)
+# ---------------------------------------------------------------------------
+from glassbox.hessian import (
+    HessianErrorBounds,
+    HessianBoundsReport,
+    HeadHessianBound,
+    HESSIAN_ERROR_THRESHOLD,
+)
+
+# ---------------------------------------------------------------------------
+# Causal Scrubbing — CircuitHypothesis + CS score (v4.1.0)
+# ---------------------------------------------------------------------------
+from glassbox.causal_scrubbing import (
+    CausalScrubbing,
+    CircuitHypothesis,
+    CausalScrubbingResult,
+    CS_STRONG_THRESHOLD,
+    CS_PARTIAL_THRESHOLD,
+)
+
+# ---------------------------------------------------------------------------
+# Distributed Alignment Search — linear concept subspace (v4.1.0)
+# ---------------------------------------------------------------------------
+from glassbox.das import (
+    DistributedAlignmentSearch,
+    DASResult,
+    DAS_SCORE_THRESHOLD,
+)
+
+# ---------------------------------------------------------------------------
 # Back-compat alias
 # ---------------------------------------------------------------------------
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
@@ -510,6 +546,21 @@ __all__ = [
     "PolysemanticityScorerSAE",
     "PolysemanticitySummary",
     "HeadPolysemanticity",
+    # Hessian Error Bounds (v4.1.0)
+    "HessianErrorBounds",
+    "HessianBoundsReport",
+    "HeadHessianBound",
+    "HESSIAN_ERROR_THRESHOLD",
+    # Causal Scrubbing (v4.1.0)
+    "CausalScrubbing",
+    "CircuitHypothesis",
+    "CausalScrubbingResult",
+    "CS_STRONG_THRESHOLD",
+    "CS_PARTIAL_THRESHOLD",
+    # Distributed Alignment Search (v4.1.0)
+    "DistributedAlignmentSearch",
+    "DASResult",
+    "DAS_SCORE_THRESHOLD",
     # Meta
     "__version__",
     # Deprecated
