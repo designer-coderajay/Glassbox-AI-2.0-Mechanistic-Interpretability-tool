@@ -53,6 +53,8 @@
 - [API Reference](#api-reference)
 - [Methodology & IP Documentation](#methodology--ip-documentation)
 - [Mathematical Disclosures](#mathematical-disclosures)
+- [Mathematical Foundations Reference](#mathematical-foundations-reference)
+- [Cross-Model Faithfulness Study](#cross-model-faithfulness-study)
 - [Paper](#paper)
 - [Citation](#citation)
 - [Related Tools](#related-tools)
@@ -1366,6 +1368,76 @@ This is accurate when individual head contributions are small relative to LD_cle
 **SAE feature attribution** in `attribute_circuit_heads()` applies the SAE to isolated head outputs rather than the full residual stream. See docstring for exact assumptions.
 
 All other metrics (Comprehensiveness, EAP scores, Composition scores, Bootstrap CIs) are exact or asymptotically exact.
+
+---
+
+## Mathematical Foundations Reference
+
+Every formula used in Glassbox — attribution patching, faithfulness metrics, Fisher Z
+transformations, Bonferroni correction, power analysis, and EU AI Act regulatory mapping
+— is formally derived and cited in **[`MATH_FOUNDATIONS.md`](MATH_FOUNDATIONS.md)**.
+
+This 16-section document is the single source of truth for all mathematical operations
+in the library. Key equations include:
+
+**Attribution patching** (first-order Taylor approximation, 3 forward passes):
+```
+α(h) ≈ (∂LD / ∂z_h)|_{z_h = z_h^clean}  ·  (z_h^clean − z_h^corrupt)
+```
+
+**Faithfulness F1** (harmonic mean of sufficiency and comprehensiveness):
+```
+F1_faith = 2 · S(C) · Comp(C) / (S(C) + Comp(C))
+```
+
+**Confidence–faithfulness correlation test** (Fisher Z transform):
+```
+z = atanh(r),   SE = 1/√(n−3),   Z = z/SE  ~  N(0,1)  under H₀: ρ = 0
+```
+
+Reference values from Mahale (2026) / arXiv:2603.09988:
+`r = 0.009`, `S = 1.00`, `Comp = 0.22`, `F1 = 0.64` (full 26-head Wang et al. IOI circuit).
+
+---
+
+## Cross-Model Faithfulness Study
+
+Glassbox includes a multi-LLM experiment harness testing whether confidence–faithfulness
+independence generalises beyond GPT-2 to four architecturally distinct model families.
+
+**Models:** GPT-2-small (117M), GPT-2-XL (1.5B), Pythia-1.4B, Llama-2-7B
+
+**Task:** Indirect Object Identification (IOI) — 100 prompts per model, 20 name pairs × 5 sentence frames.
+
+**Statistical tests:**
+- Per-model Fisher Z test of H₀: ρ = 0 (two-sided, α = 0.05)
+- Cross-model Welch's t-test on F1 with Bonferroni correction (α_adj = 0.05/6 ≈ 0.0083)
+- Pairwise Jaccard circuit similarity (normalised head positions, ε = 0.05)
+- BCa bootstrap CIs (B = 2,000 resamples) on all faithfulness metrics
+
+**Run the experiment:**
+```bash
+# Dry-run (no model loading, synthetic data, validates pipeline):
+python experiments/cross_model_study.py --dry-run
+
+# Full run (requires GPU with ≥16 GB VRAM for Llama-2-7B):
+python experiments/cross_model_study.py --n-prompts 100 --device cuda --output-dir results/
+
+# Single model:
+python experiments/cross_model_study.py --models gpt2-small --n-prompts 100 --dry-run
+```
+
+**Dry-run results** (synthetic data, reproducible via fixed seeds):
+
+| Model | r | p-value | F1 | H₀ |
+|-------|---|---------|----|----|
+| GPT-2-small | 0.069 | 0.496 | 0.624 | not rejected |
+| GPT-2-XL | −0.032 | 0.751 | 0.651 | not rejected |
+| Pythia-1.4B | −0.054 | 0.596 | 0.593 | not rejected |
+| Llama-2-7B | 0.096 | 0.342 | 0.718 | not rejected |
+
+Paper outline: [`experiments/PAPER_OUTLINE.md`](experiments/PAPER_OUTLINE.md)
+Full mathematical details: [`MATH_FOUNDATIONS.md`](MATH_FOUNDATIONS.md)
 
 ---
 
