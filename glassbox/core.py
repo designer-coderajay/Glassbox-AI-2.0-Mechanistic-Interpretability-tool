@@ -199,7 +199,18 @@ class GlassboxV2:
     # ── Approximate parameter counts for memory warnings ─────────────────
     _LARGE_MODEL_THRESHOLD_PARAMS = 1_000_000_000   # 1B params → warn
 
-    def __init__(self, model) -> None:
+    def __init__(self, model, device: str = "cpu") -> None:
+        # Accept either a pre-loaded HookedTransformer or a model name string
+        if isinstance(model, str):
+            try:
+                from transformer_lens import HookedTransformer
+                model = HookedTransformer.from_pretrained(model, device=device)
+            except Exception as e:
+                raise ValueError(
+                    f"GlassboxV2: could not load model '{model}' via TransformerLens. "
+                    f"Pass a pre-loaded HookedTransformer or install transformer-lens. "
+                    f"Original error: {e}"
+                ) from e
         self.model    = model
         self.n_layers = model.cfg.n_layers
         self.n_heads  = model.cfg.n_heads
@@ -1399,6 +1410,22 @@ class GlassboxV2:
         if not circuit or clean_ld == 0.0:
             return 0.0
 
+        # Detect degenerate corruption: if clean tokens are a prefix of or identical
+        # to corrupted tokens (e.g. when name-swap fallback just appended a token),
+        # the corrupted activations for those positions are unchanged, so corrupt-
+        # patching is a no-op and comprehensiveness would falsely read 0.
+        # In that case, fall back to zero-ablation comprehensiveness.
+        c_len = clean_tokens.shape[1]
+        r_len = corrupted_tokens.shape[1]
+        overlap = min(c_len, r_len)
+        tokens_identical = bool(
+            torch.all(clean_tokens[:, :overlap] == corrupted_tokens[:, :overlap]).item()
+        )
+        if tokens_identical:
+            return self._comp_zero_ablation(
+                circuit, clean_tokens, clean_ld, target_token, distractor_token
+            )
+
         needed_layers = list({l for l, _ in circuit})
 
         # Pass 1: cache corrupted z for circuit layers only
@@ -1432,6 +1459,50 @@ class GlassboxV2:
             return hook
 
         hooks = [(f"blocks.{l}.attn.hook_z", _patch_corr(l, h)) for l, h in circuit]
+
+        with torch.no_grad():
+            patched_logits = self.model.run_with_hooks(clean_tokens, fwd_hooks=hooks)
+
+        patched_ld = (
+            patched_logits[0, -1, target_token]
+            - patched_logits[0, -1, distractor_token]
+        ).item()
+
+        comp = 1.0 - (patched_ld / clean_ld)
+        return float(np.clip(comp, 0.0, 1.0))
+
+    def _comp_zero_ablation(
+        self,
+        circuit:         List[Tuple[int, int]],
+        clean_tokens:    torch.Tensor,
+        clean_ld:        float,
+        target_token:    int,
+        distractor_token: int,
+    ) -> float:
+        """
+        Fallback comprehensiveness via zero-ablation.
+
+        Used when corrupted tokens are identical to clean tokens (e.g. name-swap
+        fallback appended the distractor — the prefix activations are unchanged).
+
+        Formula: Comp = 1 − LD_zero / LD_clean
+        where LD_zero = logit diff when circuit head z-values are zeroed.
+
+        Zero ablation is a stronger perturbation than corrupt patching; it gives
+        a valid lower bound on circuit necessity when no meaningful counterfactual
+        prompt is available.
+        """
+        def _zero_head(layer: int, head: int):
+            def hook(act, hook=None):
+                result = act.clone()
+                result[:, :, head, :] = 0.0
+                return result
+            return hook
+
+        hooks = [
+            (f"blocks.{l}.attn.hook_z", _zero_head(l, h))
+            for l, h in circuit
+        ]
 
         with torch.no_grad():
             patched_logits = self.model.run_with_hooks(clean_tokens, fwd_hooks=hooks)
@@ -2031,6 +2102,19 @@ class GlassboxV2:
         ll_result = None
         if include_logit_lens:
             ll_result = self.logit_lens(tokens_c, correct.strip(), incorrect.strip())
+
+        # Warn when the model doesn't perform the task (negative logit diff means
+        # the model already prefers the distractor token over the target).
+        # Circuit attributions will still be computed but faithfulness metrics are
+        # unreliable in this regime.
+        if clean_ld <= 0.0:
+            logger.warning(
+                "GlassboxV2.analyze: clean logit diff is %.3f (≤0). "
+                "The model prefers the distractor over the correct token — "
+                "this model may not perform the requested task. "
+                "Circuit and faithfulness results should be treated as unreliable.",
+                clean_ld,
+            )
 
         # Faithfulness metrics
         total = sum(attrs.get(h, 0.0) for h in circuit)

@@ -599,11 +599,17 @@ class CrossModelComparison:
         circuit_with_attrs.sort(key=lambda x: abs(x[1]), reverse=True)
         circuit = [h for h, _ in circuit_with_attrs[:self.top_k_circuit]]
 
-        # Build attribution dict
-        attributions = {
-            tuple(h): result.get("attributions", {}).get(str(h), 0.0)
-            for h in result.get("circuit", [])
-        }
+        # Build attribution dict — ALL heads (not just circuit) so Pearson r
+        # can be computed across the full attribution vector, not just the sparse circuit.
+        all_attrs_raw = result.get("attributions", {})
+        attributions: Dict[Tuple[int, int], float] = {}
+        for key_str, val in all_attrs_raw.items():
+            try:
+                inner = key_str.strip("()")
+                l_str, h_str = inner.split(", ")
+                attributions[(int(l_str), int(h_str))] = float(val)
+            except Exception:
+                pass
 
         # Faithfulness metrics
         faith = result.get("faithfulness", {})

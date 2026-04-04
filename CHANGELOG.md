@@ -6,6 +6,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.2.2] — 2026-04-04
+
+### Fixed
+
+- **`glassbox/multi_arch.py`** — `RMSNormFolding.fold()` dimension mismatch. TransformerLens stores `W_Q` as `(n_heads, d_model, d_head)`, not `(n_heads, d_head, d_model)` as the code assumed. `gamma.unsqueeze(0)` produced shape `(1, d_model)` which failed to broadcast against `(d_model, d_head)`. Fixed to `gamma.unsqueeze(1)` → `(d_model, 1)`. Also fixed identity fallback shape and docstring.
+- **`glassbox/core.py`** — `comprehensiveness=0` for all non-IOI prompts. When `_name_swap` couldn't find the target/distractor in the prompt (e.g. "The capital of France is" + correct=" Paris"), it appended the distractor as a fallback token. The corrupted prompt prefix was identical to the clean prompt, so corrupt-patching was a no-op. Added degenerate-corruption detection and a `_comp_zero_ablation()` fallback: when clean and corrupted token prefixes are identical, zero-ablation is used instead (sets circuit head z-values to 0). Gives valid comprehensiveness for factual recall, sentiment, arithmetic.
+- **`glassbox/core.py`** — `GlassboxV2` now accepts a model name string (`GlassboxV2('gpt2')`) in addition to a pre-loaded `HookedTransformer`. Automatically calls `HookedTransformer.from_pretrained(name, device=device)`.
+- **`glassbox/core.py`** — Added `logger.warning` when `clean_ld ≤ 0`: the model prefers the distractor over the target token, meaning faithfulness metrics are unreliable for that prompt.
+- **`glassbox/cross_model.py`** — `_analyse_with_glassbox` was only storing circuit-head attributions in `SingleModelResult.attributions` (typically 1–10 heads), making Pearson attribution correlation always return 0 (fewer than 3 overlapping bins). Now parses and stores the full attribution dict (all `n_layers × n_heads` heads) so cross-model Pearson r is computed over the complete attribution vector.
+
+---
+
 ## [4.2.1] — 2026-04-04
 
 ### Fixed
