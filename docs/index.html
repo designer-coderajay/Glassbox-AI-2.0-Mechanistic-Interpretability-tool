@@ -358,6 +358,7 @@ pre{font-family:var(--mono);font-size:13px;line-height:1.85;overflow-x:auto;colo
 .pc{
   background:var(--sf);border:1px solid var(--bd);border-radius:var(--r3);
   padding:38px 32px;transition:border-color .2s;
+  text-align:left; /* override text-align:center inherited from .sec-in */
 }
 .pc:hover{border-color:var(--bd2)}
 .pc.feat{
@@ -1299,18 +1300,27 @@ document.querySelectorAll('.fu').forEach(el => obs.observe(el));
 (function(){
   const el = document.getElementById('dl-count');
   if(!el) return;
-  fetch('https://pypistats.org/api/packages/glassbox-mech-interp/overall?mirrors=false')
+  // Use the 'recent' endpoint — returns {last_day, last_week, last_month}.
+  // Simpler and unambiguous: no multi-category summing that inflates the count.
+  fetch('https://pypistats.org/api/packages/glassbox-mech-interp/recent')
     .then(r => r.json())
     .then(d => {
-      const total = (d.data||[]).reduce((s,r) => s + (r.downloads||0), 0);
+      // Sum last_week as a clean, credible "recent" number.
+      // Falls back to last_month if week is 0.
+      const weekly = (d.data && d.data.last_week) || 0;
+      const monthly = (d.data && d.data.last_month) || 0;
+      const total = weekly || monthly;
       if(total <= 0) return;
       let label;
       if(total >= 1e6)      label = (total/1e6).toFixed(1).replace(/\.0$/,'') + '<sup>M</sup>';
-      else if(total >= 1e3) label = (total/1e3).toFixed(1).replace(/\.0$/,'') + '<sup>K</sup>';
-      else                  label = total.toString();
+      else if(total >= 1e3) label = Math.round(total/1e3) + '<sup>K</sup>';
+      else                  label = total.toLocaleString();
       el.innerHTML = label;
+      // Update the stat label to clarify scope
+      const lbl = el.closest('.si')&&el.closest('.si').querySelector('.sl');
+      if(lbl) lbl.textContent = weekly ? 'Downloads/wk' : 'Downloads/mo';
     })
-    .catch(()=>{ /* keep fallback 1.1K */ });
+    .catch(()=>{ /* keep fallback */ });
 })();
 </script>
 </body>
