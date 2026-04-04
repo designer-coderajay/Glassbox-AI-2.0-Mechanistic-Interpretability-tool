@@ -1,7 +1,7 @@
 {
   "version": 2,
   "outputDirectory": "docs",
-  "buildCommand": "python3 scripts/patch_download_count.py",
+  "buildCommand": null,
   "installCommand": null,
   "framework": null,
   "headers": [
