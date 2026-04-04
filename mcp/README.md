@@ -1,42 +1,66 @@
-# Glassbox MCP Server
+# glassbox-mcp
 
-Mechanistic interpretability tools via the Model Context Protocol.
-Run circuit discovery, faithfulness metrics, and EU AI Act compliance reports
-from any Claude instance or MCP-compatible client.
+MCP server for [Glassbox](https://project-gu05p.vercel.app) — mechanistic interpretability + EU AI Act Annex IV compliance tools, exposed via the [Model Context Protocol](https://modelcontextprotocol.io).
 
-## Tools
-
-| Tool | Description |
-|------|-------------|
-| `glassbox_circuit_discovery` | Attribution patching — find which heads drive a prediction |
-| `glassbox_faithfulness_metrics` | Compute sufficiency, comprehensiveness, F1, compliance grade |
-| `glassbox_compliance_report` | Generate EU AI Act Annex IV report (all 9 sections) |
-| `glassbox_attention_patterns` | Get attention weights for a specific layer/head |
-| `glassbox_logit_lens` | Layer-by-layer prediction buildup analysis |
+Connect Claude (or any MCP-compatible client) to Glassbox with a single pip install. No cloning, no manual server setup.
 
 ## Install
 
 ```bash
-pip install mcp glassbox-mech-interp transformer-lens torch
-python server.py
+pip install glassbox-mcp
 ```
 
-## Connect to Claude
+## Connect to Claude Desktop
 
-Add to your `claude_desktop_config.json`:
+Add to `~/.claude/claude_desktop_config.json` (macOS/Linux) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
   "mcpServers": {
     "glassbox": {
-      "command": "python",
-      "args": ["/path/to/glassbox-mcp-server/server.py"]
+      "command": "glassbox-mcp"
     }
   }
 }
 ```
 
-## Reference
+Restart Claude Desktop. The Glassbox tools appear immediately.
 
-Paper: arXiv 2603.09988 (Mahale, 2026)
-PyPI: `glassbox-mech-interp`
+## Tools
+
+| Tool | What it does |
+|------|-------------|
+| `glassbox_circuit_discovery` | Attribution patching — find which attention heads causally drive a prediction |
+| `glassbox_faithfulness_metrics` | Compute sufficiency, comprehensiveness, F1, and EU AI Act explainability grade (A–D) |
+| `glassbox_compliance_report` | Generate a full EU AI Act Annex IV evidence package (all 9 sections) |
+| `glassbox_attention_patterns` | Get attention weight heatmap for any layer/head |
+| `glassbox_logit_lens` | Layer-by-layer residual stream projection — see how predictions build up |
+
+## Supported Models
+
+- `gpt2`, `gpt2-medium`, `gpt2-large`
+- `EleutherAI/pythia-70m`, `pythia-160m`, `pythia-410m`
+
+## Example usage in Claude
+
+Once connected, ask Claude things like:
+
+> *"Use Glassbox to analyse which attention heads drive GPT-2's prediction for 'The Eiffel Tower is in' → ' Paris'"*
+
+> *"Generate an EU AI Act Annex IV compliance report for GPT-2 with provider name Acme Corp"*
+
+> *"Show me the logit lens for GPT-2 on this sentence"*
+
+## Requirements
+
+- Python ≥ 3.10
+- ~3 GB disk (PyTorch + TransformerLens model weights download on first use)
+
+## Version
+
+`4.2.4` — tracks `glassbox-mech-interp` v4.2.4
+
+- Paper: [arXiv 2603.09988](https://arxiv.org/abs/2603.09988)
+- PyPI (core library): [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp)
+- Website: [project-gu05p.vercel.app](https://project-gu05p.vercel.app)
+- GitHub: [designer-coderajay/Glassbox-AI-2.0](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)

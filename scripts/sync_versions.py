@@ -123,6 +123,28 @@ def main() -> None:
         version, apply,
     )
 
+    # ── mcp/pyproject.toml ───────────────────────────────────────────────────
+    changed += patch_file(
+        ROOT / "mcp" / "pyproject.toml",
+        [
+            (r'^version\s*=\s*"\d+\.\d+\.\d+"',
+             'version = "{version}"'),
+            (r"glassbox-mech-interp>=\d+\.\d+\.\d+",
+             "glassbox-mech-interp>={version}"),
+        ],
+        version, apply,
+    )
+
+    # ── mcp/glassbox_mcp/__init__.py ─────────────────────────────────────────
+    changed += patch_file(
+        ROOT / "mcp" / "glassbox_mcp" / "__init__.py",
+        [
+            (r'__version__\s*=\s*"\d+\.\d+\.\d+"',
+             '__version__ = "{version}"'),
+        ],
+        version, apply,
+    )
+
     print(f"\n{'Applied' if apply else 'Would apply'} changes to {changed} file(s).")
     if not apply and changed:
         print("Re-run with --apply to write changes.")

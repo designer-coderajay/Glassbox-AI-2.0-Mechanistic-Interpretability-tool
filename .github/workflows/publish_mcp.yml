@@ -1,0 +1,74 @@
+name: Publish glassbox-mcp to PyPI
+
+# Triggers on tags: mcp-v4.2.4, mcp-v4.3.0, etc.
+# Mirrors the pattern of publish.yml (main package) but builds from mcp/
+
+on:
+  push:
+    tags:
+      - "mcp-v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (skip PyPI upload)"
+        required: false
+        default: "false"
+
+jobs:
+  build:
+    name: Build glassbox-mcp distribution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build twine --quiet
+
+      - name: Sync version strings before build
+        run: python3 scripts/sync_versions.py --apply
+
+      - name: Build wheel + sdist from mcp/
+        run: python -m build mcp/
+
+      - name: Verify metadata (twine check)
+        run: python -m twine check mcp/dist/*
+
+      - name: Show what was built
+        run: ls -lh mcp/dist/
+
+      - name: Upload dist as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-dist-${{ github.ref_name }}
+          path: mcp/dist/
+
+  publish:
+    name: Publish glassbox-mcp to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.dry_run != 'true' }}
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/glassbox-mcp
+
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mcp-dist-${{ github.ref_name }}
+          path: mcp/dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: mcp/dist/
+          attestations: false
+          skip_existing: true
