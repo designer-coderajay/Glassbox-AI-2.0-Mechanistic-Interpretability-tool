@@ -777,8 +777,20 @@ class CrossModelComparison:
                     bin_size=0.1,
                 )
 
-                unique_a = len(result_a.normalised_circuit()) - len(shared)
-                unique_b = len(result_b.normalised_circuit()) - len(shared)
+                # Compute unique heads as bin-level differences so the granularity
+                # is consistent: two positions mapping to the same bin count as one.
+                _BIN = 0.1
+                _MB = max(0, int(1.0 / _BIN) - 1)
+                bins_ra = {
+                    (min(int(l / _BIN), _MB), min(int(h / _BIN), _MB))
+                    for l, h in result_a.normalised_circuit()
+                }
+                bins_rb = {
+                    (min(int(l / _BIN), _MB), min(int(h / _BIN), _MB))
+                    for l, h in result_b.normalised_circuit()
+                }
+                unique_a = len(bins_ra - bins_rb)
+                unique_b = len(bins_rb - bins_ra)
 
                 sim = CrossModelSimilarity(
                     model_a=result_a.model_name,
@@ -820,13 +832,14 @@ class CrossModelComparison:
         position_counts: Dict[Tuple[float, float], int] = {}
         bin_size = 0.1
 
+        max_bin = max(0, int(1.0 / bin_size) - 1)
         for result in results:
             norm_circuit = result.normalised_circuit()
             seen_bins: Set[Tuple[int, int]] = set()
 
             for l_norm, h_norm in norm_circuit:
-                bin_l = int(l_norm / bin_size)
-                bin_h = int(h_norm / bin_size)
+                bin_l = min(int(l_norm / bin_size), max_bin)
+                bin_h = min(int(h_norm / bin_size), max_bin)
                 bin_key = (bin_l, bin_h)
 
                 if bin_key not in seen_bins:
@@ -881,13 +894,16 @@ class CrossModelComparison:
         float
             Jaccard similarity ∈ [0, 1]. 1.0 = identical; 0.0 = no overlap.
         """
-        # Convert to bins
+        # Convert to bins, clamping to valid grid range [0, max_bin].
+        # norm values in [0, 1]: int(1.0 / 0.1) = 10, which is out-of-range for a
+        # 10×10 grid (indices 0–9). Clamp to max_bin = int(1.0/bin_size) - 1.
+        max_bin = max(0, int(1.0 / bin_size) - 1)
         bins_a = {
-            (int(l / bin_size), int(h / bin_size))
+            (min(int(l / bin_size), max_bin), min(int(h / bin_size), max_bin))
             for l, h in set_a
         }
         bins_b = {
-            (int(l / bin_size), int(h / bin_size))
+            (min(int(l / bin_size), max_bin), min(int(h / bin_size), max_bin))
             for l, h in set_b
         }
 
@@ -895,7 +911,8 @@ class CrossModelComparison:
         union = len(bins_a | bins_b)
 
         if union == 0:
-            return 1.0
+            # Both circuits empty — no evidence of structural overlap; return 0.0.
+            return 0.0
         return float(intersection / union)
 
     @staticmethod
@@ -933,15 +950,16 @@ class CrossModelComparison:
         attrs_a = result_a.normalised_attributions()
         attrs_b = result_b.normalised_attributions()
 
-        # Map to bins
+        # Map to bins, clamping to valid grid range [0, max_bin].
+        max_bin = max(0, int(1.0 / bin_size) - 1)
         bins_a = {}
         for (l_norm, h_norm), attr in attrs_a.items():
-            bin_key = (int(l_norm / bin_size), int(h_norm / bin_size))
+            bin_key = (min(int(l_norm / bin_size), max_bin), min(int(h_norm / bin_size), max_bin))
             bins_a[bin_key] = attr
 
         bins_b = {}
         for (l_norm, h_norm), attr in attrs_b.items():
-            bin_key = (int(l_norm / bin_size), int(h_norm / bin_size))
+            bin_key = (min(int(l_norm / bin_size), max_bin), min(int(h_norm / bin_size), max_bin))
             bins_b[bin_key] = attr
 
         # Find shared bins

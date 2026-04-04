@@ -1,7 +1,7 @@
 """
 glassbox/acdc.py
 =================
-Automated Circuit Discovery (ACDC) — v4.1.0
+Automated Circuit Discovery (ACDC) — v4.2.3
 ===========================================
 
 Implements Automated Circuit Discovery for mechanistic interpretability
@@ -323,10 +323,13 @@ class AutomatedCircuitDiscovery:
             if self.verbose and i % 50 == 0:
                 logger.info(f"ACDC: testing edge {i}/{len(all_edges)}")
 
-            # Test this edge: if KL ≥ threshold, it's necessary
+            # Test this edge: if KL ≥ threshold, it's necessary.
+            # Correct ACDC semantics: patch only previously PRUNED edges + current edge.
+            # Retained edges must remain active so we measure marginal importance correctly.
+            pruned_before_i = [e for e in all_edges[:i] if e not in circuit_edges]
             kl_score = self._test_edge_kl(
                 edge,
-                pruned_so_far=all_edges[:i],  # edges already tested
+                pruned_so_far=pruned_before_i,
                 clean_tokens=clean_tokens,
                 clean_cache=clean_cache,
                 corr_cache=corr_cache,

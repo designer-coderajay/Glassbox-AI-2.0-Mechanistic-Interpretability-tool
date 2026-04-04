@@ -205,7 +205,11 @@ class SteeringVectorExporter:
         Print progress messages.
     """
 
-    _VERSION = "3.6.0"
+    try:
+        from importlib.metadata import version as _pkg_version
+        _VERSION = _pkg_version("glassbox-mech-interp")
+    except Exception:
+        _VERSION = "unknown"
 
     def __init__(
         self,

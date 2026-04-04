@@ -6,6 +6,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.2.3] — 2026-04-04
+
+### Fixed
+
+- **`glassbox/acdc.py`** — **Critical algorithmic bug in ACDC edge pruning.** `pruned_so_far=all_edges[:i]` was passing ALL previously tested edges (both retained and pruned) to `_test_edge_kl`. The correct ACDC algorithm must patch only previously *pruned* edges plus the current candidate, not retained ones. Retained edges must remain active so the marginal importance of each edge is evaluated in context. Fixed to `pruned_so_far=[e for e in all_edges[:i] if e not in circuit_edges]`. Circuits discovered before this fix were incorrect.
+- **`glassbox/multi_arch.py`** — **Crash in `adjust_attributions_for_gqa()`** — `head_scores` is `Dict[int, float]` but the inner loop tried to unpack each key as `(layer_key, head_key)`, which raises `ValueError: not enough values to unpack`. Fixed to `for head_key, score in head_scores.items()` with correct `adjusted[(layer, head_key)] = score` composite key.
+- **`glassbox/cross_model.py`** — **Out-of-bounds bin index** — `int(norm / 0.1)` returns 10 when `norm == 1.0` (last layer / last head), which is out-of-range for a 10×10 grid (valid indices 0–9). Fixed by clamping to `min(int(norm / bin_size), max_bin)` in all three binning sites: `_jaccard`, `_attribution_pearsonr`, and `_find_consensus_heads`.
+- **`glassbox/cross_model.py`** — **Jaccard empty-union returns 1.0** — When both model circuits are empty, `union == 0` triggered `return 1.0` (identical). An empty circuit means no overlap evidence; the correct default is `0.0`.
+- **`glassbox/cross_model.py`** — **`unique_to_a` / `unique_to_b` granularity mismatch** — `unique_a = len(normalised_circuit()) - len(shared)` mixed per-position counts with per-bin shared counts. If two positions in A map to the same bin, they counted as 2 in `len(circuit)` but 1 shared bin. Fixed to compare bin-sets directly: `unique_a = len(bins_a - bins_b)`, `unique_b = len(bins_b - bins_a)`.
+- **`glassbox/steering.py`** — **Hardcoded `_VERSION = "3.6.0"`** — All steering vector HTML reports were stamped with the wrong version. Applied the same `importlib.metadata.version("glassbox-mech-interp")` dynamic lookup used in `evidence_vault.py` since v4.2.1.
+- **`README.md`** — Version badge and PyPI install example updated from `4.2.0` → `4.2.3`.
+
+---
+
 ## [4.2.2] — 2026-04-04
 
 ### Fixed

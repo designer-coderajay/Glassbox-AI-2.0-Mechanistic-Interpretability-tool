@@ -1,7 +1,7 @@
 """
 glassbox/multi_arch.py
 ======================
-Multi-Architecture Adapter for Mechanistic Interpretability — v4.0.0
+Multi-Architecture Adapter for Mechanistic Interpretability — v4.2.3
 ====================================================================
 
 Implements architecture-aware adaptation for 11 supported model families,
@@ -1035,16 +1035,15 @@ class MultiArchAdapter:
                 by_layer[layer] = {}
             by_layer[layer][head] = score
 
-        # Adjust each layer
+        # Adjust each layer.
+        # Note: in TransformerLens, hook_z already operates in query-head space —
+        # the KV values are broadcast to all query heads before the hook fires.
+        # Attribution scores from hook_z are therefore already per-query-head.
+        # No further KV→Q redistribution is needed at this level; we just copy
+        # each (layer, head) entry into the output with the correct composite key.
         for layer, head_scores in by_layer.items():
-            # For each head, determine if it's KV or Q
-            # In GQA, all heads in hook_z are query heads (TransformerLens broadcasts KV)
-            # So we just keep them as-is; redistribution is for conceptual mapping only
-            # (The actual KV heads don't appear in hook_z; they're expanded before the hook)
-
-            adjusted_layer = dict(head_scores)
-            for (layer_key, head_key), score in adjusted_layer.items():
-                adjusted[(layer_key, head_key)] = score
+            for head_key, score in head_scores.items():
+                adjusted[(layer, head_key)] = score
 
         return adjusted
 
