@@ -84,4 +84,4 @@ jobs:
         with:
           packages-dir: mcp/dist/
           attestations: false
-          skip_existing: true
+          skip-existing: true
