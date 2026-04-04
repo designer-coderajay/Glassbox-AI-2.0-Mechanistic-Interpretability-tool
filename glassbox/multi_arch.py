@@ -517,18 +517,18 @@ class RMSNormFolding:
         Returns
         -------
         Dict with keys:
-            "W_Q_folded" : torch.Tensor, shape (d_head, d_model)
-            "W_K_folded" : torch.Tensor, shape (d_head, d_model)
-            "W_V_folded" : torch.Tensor, shape (d_head, d_model)
+            "W_Q_folded" : torch.Tensor, shape (d_model, d_head)
+            "W_K_folded" : torch.Tensor, shape (d_model, d_head)
+            "W_V_folded" : torch.Tensor, shape (d_model, d_head)
             "bias_ratio" : float (0.0 for RMSNorm, since no bias term)
 
         Notes
         -----
-        The W_Q matrix in TransformerLens is stored as (d_model, d_model) and
-        indexed per-head as W_Q[head * d_head : (head + 1) * d_head, :].
+        TransformerLens stores W_Q as (n_heads, d_model, d_head).
+        Per-head slice is W_Q[head] → (d_model, d_head).
 
         After folding:
-            W_Q^folded[d, m] = γ[m] * W_Q[d, m]  for all d ∈ [0, d_head), m ∈ [0, d_model)
+            W_Q^folded[m, d] = γ[m] * W_Q[m, d]  for all m ∈ [0, d_model), d ∈ [0, d_head)
         """
         try:
             scales = self.get_rmsnorm_scales()
@@ -537,21 +537,21 @@ class RMSNormFolding:
             # Extract W_Q, W_K, W_V from the model (TransformerLens standard hook names)
             attn_module = self.model.blocks[layer].attn
 
-            W_Q = attn_module.W_Q.detach().float()  # shape: (n_heads, d_head, d_model)
+            W_Q = attn_module.W_Q.detach().float()  # shape: (n_heads, d_model, d_head)
             W_K = attn_module.W_K.detach().float()
             W_V = attn_module.W_V.detach().float()
 
             # Extract per-head slices
-            # Note: TransformerLens stores as (n_heads, d_head, d_model)
-            W_Q_head = W_Q[head, :, :]  # (d_head, d_model)
+            # TransformerLens stores as (n_heads, d_model, d_head)
+            W_Q_head = W_Q[head, :, :]  # (d_model, d_head)
             W_K_head = W_K[head, :, :]
             W_V_head = W_V[head, :, :]
 
-            # Fold: apply γ scaling
+            # Fold: W_Q^folded[m, d] = γ[m] * W_Q[m, d]
             # γ has shape (d_model,); broadcast across d_head dimension
-            gamma_broadcasted = gamma.unsqueeze(0)  # (1, d_model)
+            gamma_broadcasted = gamma.unsqueeze(1)  # (d_model, 1)
 
-            W_Q_folded = W_Q_head * gamma_broadcasted  # (d_head, d_model) * (1, d_model)
+            W_Q_folded = W_Q_head * gamma_broadcasted  # (d_model, d_head) * (d_model, 1)
             W_K_folded = W_K_head * gamma_broadcasted
             W_V_folded = W_V_head * gamma_broadcasted
 
@@ -572,11 +572,11 @@ class RMSNormFolding:
                 head,
                 e,
             )
-            # Return unfolded (identity scaling)
+            # Return unfolded (identity scaling) — shape matches (d_model, d_head)
             return {
-                "W_Q_folded": torch.ones((self._d_head, self._d_model)),
-                "W_K_folded": torch.ones((self._d_head, self._d_model)),
-                "W_V_folded": torch.ones((self._d_head, self._d_model)),
+                "W_Q_folded": torch.ones((self._d_model, self._d_head)),
+                "W_K_folded": torch.ones((self._d_model, self._d_head)),
+                "W_V_folded": torch.ones((self._d_model, self._d_head)),
                 "bias_ratio": 0.0,
             }
 
