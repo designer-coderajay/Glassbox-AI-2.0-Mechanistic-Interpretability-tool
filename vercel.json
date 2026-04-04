@@ -1,15 +1,9 @@
 {
   "version": 2,
   "outputDirectory": "docs",
-  "buildCommand": null,
+  "buildCommand": "python3 scripts/patch_download_count.py",
   "installCommand": null,
   "framework": null,
-  "builds": [
-    { "src": "api/downloads.py", "use": "@vercel/python" }
-  ],
-  "routes": [
-    { "src": "/api/downloads", "dest": "/api/downloads.py" }
-  ],
   "headers": [
     {
       "source": "/(.*)",
