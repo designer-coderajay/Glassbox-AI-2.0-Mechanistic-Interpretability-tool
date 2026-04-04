@@ -199,12 +199,27 @@ class GlassboxV2:
     # ── Approximate parameter counts for memory warnings ─────────────────
     _LARGE_MODEL_THRESHOLD_PARAMS = 1_000_000_000   # 1B params → warn
 
-    def __init__(self, model, device: str = "cpu") -> None:
+    def __init__(self, model, device: str = "cpu", dtype=None) -> None:
+        """
+        Parameters
+        ----------
+        model  : HookedTransformer or str
+            A pre-loaded TransformerLens model, or a model name string such as
+            "gpt2", "meta-llama/Llama-3-8B", etc.
+        device : str
+            PyTorch device ("cpu", "cuda", "cuda:0", …). Default "cpu".
+        dtype  : torch.dtype or None
+            Model weight dtype. Pass ``torch.bfloat16`` or ``torch.float16`` to
+            load large models (7B+) without OOM. Default None → float32.
+        """
         # Accept either a pre-loaded HookedTransformer or a model name string
         if isinstance(model, str):
             try:
                 from transformer_lens import HookedTransformer
-                model = HookedTransformer.from_pretrained(model, device=device)
+                load_kwargs = dict(device=device)
+                if dtype is not None:
+                    load_kwargs["dtype"] = dtype
+                model = HookedTransformer.from_pretrained(model, **load_kwargs)
             except Exception as e:
                 raise ValueError(
                     f"GlassboxV2: could not load model '{model}' via TransformerLens. "
@@ -497,31 +512,42 @@ class GlassboxV2:
                 k: torch.zeros_like(clean_cache[k]) for k in clean_cache
             }
 
+            # torch.enable_grad() is required here: callers may wrap analyze()
+            # in torch.no_grad() for inference efficiency, which would make
+            # .requires_grad_(True) a no-op and .backward() silently return
+            # zero gradients. The enable_grad context forces gradient tracking
+            # for the IG path-integral loop only.
             for step in range(1, n_steps + 1):
-                alpha = step / n_steps
-                interp: Dict[str, torch.Tensor] = {}
-                for k in clean_cache:
-                    # Align lengths before interpolating
-                    min_len = min(clean_cache[k].shape[1], corr_cache[k].shape[1])
-                    c = clean_cache[k][:, :min_len].float()
-                    r = corr_cache[k][:, :min_len].float()
-                    interp[k] = (r + alpha * (c - r)).requires_grad_(True)
+                with torch.enable_grad():
+                    alpha = step / n_steps
+                    interp: Dict[str, torch.Tensor] = {}
+                    for k in clean_cache:
+                        # Align lengths before interpolating.
+                        # Keep interpolated tensors in float32 regardless of model
+                        # dtype so that gradients accumulate at full precision.
+                        min_len = min(clean_cache[k].shape[1], corr_cache[k].shape[1])
+                        c = clean_cache[k][:, :min_len].float()
+                        r = corr_cache[k][:, :min_len].float()
+                        interp[k] = (r + alpha * (c - r)).requires_grad_(True)
 
-                def _patch_interp(key: str):
-                    def hook(act, hook=None):
-                        return interp[key].to(act.dtype)
-                    return hook
+                    def _patch_interp(key: str):
+                        def hook(act, hook=None):
+                            # Cast to act.dtype so the model's internal computation
+                            # stays in its native dtype (bf16/fp16), but gradients
+                            # flow back through autograd.
+                            return interp[key].to(act.dtype)
+                        return hook
 
-                model.zero_grad()
-                logits_i = model.run_with_hooks(
-                    clean_tokens,
-                    fwd_hooks=[(k, _patch_interp(k)) for k in interp],
-                )
-                ld_i = (
-                    logits_i[0, -1, target_token].float()
-                    - logits_i[0, -1, distractor_token].float()
-                )
-                ld_i.backward()
+                    model.zero_grad()
+                    logits_i = model.run_with_hooks(
+                        clean_tokens,
+                        fwd_hooks=[(k, _patch_interp(k)) for k in interp],
+                    )
+                    ld_i = (
+                        logits_i[0, -1, target_token].float()
+                        - logits_i[0, -1, distractor_token].float()
+                    )
+                    ld_i.backward()
 
                 for k in acc_grads:
                     if interp[k].grad is not None:

@@ -6,6 +6,18 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.2.4] — 2026-04-04
+
+### Fixed (GPU + Large-Model Correctness)
+
+- **`glassbox/acdc.py`** — **OOM for large models** — `run_with_cache()` had no `names_filter`, caching ALL TransformerLens hook outputs (>50 named hooks per layer). For Llama-3-70B this fills several GB of VRAM with unused activations. Added `names_filter=lambda name: "hook_z" in name or "hook_resid_pre" in name` to both `discover()` cache passes, reducing memory to only what ACDC actually needs.
+- **`glassbox/acdc.py`** — **KL divergence float32 precision** — `np.sum(np.exp(clean_logprobs) * ...)` was computed in float32. For models with 128k-token vocabularies (Llama-3), accumulating 128k float32 terms loses ~3 significant digits. Both `_test_edge_kl` and `_circuit_kl` now cast to float64 before summation.
+- **`glassbox/acdc.py`** — **Edge-count explosion warning** — For Llama-3-7B, ACDC builds ~540k candidate edges; for Llama-3-70B, ~13.4M. Full ACDC on a 70B model would take hundreds of GPU-days. Added an upfront `logger.warning` when estimated edge count exceeds 100k, directing users to the MFC algorithm instead.
+- **`glassbox/core.py`** — **Silent zero gradients in Integrated Gradients** — `analyze(method="integrated_gradients")` could produce all-zero attributions when called inside a `torch.no_grad()` context (common in eval scripts). Added `with torch.enable_grad():` around each IG step so gradient tracking is forced regardless of the outer context.
+- **`glassbox/core.py`** — **`GlassboxV2` now accepts `dtype` parameter** — Large models (7B+) require `torch.bfloat16` to fit in VRAM. Added `dtype` kwarg to `__init__`: `GlassboxV2("meta-llama/Llama-3-8B", device="cuda", dtype=torch.bfloat16)`. Passed through to `HookedTransformer.from_pretrained()`.
+
+---
+
 ## [4.2.3] — 2026-04-04
 
 ### Fixed

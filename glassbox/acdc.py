@@ -296,16 +296,38 @@ class AutomatedCircuitDiscovery:
         -------
         ACDCResult with discovered circuit and faithfulness metrics
         """
-        # Step 1: Collect caches
+        # Step 1: Collect caches.
+        # names_filter restricts caching to hook_z and hook_resid_pre only —
+        # the two hook types ACDC actually uses.  Without this filter,
+        # run_with_cache stores ALL TransformerLens hook outputs (>50 per layer),
+        # which causes OOM on large models (Llama-3-70B caches several GB).
+        _ACDC_HOOKS = lambda name: (  # noqa: E731
+            "hook_z" in name or "hook_resid_pre" in name
+        )
+
+        # Warn on edge-count explosion before any computation.
+        n_edges_estimate = self._n_layers * (self._n_layers - 1) // 2 * (self._n_heads + 1) ** 2
+        if n_edges_estimate > 100_000:
+            logger.warning(
+                "ACDC: this model has ~%d candidate edges (%d layers × %d heads). "
+                "Full ACDC may take many hours. Consider using a smaller model or "
+                "restricting layers via the GlassboxV2.analyze() MFC algorithm instead.",
+                n_edges_estimate, self._n_layers, self._n_heads,
+            )
+
         if self.verbose:
             logger.info("ACDC: collecting clean cache")
         with torch.no_grad():
-            clean_logits, clean_cache = self.model.run_with_cache(clean_tokens)
+            clean_logits, clean_cache = self.model.run_with_cache(
+                clean_tokens, names_filter=_ACDC_HOOKS
+            )
 
         if self.verbose:
             logger.info("ACDC: collecting corrupted cache")
         with torch.no_grad():
-            _, corr_cache = self.model.run_with_cache(corrupted_tokens)
+            _, corr_cache = self.model.run_with_cache(
+                corrupted_tokens, names_filter=_ACDC_HOOKS
+            )
 
         # Step 2: Get clean logits and logprobs
         clean_logprobs = self._get_clean_logprobs(clean_tokens)
@@ -456,9 +478,13 @@ class AutomatedCircuitDiscovery:
         patched_logprobs = torch.log_softmax(patched_logits[0, -1, :], dim=-1)
         patched_logprobs = patched_logprobs.cpu().float().numpy()
 
-        # KL(clean || patched)
-        kl = float(np.sum(np.exp(clean_logprobs) * (clean_logprobs - patched_logprobs)))
-        kl = max(0.0, kl)  # Numerical stability
+        # KL(clean || patched) = Σ P(x) · [log P(x) - log Q(x)]
+        # Use float64 to avoid precision loss with large vocabularies (e.g. Llama-3: 128k tokens).
+        # float32 accumulation over 128k terms can lose ~3 digits of precision.
+        p = np.exp(clean_logprobs.astype(np.float64))
+        log_ratio = clean_logprobs.astype(np.float64) - patched_logprobs.astype(np.float64)
+        kl = float(np.sum(p * log_ratio))
+        kl = max(0.0, kl)  # Guard against tiny negative values from floating-point rounding
         return kl
 
     def _circuit_kl(
@@ -490,8 +516,10 @@ class AutomatedCircuitDiscovery:
         circuit_logprobs = torch.log_softmax(circuit_logits[0, -1, :], dim=-1)
         circuit_logprobs = circuit_logprobs.cpu().float().numpy()
 
-        # KL(clean || circuit)
-        kl = float(np.sum(np.exp(clean_logprobs) * (clean_logprobs - circuit_logprobs)))
+        # KL(clean || circuit) — use float64 for large-vocabulary precision
+        p = np.exp(clean_logprobs.astype(np.float64))
+        log_ratio = clean_logprobs.astype(np.float64) - circuit_logprobs.astype(np.float64)
+        kl = float(np.sum(p * log_ratio))
         kl = max(0.0, kl)
         return kl
 
