@@ -532,7 +532,7 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
     </div>
 
     <div class="hstats" role="list" aria-label="Key metrics">
-      <div class="si" role="listitem"><div class="sn" id="dl-count">1.1<sup>K</sup></div><div class="sl">Downloads</div></div>
+      <div class="si" role="listitem"><div class="sn" id="dl-count">1.5<sup>K</sup></div><div class="sl">Downloads/mo</div></div>
       <div class="si" role="listitem"><div class="sn">8</div><div class="sl">Annex IV sections</div></div>
       <div class="si" role="listitem"><div class="sn">&lt;2<sup>s</sup></div><div class="sl">Per audit</div></div>
       <div class="si" role="listitem"><div class="sn">MIT</div><div class="sl">License</div></div>
@@ -1302,22 +1302,22 @@ document.querySelectorAll('.fu').forEach(el => obs.observe(el));
   if(!el) return;
   // Use the 'recent' endpoint — returns {last_day, last_week, last_month}.
   // Simpler and unambiguous: no multi-category summing that inflates the count.
-  fetch('https://pypistats.org/api/packages/glassbox-mech-interp/recent')
+  // /api/downloads is a server-side Vercel proxy — no CORS issues.
+  fetch('/api/downloads')
     .then(r => r.json())
     .then(d => {
-      // Sum last_week as a clean, credible "recent" number.
-      // Falls back to last_month if week is 0.
-      const weekly = (d.data && d.data.last_week) || 0;
-      const monthly = (d.data && d.data.last_month) || 0;
-      const total = weekly || monthly;
+      // Prefer weekly; fall back to monthly.
+      const weekly  = (d && d.last_week)  || 0;
+      const monthly = (d && d.last_month) || 0;
+      const total   = weekly || monthly;
       if(total <= 0) return;
       let label;
       if(total >= 1e6)      label = (total/1e6).toFixed(1).replace(/\.0$/,'') + '<sup>M</sup>';
-      else if(total >= 1e3) label = Math.round(total/1e3) + '<sup>K</sup>';
+      else if(total >= 1e3) label = (total/1e3).toFixed(1).replace(/\.0$/,'') + '<sup>K</sup>';
       else                  label = total.toLocaleString();
       el.innerHTML = label;
       // Update the stat label to clarify scope
-      const lbl = el.closest('.si')&&el.closest('.si').querySelector('.sl');
+      const lbl = el.closest('.si') && el.closest('.si').querySelector('.sl');
       if(lbl) lbl.textContent = weekly ? 'Downloads/wk' : 'Downloads/mo';
     })
     .catch(()=>{ /* keep fallback */ });
