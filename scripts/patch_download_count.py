@@ -35,8 +35,10 @@ def main() -> None:
             data = json.loads(resp.read())["data"]
         weekly  = int(data.get("last_week",  0))
         monthly = int(data.get("last_month", 0))
-        count  = weekly or monthly
-        scope  = "Downloads/wk" if weekly else "Downloads/mo"
+        # Prefer monthly — it's more stable and representative than a single week
+        # which can dip during quiet periods.  Fall back to weekly if monthly is 0.
+        count = monthly or weekly
+        scope = "Downloads/mo" if monthly else "Downloads/wk"
     except Exception as exc:
         print(f"[patch_download_count] fetch failed ({exc}); skipping patch")
         return
