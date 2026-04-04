@@ -103,6 +103,26 @@ def main() -> None:
         version, apply,
     )
 
+    # ── mcp/server.py ────────────────────────────────────────────────────────
+    changed += patch_file(
+        ROOT / "mcp" / "server.py",
+        [
+            (r"glassbox-mech-interp v\d+\.\d+\.\d+",
+             "glassbox-mech-interp v{version}"),
+        ],
+        version, apply,
+    )
+
+    # ── mcp/requirements.txt ─────────────────────────────────────────────────
+    changed += patch_file(
+        ROOT / "mcp" / "requirements.txt",
+        [
+            (r"glassbox-mech-interp>=\d+\.\d+\.\d+",
+             "glassbox-mech-interp>={version}"),
+        ],
+        version, apply,
+    )
+
     print(f"\n{'Applied' if apply else 'Would apply'} changes to {changed} file(s).")
     if not apply and changed:
         print("Re-run with --apply to write changes.")

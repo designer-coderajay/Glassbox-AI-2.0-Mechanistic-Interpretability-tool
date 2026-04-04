@@ -57,3 +57,68 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           exit $PYTEST_EXIT
         timeout-minutes: 20
+
+  mcp-server-check:
+    name: MCP server import + tool registration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install MCP server deps (no torch — CPU import check only)
+        run: |
+          pip install --upgrade pip
+          pip install mcp fastmcp pydantic glassbox-mech-interp --quiet
+
+      - name: Verify server imports and all 5 tools register cleanly
+        run: |
+          python3 - <<'EOF'
+          import sys, types
+
+          # Stub torch and transformer_lens so we can import server.py
+          # without downloading multi-GB weights on a test runner.
+          for mod in ["torch", "transformer_lens", "einops",
+                      "fancy_einsum", "jaxtyping"]:
+              sys.modules.setdefault(mod, types.ModuleType(mod))
+
+          # Patch torch.cuda stub
+          torch_stub = sys.modules["torch"]
+          torch_stub.cuda = types.SimpleNamespace(is_available=lambda: False)
+          torch_stub.device = str
+          torch_stub.float32 = "float32"
+
+          # Import the MCP server
+          import importlib.util, pathlib
+          spec = importlib.util.spec_from_file_location(
+              "glassbox_mcp", pathlib.Path("mcp/server.py"))
+          mod = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+
+          # Verify all expected tools are registered
+          expected = {
+              "glassbox_circuit_discovery",
+              "glassbox_faithfulness_metrics",
+              "glassbox_compliance_report",
+              "glassbox_attention_patterns",
+              "glassbox_logit_lens",
+          }
+          registered = {t.name for t in mod.mcp._tool_manager.list_tools()}
+          missing = expected - registered
+          if missing:
+              print(f"FAIL — missing tools: {missing}", file=sys.stderr)
+              sys.exit(1)
+          print(f"OK — {len(registered)} tools registered: {sorted(registered)}")
+          EOF
+
+      - name: Verify version string is current
+        run: |
+          CURRENT=$(python3 -c "
+          import re; t=open('pyproject.toml').read()
+          print(re.search(r'version\s*=\s*\"([^\"]+)\"', t).group(1))")
+          grep -q "glassbox-mech-interp v${CURRENT}" mcp/server.py \
+            && echo "OK — mcp/server.py references v${CURRENT}" \
+            || (echo "FAIL — mcp/server.py has stale version (expected v${CURRENT})" && exit 1)

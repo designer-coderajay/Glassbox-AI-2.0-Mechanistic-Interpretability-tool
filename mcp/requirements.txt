@@ -3,3 +3,4 @@ fastmcp>=0.1.0
 pydantic>=2.0.0
 transformer-lens>=2.0.0
 torch>=2.0.0
+glassbox-mech-interp>=4.2.4
