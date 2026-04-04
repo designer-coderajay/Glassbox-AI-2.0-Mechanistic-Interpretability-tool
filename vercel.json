@@ -4,6 +4,12 @@
   "buildCommand": null,
   "installCommand": null,
   "framework": null,
+  "builds": [
+    { "src": "api/downloads.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/api/downloads", "dest": "/api/downloads.py" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
