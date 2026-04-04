@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glassbox-mcp"
+version = "4.2.4"
+description = "MCP server for Glassbox — mechanistic interpretability + EU AI Act Annex IV compliance tools for Claude and any MCP-compatible client"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Ajay Pravin Mahale", email = "mahale.ajay01@gmail.com" }]
+keywords = [
+    "mcp", "model-context-protocol", "mechanistic-interpretability",
+    "circuit-discovery", "eu-ai-act", "annex-iv", "compliance",
+    "transformer", "explainability", "glassbox",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "fastmcp>=0.1.0",
+    "pydantic>=2.0.0",
+    "glassbox-mech-interp>=4.2.4",
+    "transformer-lens>=2.0.0",
+    "torch>=2.0.0",
+    "einops>=0.6.1",
+]
+
+[project.urls]
+Homepage    = "https://project-gu05p.vercel.app"
+Repository  = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+"Bug Tracker" = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues"
+PyPI        = "https://pypi.org/project/glassbox-mcp"
+Paper       = "https://arxiv.org/abs/2603.09988"
+
+[project.scripts]
+glassbox-mcp = "glassbox_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["glassbox_mcp*"]
