@@ -145,6 +145,24 @@ def main() -> None:
         version, apply,
     )
 
+    # ── mcp/README.md ─────────────────────────────────────────────────────────
+    changed += patch_file(
+        ROOT / "mcp" / "README.md",
+        [
+            (r"glassbox-mcp==\d+\.\d+\.\d+",
+             "glassbox-mcp=={version}"),
+            (r"pip install glassbox-mcp==\d+\.\d+\.\d+",
+             "pip install glassbox-mcp=={version}"),
+            (r"\*\*Current version:\*\* \d+\.\d+\.\d+",
+             "**Current version:** {version}"),
+            (r"Current version: \d+\.\d+\.\d+",
+             "Current version: {version}"),
+            (r"glassbox-mcp v\d+\.\d+\.\d+",
+             "glassbox-mcp v{version}"),
+        ],
+        version, apply,
+    )
+
     print(f"\n{'Applied' if apply else 'Would apply'} changes to {changed} file(s).")
     if not apply and changed:
         print("Re-run with --apply to write changes.")
