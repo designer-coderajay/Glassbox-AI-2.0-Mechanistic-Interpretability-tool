@@ -490,6 +490,7 @@ GB_CSS = """
   --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13); --bd3:rgba(255,255,255,.22);
   --sf:rgba(255,255,255,.03); --sf2:rgba(255,255,255,.06);
   --mono:'JetBrains Mono','Fira Code',monospace;
+  --display:'Bricolage Grotesque','Inter',ui-sans-serif,sans-serif;
   --r:8px; --r2:12px; --r3:16px;
 }
 
@@ -498,8 +499,11 @@ GB_CSS = """
 html, body { margin:0; padding:0; background:#07080A !important; }
 body {
   font-family:'Inter',ui-sans-serif,-apple-system,sans-serif !important;
-  color:#e2e8f0 !important;
+  color:#EBE7DE !important;
   -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-optical-sizing:auto;
+  font-feature-settings:'cv01' 1,'cv03' 1,'cv04' 1;
 }
 ::selection { background:rgba(217,119,87,.28); }
 ::-webkit-scrollbar { width:5px; }
@@ -930,10 +934,11 @@ HEADER = """
 
 /* ─ Title ─ */
 .gb-htitle {
-  font-family:'Inter',sans-serif;
-  font-size:clamp(50px,8vw,96px); font-weight:800;
-  letter-spacing:-0.05em; line-height:1.0;
-  color:#fff; margin:0 0 28px;
+  font-family:'Bricolage Grotesque','Inter',sans-serif;
+  font-size:clamp(42px,6.5vw,84px); font-weight:800;
+  letter-spacing:-.035em; line-height:.97;
+  color:#EBE7DE; margin:0 auto 32px;
+  max-width:820px; text-wrap:balance;
 }
 .gb-shine {
   background:linear-gradient(135deg,#EBE7DE 0%,#E89070 40%,#D97757 72%,#EBE7DE 100%);
@@ -946,9 +951,9 @@ HEADER = """
 /* ─ Sub ─ */
 .gb-hsub {
   font-family:'Inter',sans-serif;
-  font-size:clamp(16px,2vw,19px); font-weight:400;
-  color:#a1a1aa; max-width:580px; margin:0 auto 44px;
-  line-height:1.85;
+  font-size:clamp(16px,1.8vw,18px); font-weight:420;
+  color:#a1a1aa; max-width:540px; margin:0 auto 44px;
+  line-height:1.78; text-wrap:pretty; letter-spacing:.01em;
 }
 
 /* ─ Hero CTAs ─ */
@@ -988,12 +993,12 @@ HEADER = """
 .gb-si:last-child { border-right:none; }
 .gb-si:hover { background:rgba(255,255,255,.04); }
 .gb-sn {
-  font-family:'Inter',sans-serif; font-size:28px; font-weight:800;
-  color:#fff; letter-spacing:-.04em; line-height:1; margin-bottom:5px;
+  font-family:'Bricolage Grotesque','Inter',sans-serif; font-size:30px; font-weight:800;
+  color:#EBE7DE; letter-spacing:-.04em; line-height:1; margin-bottom:6px;
 }
 .gb-sl {
-  font-family:'Inter',sans-serif; font-size:11px; font-weight:500;
-  color:#a1a1aa; text-transform:uppercase; letter-spacing:.09em;
+  font-family:'Inter',sans-serif; font-size:10.5px; font-weight:700;
+  color:#52525b; text-transform:uppercase; letter-spacing:.1em; white-space:nowrap;
 }
 
 /* ─ Hero bottom sep ─ */
@@ -1047,7 +1052,7 @@ HEADER = """
       <span class="gb-blink-dot"></span>
       Live Interactive Demo
     </div>
-    <h1 class="gb-htitle">The compliance layer<br>for <span class="gb-shine">production AI.</span></h1>
+    <h1 class="gb-htitle">The compliance layer for <span class="gb-shine">production&nbsp;AI.</span></h1>
     <p class="gb-hsub">Map your LLM&rsquo;s attention circuits to EU AI Act Annex IV requirements. One function call. A complete evidence package.</p>
     <div class="gb-hctas">
       <a class="gb-hbtn-p" href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">
@@ -1060,7 +1065,7 @@ HEADER = """
       </a>
     </div>
     <div class="gb-hstats">
-      <div class="gb-si"><div class="gb-sn">1.5K</div><div class="gb-sl">Downloads/mo</div></div>
+      <div class="gb-si"><div class="gb-sn">1.8K</div><div class="gb-sl">Downloads/mo</div></div>
       <div class="gb-si"><div class="gb-sn">8</div><div class="gb-sl">Annex IV Sections</div></div>
       <div class="gb-si"><div class="gb-sn">&lt;2s</div><div class="gb-sl">Per Audit</div></div>
       <div class="gb-si"><div class="gb-sn">MIT</div><div class="gb-sl">License</div></div>
@@ -1113,7 +1118,7 @@ Enforcement starts **August 2026**. High-risk AI systems must explain decisions 
 ```
 @software{mahale2026glassbox,
   author  = {Mahale, Ajay Pravin},
-  title   = {Glassbox 3.3: Mechanistic Interpretability and EU AI Act Compliance Toolkit},
+  title   = {Glassbox 4.2: Mechanistic Interpretability and EU AI Act Compliance Toolkit},
   year    = {2026},
   url     = {https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool},
   version = {4.2.4}
@@ -1130,12 +1135,13 @@ Enforcement starts **August 2026**. High-risk AI systems must explain decisions 
 
 ---
 
-**Contact:** mahale.ajay01@gmail.com · **License:** MIT · **Version:** 3.6.0
+**Contact:** mahale.ajay01@gmail.com · **License:** MIT · **Version:** 4.2.4
 """
 
 with gr.Blocks(
-    title="Glassbox 3.6 — EU AI Act Compliance",
+    title="Glassbox 4.2.4 — EU AI Act Compliance",
     css=GB_CSS,
+    head='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">',
     theme=gr.themes.Base(
         primary_hue="indigo",
         secondary_hue="slate",
