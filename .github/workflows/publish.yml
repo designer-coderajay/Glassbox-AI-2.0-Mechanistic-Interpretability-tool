@@ -75,4 +75,4 @@ jobs:
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           attestations: false
-          skip_existing: true   # gracefully skip if this version already exists on PyPI
+          skip-existing: true   # gracefully skip if this version already exists on PyPI
