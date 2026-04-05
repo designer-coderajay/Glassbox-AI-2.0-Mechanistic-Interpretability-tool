@@ -86,7 +86,11 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          DEPLOY_URL=$(vercel deploy --prod --yes --token "$VERCEL_TOKEN" 2>&1 | grep -E "^https://" | tail -1)
+          set -euo pipefail
+          # Capture full output; if vercel deploy fails, the script exits non-zero
+          DEPLOY_OUTPUT=$(vercel deploy --prod --yes --token "$VERCEL_TOKEN" 2>&1)
+          echo "$DEPLOY_OUTPUT"
+          DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -E "^https://" | tail -1)
           echo "deploy_url=${DEPLOY_URL:-https://project-gu05p.vercel.app}" >> $GITHUB_OUTPUT
 
       - name: Post success status
