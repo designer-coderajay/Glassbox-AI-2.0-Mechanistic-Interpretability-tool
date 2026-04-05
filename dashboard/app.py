@@ -1375,19 +1375,12 @@ with gr.Blocks(
 
 # ── REST API (/analyze) — lets the project-gu05p.vercel.app demo call the
 # real backend instead of falling back to mock data. ──────────────────────────
-from fastapi import FastAPI, Request
+# We attach routes to Gradio's *own* internal FastAPI app (demo.app) so the
+# module-level model load only happens once. gr.mount_gradio_app() must NOT
+# be used here — it causes a second process boot and loads GPT-2 twice → OOM.
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import json as _json
-
-_api = FastAPI(title="Glassbox API", docs_url=None, redoc_url=None)
-
-_api.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
-)
 
 def _jsonable(obj):
     """Recursively convert numpy scalars / tensors to plain Python types."""
@@ -1395,17 +1388,30 @@ def _jsonable(obj):
         return {k: _jsonable(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
         return [_jsonable(v) for v in obj]
-    if hasattr(obj, "item"):          # numpy / torch scalar
+    if hasattr(obj, "item"):      # numpy / torch scalar
         return obj.item()
-    if hasattr(obj, "tolist"):        # numpy array / torch tensor
+    if hasattr(obj, "tolist"):    # numpy array / torch tensor
         return obj.tolist()
     return obj
 
-@_api.get("/health")
+# Queue must be called before accessing demo.app
+demo.queue()
+
+# demo.app is Gradio's internal FastAPI instance — safe to extend
+_gradio_app = demo.app
+
+_gradio_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+@_gradio_app.get("/health")
 async def health():
     return {"status": "ok", "model_loaded": gb is not None, "version": "4.2.4"}
 
-@_api.post("/analyze")
+@_gradio_app.post("/analyze")
 async def analyze_api(request: Request):
     try:
         body = await request.json()
@@ -1431,9 +1437,6 @@ async def analyze_api(request: Request):
     except Exception as exc:
         return JSONResponse({"error": str(exc)}, status_code=500)
 
-# Mount Gradio UI at "/" and serve the REST API on the same process.
-# HuggingFace Space (sdk: gradio) automatically picks up the `app` variable
-# and runs it via uvicorn — no demo.launch() needed.
-app = gr.mount_gradio_app(_api, demo, path="/")
+demo.launch(server_name="0.0.0.0", server_port=7860, show_api=False)
 
 # v3.4.1-patch: python_version=3.11 + pyaudioop in Space to permanently fix py3.13 audioop crash
