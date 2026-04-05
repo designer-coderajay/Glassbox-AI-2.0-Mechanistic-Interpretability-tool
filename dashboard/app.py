@@ -536,17 +536,24 @@ body::after {
 }
 
 /* ── Gradio root ── */
-gradio-app { background:#07080A !important; min-height:100vh; }
+gradio-app { background:#07080A !important; min-height:100vh; width:100% !important; }
+
+/* ── Bust Gradio's own width shell — must come before .gradio-container ── */
+gradio-app .app             { max-width:100% !important; width:100% !important; padding:0 !important; }
+gradio-app .app > .wrap    { max-width:100% !important; width:100% !important; }
+gradio-app .app > div      { max-width:100% !important; width:100% !important; }
 
 /* ── Main container ── */
 .gradio-container {
   background:transparent !important;
-  max-width:1160px !important;
+  max-width:min(100%, 1200px) !important;
+  width:100% !important;
   margin:0 auto !important;
-  padding:0 clamp(20px,4vw,56px) 56px !important;
+  padding:0 clamp(16px,3vw,48px) 56px !important;
   font-family:'Inter',ui-sans-serif,sans-serif !important;
-  color:#e2e8f0 !important;
+  color:#EBE7DE !important;
   position:relative; z-index:1;
+  box-sizing:border-box !important;
 }
 
 /* ── Hide Gradio built-in footer only ── */
@@ -571,7 +578,7 @@ gradio-app footer { display:none !important; }
   visibility:visible !important;
   overflow:visible !important;
   opacity:1 !important;
-  color:#e2e8f0 !important;
+  color:#EBE7DE !important;
 }
 
 /* ── Tab panels ── */
@@ -639,7 +646,7 @@ input[type=text], input[type=number], textarea, select {
   background:rgba(255,255,255,.04) !important;
   border:1px solid var(--bd2) !important;
   border-radius:var(--r) !important;
-  color:#e2e8f0 !important;
+  color:#EBE7DE !important;
   font-family:'Inter',sans-serif !important;
   font-size:14px !important; line-height:1.5 !important;
   padding:10px 13px !important;
@@ -708,7 +715,7 @@ ul.options li:hover, ul.options li.selected {
 /* ── Markdown styling ── */
 .markdown, .prose,
 [data-testid="markdown"] .prose {
-  color:#e2e8f0 !important; font-family:'Inter',sans-serif !important;
+  color:#EBE7DE !important; font-family:'Inter',sans-serif !important;
   font-size:14px !important; line-height:1.7 !important;
 }
 .markdown h1, .markdown h2, .markdown h3,
@@ -935,10 +942,10 @@ HEADER = """
 /* ─ Title ─ */
 .gb-htitle {
   font-family:'Bricolage Grotesque','Inter',sans-serif;
-  font-size:clamp(42px,6.5vw,84px); font-weight:800;
+  font-size:clamp(40px,5.5vw,80px); font-weight:800;
   letter-spacing:-.035em; line-height:.97;
   color:#EBE7DE; margin:0 auto 32px;
-  max-width:820px; text-wrap:balance;
+  text-wrap:balance; max-width:760px;
 }
 .gb-shine {
   background:linear-gradient(135deg,#EBE7DE 0%,#E89070 40%,#D97757 72%,#EBE7DE 100%);
@@ -951,9 +958,10 @@ HEADER = """
 /* ─ Sub ─ */
 .gb-hsub {
   font-family:'Inter',sans-serif;
-  font-size:clamp(16px,1.8vw,18px); font-weight:420;
-  color:#a1a1aa; max-width:540px; margin:0 auto 44px;
-  line-height:1.78; text-wrap:pretty; letter-spacing:.01em;
+  font-size:clamp(16px,1.6vw,18px); font-weight:420;
+  color:#a1a1aa; max-width:520px; margin:0 auto 44px;
+  line-height:1.75; letter-spacing:.01em;
+  overflow-wrap:break-word; word-break:normal;
 }
 
 /* ─ Hero CTAs ─ */
