@@ -1373,6 +1373,67 @@ with gr.Blocks(
 </div>
     """)
 
-demo.launch(server_name="0.0.0.0", server_port=7860, show_api=False)
+# ── REST API (/analyze) — lets the project-gu05p.vercel.app demo call the
+# real backend instead of falling back to mock data. ──────────────────────────
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+import json as _json
+
+_api = FastAPI(title="Glassbox API", docs_url=None, redoc_url=None)
+
+_api.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+def _jsonable(obj):
+    """Recursively convert numpy scalars / tensors to plain Python types."""
+    if isinstance(obj, dict):
+        return {k: _jsonable(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_jsonable(v) for v in obj]
+    if hasattr(obj, "item"):          # numpy / torch scalar
+        return obj.item()
+    if hasattr(obj, "tolist"):        # numpy array / torch tensor
+        return obj.tolist()
+    return obj
+
+@_api.get("/health")
+async def health():
+    return {"status": "ok", "model_loaded": gb is not None, "version": "4.2.4"}
+
+@_api.post("/analyze")
+async def analyze_api(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
+
+    prompt    = (body.get("prompt")          or "").strip()
+    correct   = (body.get("correct_token")   or "").strip()
+    incorrect = (body.get("incorrect_token") or "").strip()
+
+    if not prompt or not correct or not incorrect:
+        return JSONResponse(
+            {"error": "Missing required fields: prompt, correct_token, incorrect_token"},
+            status_code=422,
+        )
+
+    if gb is None:
+        return JSONResponse({"error": "Model not loaded — try again in ~30 s"}, status_code=503)
+
+    try:
+        result = gb.analyze(prompt, correct, incorrect)
+        return JSONResponse(_jsonable(result))
+    except Exception as exc:
+        return JSONResponse({"error": str(exc)}, status_code=500)
+
+# Mount Gradio UI at "/" and serve the REST API on the same process.
+# HuggingFace Space (sdk: gradio) automatically picks up the `app` variable
+# and runs it via uvicorn — no demo.launch() needed.
+app = gr.mount_gradio_app(_api, demo, path="/")
 
 # v3.4.1-patch: python_version=3.11 + pyaudioop in Space to permanently fix py3.13 audioop crash
