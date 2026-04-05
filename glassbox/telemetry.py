@@ -417,7 +417,7 @@ def instrument_glassbox(gb) -> None:
             span.set_attribute("glassbox.duration_ms",  round(elapsed * 1000, 1))
 
             f1 = faith.get("f1", 0.0)
-            grade = "A" if f1 >= 0.70 else "B" if f1 >= 0.50 else "C" if f1 >= 0.30 else "D"
+            grade = "A" if f1 >= 0.80 else "B" if f1 >= 0.65 else "C" if f1 >= 0.50 else "D"
             span.set_attribute("glassbox.grade", grade)
 
         return result

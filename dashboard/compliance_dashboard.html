@@ -1373,7 +1373,7 @@
     document.getElementById('grade-title').textContent = data.explainability_grade || 'Not assessed';
     document.getElementById('grade-sub').textContent   = 'Report ID: GB-' + reportId + ' · ' + data.analysis_mode;
 
-    const colour = f1 >= 0.70 ? '#4ade80' : f1 >= 0.50 ? '#fbbf24' : '#fca5a5';
+    const colour = f1 >= 0.80 ? '#4ade80' : f1 >= 0.65 ? '#fbbf24' : '#fca5a5';
     document.getElementById('m-suff').textContent = suff.toFixed(3);
     document.getElementById('m-comp').textContent = comp.toFixed(3);
     document.getElementById('m-f1').textContent   = f1.toFixed(3);

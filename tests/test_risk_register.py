@@ -440,7 +440,7 @@ class TestIngestAnnexReport:
                     "1_general_description": {"ai_system_name": self._model},
                     "3_monitoring_control":  {
                         "f1_score":              self._f1,
-                        "explainability_grade":  "D" if self._f1 < 0.30 else "C",
+                        "explainability_grade":  "D" if self._f1 < 0.50 else "C",
                     },
                     "5_risk_management": {
                         "faithfulness_risk_flag": self._f1 < 0.50,

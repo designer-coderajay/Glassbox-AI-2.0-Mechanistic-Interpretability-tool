@@ -1041,10 +1041,10 @@ report.to_json("annex_iv_report.json") # machine-readable JSON
 
 | Grade | Sufficiency | Comprehensiveness | F1 | Meaning |
 |-------|-------------|-------------------|----|---------|
-| A | >0.80 | >0.60 | >0.70 | Full circuit explanation available |
-| B | >0.60 | >0.40 | >0.50 | Partial explanation — monitoring required |
-| C | >0.40 | >0.20 | >0.30 | Limited explanation — human oversight required |
-| D | ≤0.40 | ≤0.20 | ≤0.30 | Insufficient — consider model change |
+| A | >0.80 | >0.60 | ≥0.80 | Full circuit explanation available |
+| B | >0.65 | >0.40 | ≥0.65 | Partial explanation — monitoring required |
+| C | >0.40 | >0.20 | ≥0.50 | Limited explanation — human oversight required |
+| D | ≤0.40 | ≤0.20 | <0.50 | Insufficient — consider model change |
 
 > **Grade scale note.** These thresholds are research-defined, based on the faithfulness F1 score from mechanistic interpretability literature (Conmy et al., 2023; Wang et al., 2022). They are **not** an officially validated regulatory scale under Regulation (EU) 2024/1689. No EU regulatory body has endorsed these specific thresholds. They are intended as internal documentation prioritisation aids, not as pass/fail compliance criteria. The grading scale and thresholds may be updated in future releases as interpretability research matures.
 

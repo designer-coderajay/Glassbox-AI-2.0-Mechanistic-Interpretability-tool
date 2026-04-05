@@ -290,9 +290,9 @@ class AuditLog:
             grade = grade_raw[0].upper()
         else:
             f1 = float(faith.get("f1") or s3.get("f1_score") or 0.0)
-            if   f1 >= 0.70: grade = "A"
-            elif f1 >= 0.50: grade = "B"
-            elif f1 >= 0.30: grade = "C"
+            if   f1 >= 0.80: grade = "A"
+            elif f1 >= 0.65: grade = "B"
+            elif f1 >= 0.50: grade = "C"
             else:            grade = "D"
 
         # ── model_name ────────────────────────────────────────────────────────

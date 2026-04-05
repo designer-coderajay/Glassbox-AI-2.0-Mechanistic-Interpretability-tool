@@ -144,10 +144,10 @@ class ExplainabilityGrade(str, Enum):
     Glassbox-derived explainability assessment for Article 13 compliance.
     Derived from faithfulness metrics (sufficiency, comprehensiveness, F1).
     """
-    GRADE_A = "A — Fully Explainable"      # F1 > 0.70, suff > 0.80, comp > 0.60
-    GRADE_B = "B — Substantially Explainable"  # F1 > 0.50, meets baseline
-    GRADE_C = "C — Partially Explainable"  # F1 0.30-0.50, needs improvement
-    GRADE_D = "D — Minimally Explainable"  # F1 < 0.30, high regulatory risk
+    GRADE_A = "A — Fully Explainable"      # F1 ≥ 0.80, suff > 0.80, comp > 0.60
+    GRADE_B = "B — Substantially Explainable"  # F1 ≥ 0.65, meets baseline
+    GRADE_C = "C — Partially Explainable"  # F1 0.50-0.65, needs improvement
+    GRADE_D = "D — Minimally Explainable"  # F1 < 0.50, high regulatory risk
     NOT_ASSESSED = "Not assessed"
 
 
@@ -383,9 +383,9 @@ class AnnexIVReport:
     """
 
     # Article 13 transparency thresholds — derived from faithfulness metrics
-    _GRADE_A_THRESHOLD = (0.80, 0.60, 0.70)   # (min_suff, min_comp, min_f1)
-    _GRADE_B_THRESHOLD = (0.65, 0.40, 0.50)
-    _GRADE_C_THRESHOLD = (0.40, 0.20, 0.30)
+    _GRADE_A_THRESHOLD = (0.80, 0.60, 0.80)   # (min_suff, min_comp, min_f1)
+    _GRADE_B_THRESHOLD = (0.65, 0.40, 0.65)
+    _GRADE_C_THRESHOLD = (0.40, 0.20, 0.50)
 
     # Risk flag thresholds
     _FAITHFULNESS_RISK_F1_THRESHOLD = 0.50
@@ -615,7 +615,7 @@ discovery.
 |--------|-------|---------------------|
 | Sufficiency | `{suff:.3f}` | ≥ 0.80 |
 | Comprehensiveness | `{comp:.3f}` | ≥ 0.60 |
-| F1 (harmonic mean) | `{f1:.3f}` | ≥ 0.70 |
+| F1 (harmonic mean) | `{f1:.3f}` | ≥ 0.80 |
 | **Explainability grade** | **{grade_str}** | A = fully explainable |
 
 Sufficiency measures whether the identified circuit alone recovers the model's

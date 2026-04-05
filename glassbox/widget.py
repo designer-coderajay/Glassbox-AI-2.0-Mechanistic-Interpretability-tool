@@ -172,7 +172,7 @@ def _build_heatmap_html(result: Dict[str, Any]) -> str:
 
     max_score = max((get_score(l, h) for l in range(n_layers) for h in range(n_heads)), default=1.0) or 1.0
 
-    f1_color = "#4ade80" if f1 >= 0.70 else "#fbbf24" if f1 >= 0.50 else "#fca5a5"
+    f1_color = "#4ade80" if f1 >= 0.80 else "#fbbf24" if f1 >= 0.65 else "#fca5a5"
 
     metrics_html = "".join([
         f'<div class="gb-metric"><div class="gb-mval" style="color:#4ade80">{suff:.3f}</div><div class="gb-mlbl">Sufficiency</div></div>',
