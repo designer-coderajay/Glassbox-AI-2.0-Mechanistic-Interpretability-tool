@@ -633,9 +633,14 @@ class BiasAnalyzer:
                 for template in context_templates:
                     prompt = template.format(token=demographic)
                     token_probs = model_fn(prompt)
-                    # Compute mean probability as association score
+                    # Use the maximum probability among returned tokens as the
+                    # association score.  Averaging over the full vocabulary
+                    # would yield ~1/vocab_size regardless of content; instead
+                    # we measure the peak stereotypical association.
+                    # Callers should design model_fn to return probabilities for
+                    # a curated set of role tokens (e.g. occupational terms).
                     if token_probs:
-                        avg_score = sum(token_probs.values()) / len(token_probs)
+                        avg_score = max(token_probs.values())
                     else:
                         avg_score = 0.0
                     association_scores[demographic][template] = avg_score

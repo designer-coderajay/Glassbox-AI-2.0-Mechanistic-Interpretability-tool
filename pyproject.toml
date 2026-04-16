@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "glassbox-mech-interp"
-version     = "4.2.4"
+version     = "4.2.5"
 description = "Mechanistic interpretability + EU AI Act Annex IV compliance. 21/21 frameworks: ACDC edge-circuit discovery, multi-arch GQA/RMSNorm adapter (Llama-3/Mistral/Phi-3), cross-model comparison, causal scrubbing, DAS, Hessian bounds, BH FDR, folded LayerNorm, SAE polysemanticity, multi-corruption, held-out validation. Dual-licensed (MIT core + BSL 1.1 compliance engine)."
 readme      = "README.md"
 license     = { text = "MIT AND LicenseRef-BUSL-1.1" }
@@ -126,6 +126,7 @@ all = [
     "reportlab>=3.6.0",
     "ipywidgets>=8.0",
     "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-exporter-otlp>=1.20.0",
     "huggingface_hub>=0.20.0",
     "mlflow>=2.10.0",
     "fastapi>=0.109.0",

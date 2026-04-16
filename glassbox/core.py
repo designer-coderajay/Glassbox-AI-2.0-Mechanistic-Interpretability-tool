@@ -1336,7 +1336,7 @@ class GlassboxV2:
         circuit     : List of (layer, head) tuples in the circuit.
         Returns 0.0 if circuit is empty or clean_ld == 0.
         """
-        if not circuit or clean_ld == 0.0:
+        if not circuit or abs(clean_ld) < 1e-8:
             return 0.0
 
         circuit_set = set(circuit)
@@ -1433,7 +1433,7 @@ class GlassboxV2:
 
         2 forward passes: (1) corrupt cache for circuit layers, (2) patched forward.
         """
-        if not circuit or clean_ld == 0.0:
+        if not circuit or abs(clean_ld) < 1e-8:
             return 0.0
 
         # Detect degenerate corruption: if clean tokens are a prefix of or identical
@@ -1707,7 +1707,7 @@ class GlassboxV2:
                 tokens_c, tokens_corr, t_tok, d_tok
             )
 
-            if not circuit or clean_ld == 0.0:
+            if not circuit or abs(clean_ld) < 1e-8:
                 logger.warning("Empty circuit or zero LD — skipping prompt %d", idx + 1)
                 continue
 

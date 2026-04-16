@@ -1,6 +1,6 @@
 <div align="center">
 
-# Glassbox 4.2.4
+# Glassbox 4.2.5
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 **21 mathematical frameworks. ACDC + GQA/RMSNorm multi-arch + cross-model comparison. Production-ready.**
@@ -76,7 +76,7 @@
 |---------|-----|-------------|
 | **Website** | [project-gu05p.vercel.app](https://project-gu05p.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
 | **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.2.4 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.2.5 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
 ---
@@ -112,6 +112,28 @@ print(result["faithfulness"])
 ```
 
 No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) — no install required.
+
+---
+
+## What's New in v4.2.5
+
+Patch release — bug fixes and mathematical correctness improvements.
+
+### Bug Fixes
+
+**Critical — `acdc.py` (ACDC circuit discovery):**
+- Fixed `KeyError` crash in `_build_fwd_hooks`: the method was accessing `hook_result` from the forward-pass cache, but the ACDC cache filter only stores `hook_z` and `hook_resid_pre` (to prevent OOM on large models). `hook_result` is 32× larger than `hook_z` for models with d_model=4096. Fix: per-head residual contribution is now computed correctly as `hook_z[:,:,h,:] @ W_O[h]` without caching `hook_result`.
+- Fixed second `KeyError` crash: MLP path accessed `hook_mlp_out` which was also not in the cache. Fix: `hook_mlp_out` added to the cache filter (same memory footprint as `hook_z`).
+
+**`core.py` (faithfulness metrics):**
+- Fixed `_suff_exact` and `_comp`: used `clean_ld == 0.0` (strict float equality) as a zero-guard, which silently fails for near-zero logit differences. Replaced with `abs(clean_ld) < 1e-8`.
+- Same fix applied to the multi-corruption loop in `analyze()`.
+
+**`bias.py` (token bias probe):**
+- Fixed `token_bias_probe` online mode: `avg_score` was computed as `sum(all vocab probs) / len(all vocab probs)` ≈ 1/vocab_size (meaningless constant). Replaced with `max(token_probs.values())` — the peak stereotypical association among role tokens returned by `model_fn`.
+
+**`pyproject.toml`:**
+- Added missing `opentelemetry-exporter-otlp>=1.20.0` to the `[all]` extras group (was in `[telemetry]` but omitted from `[all]`).
 
 ---
 

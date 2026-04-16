@@ -24,7 +24,7 @@ Tools exposed:
     glassbox_logit_lens          — residual stream layer-by-layer projection
 """
 
-__version__ = "4.2.4"
+__version__ = "4.2.5"
 __author__ = "Ajay Pravin Mahale"
 __email__ = "mahale.ajay01@gmail.com"
 

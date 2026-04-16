@@ -297,12 +297,15 @@ class AutomatedCircuitDiscovery:
         ACDCResult with discovered circuit and faithfulness metrics
         """
         # Step 1: Collect caches.
-        # names_filter restricts caching to hook_z and hook_resid_pre only —
-        # the two hook types ACDC actually uses.  Without this filter,
-        # run_with_cache stores ALL TransformerLens hook outputs (>50 per layer),
-        # which causes OOM on large models (Llama-3-70B caches several GB).
+        # names_filter restricts caching to hook_z, hook_resid_pre, and
+        # hook_mlp_out only — the three hook types ACDC actually uses.
+        # Without this filter, run_with_cache stores ALL TransformerLens hook
+        # outputs (>50 per layer), causing OOM on large models.
+        # NOTE: hook_result is intentionally excluded because its per-head
+        # d_model slices are 32× larger than hook_z.  We reconstruct the
+        # per-head residual-stream contribution via hook_z @ W_O instead.
         _ACDC_HOOKS = lambda name: (  # noqa: E731
-            "hook_z" in name or "hook_resid_pre" in name
+            "hook_z" in name or "hook_resid_pre" in name or "hook_mlp_out" in name
         )
 
         # Warn on edge-count explosion before any computation.
@@ -535,6 +538,10 @@ class AutomatedCircuitDiscovery:
         For each receiver layer, creates one hook on hook_resid_pre that
         patches all senders to that layer in a single pass.
 
+        Attn contribution is computed via hook_z @ W_O[layer][head] rather
+        than hook_result, because hook_result is excluded from the cache to
+        avoid OOM (it is 32× larger than hook_z for models with d_model=4096).
+
         Parameters
         ----------
         edges_to_patch : Set of ACDCEdge objects to patch
@@ -556,37 +563,52 @@ class AutomatedCircuitDiscovery:
         hooks: List[Tuple[str, Callable]] = []
 
         for r_layer, edges in edges_by_receiver_layer.items():
-            # Create hook for this receiver layer
-            def make_hook(r_layer_val, edges_val, clean_cache_val, corr_cache_val):
+            # Create hook for this receiver layer.
+            # Pass model explicitly to avoid closure-capture issues.
+            def make_hook(r_layer_val, edges_val, clean_cache_val, corr_cache_val, model_ref):
                 def hook(resid_pre, hook=None):  # noqa: ARG001
                     patched_resid = resid_pre.clone()
+                    orig_dtype = patched_resid.dtype
 
                     for edge in edges_val:
                         s_layer, s_type, s_head = edge.sender
 
-                        # Get sender contribution: clean - corrupted
+                        # Get per-head sender contribution to residual stream.
                         if s_type == "attn":
-                            clean_key = f"blocks.{s_layer}.attn.hook_result"
-                            clean_contrib = clean_cache_val[clean_key][
+                            # hook_result is NOT cached (too large).
+                            # Reconstruct per-head residual contribution as:
+                            #   head_out[h] = hook_z[:, :, h, :] @ W_O[h]
+                            # where W_O has shape [n_heads, d_head, d_model].
+                            hook_z_key = f"blocks.{s_layer}.attn.hook_z"
+                            # hook_z: [batch, seq, n_heads, d_head]
+                            clean_z = clean_cache_val[hook_z_key][
                                 :, :, s_head, :
-                            ]  # [batch, seq, d_model]
-                            corr_contrib = corr_cache_val[clean_key][
+                            ].float()  # [batch, seq, d_head]
+                            corr_z = corr_cache_val[hook_z_key][
                                 :, :, s_head, :
-                            ]
+                            ].float()
+                            W_O_h = model_ref.blocks[s_layer].attn.W_O[s_head].detach().float()  # [d_head, d_model]
+                            # einsum "bsd,dm->bsm" for both clean and corrupted
+                            clean_contrib = torch.einsum("bsd,dm->bsm", clean_z, W_O_h)
+                            corr_contrib  = torch.einsum("bsd,dm->bsm", corr_z, W_O_h)
                         else:  # mlp
-                            clean_key = f"blocks.{s_layer}.hook_mlp_out"
-                            clean_contrib = clean_cache_val[clean_key]
-                            corr_contrib = corr_cache_val[clean_key]
+                            mlp_key = f"blocks.{s_layer}.hook_mlp_out"
+                            clean_contrib = clean_cache_val[mlp_key].float()
+                            corr_contrib  = corr_cache_val[mlp_key].float()
 
-                        # Swap clean → corrupted contribution
+                        # Swap clean → corrupted contribution in residual stream.
+                        # Handle potential sequence-length mismatch (name-swap fallback).
                         delta = corr_contrib - clean_contrib  # [batch, seq, d_model]
-                        patched_resid = patched_resid + delta
+                        min_seq = min(patched_resid.shape[1], delta.shape[1])
+                        patched_resid[:, :min_seq, :] = (
+                            patched_resid[:, :min_seq, :].float() + delta[:, :min_seq, :]
+                        ).to(orig_dtype)
 
                     return patched_resid
 
                 return hook
 
             hook_name = f"blocks.{r_layer}.hook_resid_pre"
-            hooks.append((hook_name, make_hook(r_layer, edges, clean_cache, corr_cache)))
+            hooks.append((hook_name, make_hook(r_layer, edges, clean_cache, corr_cache, self.model)))
 
         return hooks
