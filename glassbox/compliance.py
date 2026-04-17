@@ -84,7 +84,7 @@ Usage
 Dependencies
 ------------
 JSON output: stdlib only (json, datetime, uuid, dataclasses)
-PDF output:  reportlab >= 3.6.0  (pip install reportlab)
+PDF output:  reportlab >= 4.2.6  (pip install reportlab)
 """
 
 from __future__ import annotations
@@ -925,7 +925,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
             common_specifications_used = ["[PROVIDER TO COMPLETE — EU common specifications if applicable under Article 41]"],
             other_technical_specs      = [
                 "EU AI Act (EU 2024/1689) — Annex IV",
-                "Glassbox Mechanistic Interpretability Standard v2.6.0",
+                "Glassbox Mechanistic Interpretability Standard v4.2.6",
             ],
         )
 

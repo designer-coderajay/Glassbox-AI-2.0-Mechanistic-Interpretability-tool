@@ -170,7 +170,7 @@ def log_glassbox_run(
     # ── Parameters ─────────────────────────────────────────────────────────
     compliance_status = "COMPLIANT" if suff >= 0.75 else "NEEDS_REVIEW"
     params: Dict[str, str] = {
-        "glassbox.version": "3.6.0",
+        "glassbox.version": "4.2.6",
         "glassbox.behaviour_category":  cat,
         "glassbox.compliance_status":   compliance_status,
         "glassbox.regulation":          "EU-AI-Act-AnnexIV",
@@ -243,7 +243,7 @@ def register_compliance_artifact(
 
     # Log JSON artifact to the run
     payload = {
-        "glassbox_version": "3.6.0",
+        "glassbox_version": "4.2.6",
         "audit_timestamp":  time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "model_name":       model_name or "",
         "faithfulness":     result.get("faithfulness", {}),

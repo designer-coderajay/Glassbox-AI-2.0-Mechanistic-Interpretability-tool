@@ -5,7 +5,7 @@
 
 ---
 
-## Current State Assessment (v3.6.0)
+## Current State Assessment (v4.2.6)
 
 | Component | Status | Gap vs Major Labs |
 |-----------|--------|-------------------|
@@ -26,7 +26,7 @@
 ## Release Plan
 
 ```
-v3.6.0 (current)  →  v3.7.0 (3–4 weeks)  →  v4.0.0 (8–10 weeks)  →  v4.1.0 (4–5 months)
+v4.2.6 (current)  →  v3.7.0 (3–4 weeks)  →  v4.0.0 (8–10 weeks)  →  v4.1.0 (4–5 months)
    proof-of-concept      statistical rigor        mathematical depth       research-grade
 ```
 

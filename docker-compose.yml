@@ -1,5 +1,5 @@
 # =============================================================================
-# Glassbox AI — Production Docker Compose v3.6.0
+# Glassbox AI — Production Docker Compose v4.2.6
 # =============================================================================
 #
 # Services
@@ -41,7 +41,7 @@ services:
       target: api
       args:
         BUILDKIT_INLINE_CACHE: "1"
-    image: glassbox-api:3.6.0
+    image: glassbox-api:4.2.6
     container_name: glassbox-api
     restart: unless-stopped
     ports:
@@ -95,7 +95,7 @@ services:
     build:
       context: .
       target: dashboard
-    image: glassbox-dashboard:3.6.0
+    image: glassbox-dashboard:4.2.6
     container_name: glassbox-dashboard
     restart: unless-stopped
     ports:

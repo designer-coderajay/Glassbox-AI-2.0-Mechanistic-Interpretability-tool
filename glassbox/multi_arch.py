@@ -1,7 +1,7 @@
 """
 glassbox/multi_arch.py
 ======================
-Multi-Architecture Adapter for Mechanistic Interpretability — v4.2.3
+Multi-Architecture Adapter for Mechanistic Interpretability — v4.2.6
 ====================================================================
 
 Implements architecture-aware adaptation for 11 supported model families,

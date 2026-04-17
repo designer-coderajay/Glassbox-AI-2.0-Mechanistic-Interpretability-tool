@@ -112,7 +112,7 @@ jobs:
       - name: Install Glassbox AI
         run: |
           pip install --upgrade pip
-          pip install "glassbox-mech-interp>=3.6.0" transformer-lens torch --index-url https://download.pytorch.org/whl/cpu
+          pip install "glassbox-mech-interp>=4.2.6" transformer-lens torch --index-url https://download.pytorch.org/whl/cpu
           # Uncomment for PDF report generation:
           # pip install reportlab
 

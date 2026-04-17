@@ -1,6 +1,6 @@
 <div align="center">
 
-# Glassbox 4.2.5
+# Glassbox 4.2.6
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 **21 mathematical frameworks. ACDC + GQA/RMSNorm multi-arch + cross-model comparison. Production-ready.**
@@ -76,7 +76,7 @@
 |---------|-----|-------------|
 | **Website** | [project-gu05p.vercel.app](https://project-gu05p.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
 | **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.2.5 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.2.6 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
 ---
@@ -115,7 +115,7 @@ No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/
 
 ---
 
-## What's New in v4.2.5
+## What's New in v4.2.6
 
 Patch release — bug fixes and mathematical correctness improvements.
 

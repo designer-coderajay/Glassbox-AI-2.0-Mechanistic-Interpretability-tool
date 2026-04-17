@@ -6,7 +6,7 @@
 
 **Authors:** Ajay Mahale¹
 
-¹ Glassbox Project · `glassbox-mech-interp` v3.6.0 · arXiv preprint
+¹ Glassbox Project · `glassbox-mech-interp` v4.2.6 · arXiv preprint
 
 **Correspondence:** mahale.ajay01@gmail.com
 
@@ -459,7 +459,7 @@ in `experiments/cross_model_study.py` and `MATH_FOUNDATIONS.md`.
 
 If the results confirm that ρ ≈ 0 universally, the implication for AI regulation is clear:
 **confidence-based monitoring is not sufficient for EU AI Act Annex IV compliance**. Mechanistic
-circuit auditing, as implemented in Glassbox v3.6.0, provides the causal evidence that
+circuit auditing, as implemented in Glassbox v4.2.6, provides the causal evidence that
 confidence scores cannot.
 
 If the results reveal model-specific exceptions, that is equally valuable: it identifies which

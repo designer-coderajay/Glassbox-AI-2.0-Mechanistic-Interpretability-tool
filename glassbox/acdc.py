@@ -1,7 +1,7 @@
 """
 glassbox/acdc.py
 =================
-Automated Circuit Discovery (ACDC) — v4.2.3
+Automated Circuit Discovery (ACDC) — v4.2.6
 ===========================================
 
 Implements Automated Circuit Discovery for mechanistic interpretability

@@ -363,7 +363,7 @@ class HuggingFaceModelCard:
         else: badge = "❌ Poor"
 
         metadata: Dict[str, Any] = {
-            "glassbox_version":     "3.6.0",
+            "glassbox_version":     "4.2.6",
             "audit_timestamp_utc":  time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "auditor":              auditor or "automated",
             "model_repo_id":        self.repo_id,
@@ -383,7 +383,7 @@ class HuggingFaceModelCard:
         section = textwrap.dedent(f"""
             {_COMPLIANCE_SECTION_HEADER}
 
-            This model has been audited using [Glassbox AI](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) v3.6.0
+            This model has been audited using [Glassbox AI](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) v4.2.6
             for mechanistic interpretability and EU AI Act Annex IV compliance.
 
             | Metric | Value |

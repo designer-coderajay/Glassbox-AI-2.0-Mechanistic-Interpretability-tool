@@ -4,7 +4,7 @@
 
 Glassbox never stores, logs, or retains your model provider API keys.
 
-**Architecture (v3.6.0+):**
+**Architecture (v4.2.6+):**
 - API keys are passed via the `X-Provider-Api-Key` HTTP request header — not in the request body
 - All log filters explicitly scrub any string matching known key patterns before writing to disk
 - Keys are used in-memory only for the duration of the HTTP request

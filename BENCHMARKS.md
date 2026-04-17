@@ -1,6 +1,6 @@
 # Glassbox AI — Benchmark Results
 
-**Version:** 3.6.0
+**Version:** 4.2.6
 **Last updated:** 2026-04-02
 
 All benchmarks measure wall-clock time from `gb.analyze()` call to returned

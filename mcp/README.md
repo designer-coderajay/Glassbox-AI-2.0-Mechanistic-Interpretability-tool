@@ -58,7 +58,7 @@ Once connected, ask Claude things like:
 
 ## Version
 
-`4.2.4` — tracks `glassbox-mech-interp` v4.2.4
+`4.2.6` — tracks `glassbox-mech-interp` v4.2.6
 
 - Paper: [arXiv 2603.09988](https://arxiv.org/abs/2603.09988)
 - PyPI (core library): [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp)

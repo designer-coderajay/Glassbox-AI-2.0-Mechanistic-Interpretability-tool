@@ -1,7 +1,7 @@
 # Glassbox AI — Mathematical Foundations
 
 **Author:** Ajay Pravin Mahale (`mahale.ajay01@gmail.com`)
-**Version:** 3.6.0
+**Version:** 4.2.6
 **Date:** 2026-04-03
 **Status:** Canonical reference — all formulas in the codebase derive from this document
 

@@ -1,7 +1,7 @@
 # Glassbox AI — Proprietary Methodology
 
 **Author:** Ajay Pravin Mahale (`mahale.ajay01@gmail.com`)
-**Version documented:** 3.6.0
+**Version documented:** 4.2.6
 **Date:** 2026-04-02
 **Status:** Proprietary — All rights reserved
 

@@ -67,7 +67,7 @@ def _make_result(suff=0.85, comp=0.62, f1=None, method="taylor", n_circuit=4):
             "n_heads":          12,
             "d_model":          768,
             "d_head":           64,
-            "glassbox_version": "2.6.0",
+            "glassbox_version": "4.2.6",
         },
     }
 

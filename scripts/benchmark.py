@@ -2,7 +2,7 @@
 """
 scripts/benchmark_v340.py
 =========================
-Glassbox AI v3.6.0 Benchmark Suite
+Glassbox AI v4.2.6 Benchmark Suite
 
 Measures wall-clock time and faithfulness metrics for:
   - Core circuit analysis (GPT-2, GPT-Neo, Pythia, Llama-2/3, Mistral)
@@ -314,7 +314,7 @@ def run_model_benchmark(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Glassbox AI v3.6.0 Benchmark Suite",
+        description="Glassbox AI v4.2.6 Benchmark Suite",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -339,7 +339,7 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"\nGlassbox AI v3.6.0 Benchmark")
+    print(f"\nGlassbox AI v4.2.6 Benchmark")
     print(f"{'='*50}")
 
     import platform
@@ -398,7 +398,7 @@ def main():
 
     if args.output:
         output_data = {
-            "glassbox_version": "3.6.0",
+            "glassbox_version": "4.2.6",
             "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "args": vars(args),
             "results": all_results,

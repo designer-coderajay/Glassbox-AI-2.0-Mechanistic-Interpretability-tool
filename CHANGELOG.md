@@ -6,6 +6,20 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.2.6] — 2026-04-17
+
+### Fixed
+
+- **`glassbox/steering.py`** — **Steering suppression always 0%** — `test_suppression()` monkey-patched `model.run_with_cache` to inject the steering hook, but `GlassboxV2.analyze()` internally calls `model.run_with_hooks` for its gradient/attribution pass. The patched method was never invoked, so every steered result was identical to baseline (zero suppression ratio). Fixed by switching to `model.add_hook(hook_name, fn, is_permanent=True)` which intercepts both call paths, with `model.reset_hooks(including_permanent=True)` in a `finally` block.
+- **`glassbox/sae_attribution.py`** — **`_CustomSAE` W_dec shape mismatch** — `_CustomSAE` stores `W_dec` as `(d_model, n_features)`, while sae-lens hub SAEs store it as `(n_features, d_model)`. The attribution function used `sae.W_dec` directly for both, causing the matmul `(d_model, n_features) @ unembed_dir` to fail with a shape error. Fixed with an `isinstance(_CustomSAE)` check: custom SAEs now transpose `W_dec` before the matmul.
+- **`glassbox/sae_attribution.py`** — **`TypeError` when `sae_release=None`** — The Neuronpedia URL builder did `"gpt2-small" in self.sae_release` even when `sae_release` is `None` (custom-SAE mode), raising `TypeError: argument of type 'NoneType' is not iterable`. Added a `None` guard: URL is only constructed when `self.sae_release is not None`.
+- **`glassbox/__init__.py`** — **`__version__` frozen at "4.2.4"** — The top-level `__version__` string was hardcoded and never updated by `sync_versions.py`. All downstream tooling that imports `glassbox.__version__` (CLI `--version`, MCP server info, HF Space footer) was reporting the wrong version. Fixed to `"4.2.6"` and added to the sync-versions patch list.
+- **`tests/conftest.py`** — **No-model tests collected torch at import time** — Compliance, audit-log, risk-register, and widget tests import from `glassbox`, which transitively imports `torch` at module level. Without stubs, pytest collection failed with `ModuleNotFoundError: No module named 'torch'` in environments without GPU/ML deps. Added module-level `sys.modules` stubs for `torch`, `transformer_lens`, `einops`, `scipy`, and `sae_lens` in `conftest.py`, enabling all 155 offline tests to run without torch installed.
+- **`tests/test_compliance.py`** — **`test_grade_a` fixture below Grade A threshold** — The `good_result` fixture used `comp=0.68`, giving `F1 = 2*0.92*0.68/(0.92+0.68) = 0.782`, which falls below the Grade A F1 threshold of 0.80 and produces Grade B. The test asserted `startswith("A")` and always failed. Fixed fixture to `comp=0.72` → `F1 = 0.826 ≥ 0.80` → Grade A.
+- **Version sync** — Version string unified at `4.2.6` across `pyproject.toml`, `mcp/pyproject.toml`, `glassbox/__init__.py`, `mcp/glassbox_mcp/__init__.py`, `mcp/glassbox_mcp/server.py`, `dashboard/app.py`, `README.md`, `mcp/requirements.txt`, and `.github/workflows/deploy_hf.yml` via `scripts/sync_versions.py --apply`.
+
+---
+
 ## [4.2.4] — 2026-04-04
 
 ### Fixed (GPU + Large-Model Correctness)
