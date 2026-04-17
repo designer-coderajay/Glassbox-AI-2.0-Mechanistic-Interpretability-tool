@@ -570,7 +570,13 @@ class SAEFeatureAttributor:
             with torch.no_grad():
                 f_acts = sae.encode(head_out_dev.unsqueeze(0)).squeeze(0)          # [n_features]
 
-            W_dec   = sae.W_dec.detach().float()
+            # BUG FIX 1: _CustomSAE stores W_dec as (d_model, n_features); hub SAEs
+            # store it as (n_features, d_model).  We always need (n_features, d_model)
+            # so that W_dec @ unembed_dir[d_model] → (n_features,) matches f_acts shape.
+            if isinstance(sae, _CustomSAE):
+                W_dec = sae.W_dec.T.detach().float()   # (d_model, n_features).T → (n_features, d_model)
+            else:
+                W_dec = sae.W_dec.detach().float()     # sae-lens: already (n_features, d_model)
             ud_dev  = unembed_dir.to(W_dec.device)
             contribs = f_acts * (W_dec @ ud_dev)                                   # [n_features]
 
@@ -592,9 +598,11 @@ class SAEFeatureAttributor:
                         "distractor" if contrib < -0.01 else
                         "neutral"
                     ),
+                    # BUG FIX 2: self.sae_release is None in custom-SAE mode;
+                    # guard against TypeError from "x in None".
                     "neuronpedia_url": (
                         f"https://www.neuronpedia.org/gpt2-small/{layer}-res-jb/{fid}"
-                        if "gpt2-small" in self.sae_release else None
+                        if (self.sae_release and "gpt2-small" in self.sae_release) else None
                     ),
                 })
 

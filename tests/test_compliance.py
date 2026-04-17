@@ -74,8 +74,11 @@ def _make_result(suff=0.85, comp=0.62, f1=None, method="taylor", n_circuit=4):
 
 @pytest.fixture
 def good_result():
-    """High faithfulness result — Grade A."""
-    return _make_result(suff=0.92, comp=0.68)
+    """High faithfulness result — Grade A.
+    suff=0.92, comp=0.72 → F1=0.826 ≥ 0.80 threshold for Grade A.
+    (comp=0.68 only gives F1=0.782 which lands in Grade B.)
+    """
+    return _make_result(suff=0.92, comp=0.72)
 
 
 @pytest.fixture

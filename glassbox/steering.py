@@ -511,24 +511,21 @@ class SteeringVectorExporter:
         def _hook(resid, hook):  # noqa: ARG001
             return resid + a * direction.unsqueeze(0).unsqueeze(0)
 
-        # GlassboxV2 must expose run_with_hooks capability via model
+        # Inject steering hook as a permanent hook so it survives across every
+        # run_with_cache / run_with_hooks call that analyze() makes internally.
+        # Using add_hook(is_permanent=True) is the correct TransformerLens API —
+        # monkey-patching run_with_cache doesn't intercept run_with_hooks calls
+        # (which analyze() uses for its gradient / attribution pass), so the old
+        # approach produced steered_result == baseline_result (0 % suppression).
         try:
-            original_run = gb.model.run_with_cache  # keep reference
-
-            def _patched_run(*args, **kwargs):
-                # wrap run_with_cache to inject the steering hook
-                fwd_hooks = kwargs.pop("fwd_hooks", [])
-                fwd_hooks.append((hook_name, _hook))
-                return gb.model.run_with_hooks(*args, fwd_hooks=fwd_hooks, **kwargs)
-
-            gb.model.run_with_cache = _patched_run
+            gb.model.add_hook(hook_name, _hook, is_permanent=True)
             steered_result = gb.analyze(
                 prompt=prompt,
                 correct=correct,
                 incorrect=incorrect,
             )
         finally:
-            gb.model.run_with_cache = original_run  # always restore
+            gb.model.reset_hooks(including_permanent=True)  # always restore
 
         steered_suff = steered_result.get("faithfulness", {}).get("sufficiency", 0.0)
 

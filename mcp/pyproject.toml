@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "glassbox-mcp"
-version = "4.2.4"
+version = "4.2.6"
 description = "MCP server for Glassbox — mechanistic interpretability + EU AI Act Annex IV compliance tools for Claude and any MCP-compatible client"
 readme = "README.md"
 license = { text = "MIT" }
@@ -30,7 +30,7 @@ dependencies = [
     "mcp>=1.0.0",
     "fastmcp>=0.1.0",
     "pydantic>=2.0.0",
-    "glassbox-mech-interp>=4.2.5",
+    "glassbox-mech-interp>=4.2.6",
     "transformer-lens>=2.0.0",
     "torch>=2.0.0",
     "einops>=0.6.1",
