@@ -603,34 +603,48 @@ gradio-app footer { display:none !important; }
 
 /* ── Tab nav pills ── */
 .tab-nav {
-  background:rgba(255,255,255,.03) !important;
-  border:1px solid var(--bd) !important;
-  border-radius:10px !important;
-  padding:4px !important; gap:2px !important;
-  margin-bottom:20px !important;
-  backdrop-filter:blur(16px);
+  background:rgba(255,255,255,.025) !important;
+  border:1px solid rgba(255,255,255,.06) !important;
+  border-radius:12px !important;
+  padding:5px !important; gap:3px !important;
+  margin-bottom:24px !important;
+  backdrop-filter:blur(20px) saturate(160%) !important;
+  box-shadow:0 2px 16px rgba(0,0,0,.3) !important;
 }
 .tab-nav button {
   background:transparent !important; color:var(--t2) !important;
-  border:1px solid transparent !important; border-radius:7px !important;
+  border:1px solid transparent !important; border-radius:8px !important;
   font-family:'Inter',sans-serif !important; font-size:13px !important;
-  font-weight:500 !important; padding:7px 14px !important;
+  font-weight:500 !important; padding:8px 16px !important;
   letter-spacing:-.005em !important;
-  transition:color .15s, background .15s !important;
+  transition:color .2s, background .2s, box-shadow .2s, transform .1s !important;
+  white-space:nowrap !important;
 }
-.tab-nav button:hover { color:#fff !important; background:var(--sf2) !important; }
+.tab-nav button:hover {
+  color:#e2e8f0 !important; background:rgba(255,255,255,.05) !important;
+  transform:translateY(-1px) !important;
+}
 .tab-nav button.selected {
-  background:rgba(217,119,87,.15) !important;
-  color:#E89070 !important; border-color:rgba(217,119,87,.3) !important;
+  background:linear-gradient(135deg,rgba(217,119,87,.2),rgba(217,119,87,.1)) !important;
+  color:#E89070 !important;
+  border-color:rgba(217,119,87,.35) !important;
+  box-shadow:0 2px 12px rgba(217,119,87,.15) !important;
+  font-weight:600 !important;
 }
 
 /* ── Block / card backgrounds ── */
 .block, .form, .contain, .gap { background:transparent !important; }
-.block { border-color:var(--bd) !important; }
+.block { border-color:var(--bd) !important; transition:border-color .2s !important; }
+.block:hover { border-color:rgba(255,255,255,.10) !important; }
 .block.padded {
-  background:rgba(255,255,255,.025) !important;
+  background:rgba(255,255,255,.02) !important;
   border:1px solid var(--bd) !important; border-radius:var(--r2) !important;
-  backdrop-filter:blur(8px); padding:16px !important;
+  backdrop-filter:blur(12px) saturate(160%); padding:16px !important;
+  transition:border-color .2s, background .2s !important;
+}
+.block.padded:hover {
+  background:rgba(255,255,255,.03) !important;
+  border-color:rgba(255,255,255,.10) !important;
 }
 
 /* ── Layout ── */
@@ -670,23 +684,33 @@ label, label span, .label-wrap, .label-wrap span,
 
 /* ── Buttons ── */
 button.primary, button[variant="primary"] {
-  background:var(--indigo) !important; border:none !important;
+  background:linear-gradient(135deg,#D97757,#C96A45) !important; border:none !important;
   border-radius:var(--r2) !important; color:#fff !important;
   font-family:'Inter',sans-serif !important; font-size:14px !important;
   font-weight:600 !important; padding:13px 28px !important;
   letter-spacing:-.01em !important; cursor:pointer !important;
-  transition:background .15s, box-shadow .2s !important;
+  transition:opacity .15s, box-shadow .2s, transform .1s !important;
+  box-shadow:0 4px 16px rgba(217,119,87,.25) !important;
 }
 button.primary:hover, button[variant="primary"]:hover {
-  background:var(--indigo-d) !important;
-  box-shadow:0 8px 32px rgba(217,119,87,.42) !important;
+  opacity:.88 !important;
+  box-shadow:0 8px 32px rgba(217,119,87,.45) !important;
+  transform:translateY(-1px) !important;
+}
+button.primary:active, button[variant="primary"]:active {
+  transform:translateY(0) !important;
+  box-shadow:0 2px 8px rgba(217,119,87,.2) !important;
 }
 button.secondary, button[variant="secondary"] {
-  background:var(--sf2) !important; border:1px solid var(--bd2) !important;
+  background:rgba(255,255,255,.04) !important; border:1px solid var(--bd2) !important;
   color:var(--t2) !important; border-radius:var(--r) !important;
   font-family:'Inter',sans-serif !important; cursor:pointer !important;
+  transition:background .15s, color .15s, border-color .15s !important;
 }
-button.secondary:hover { background:rgba(255,255,255,.09) !important; color:#fff !important; }
+button.secondary:hover {
+  background:rgba(255,255,255,.08) !important; color:#fff !important;
+  border-color:var(--bd3) !important;
+}
 button.lg { font-size:15px !important; padding:14px 28px !important; }
 
 /* ── Slider ── */
@@ -1018,9 +1042,20 @@ HEADER = """
 
 <!-- Topbar -->
 <div class="gb-topbar">
-  EU AI Act enforcement: August 2, 2026 &mdash; Full Annex IV evidence packages, automated.
-  <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">View on GitHub &rarr;</a>
+  ⏱ <strong id="hf-cd-days">—</strong> days until EU AI Act enforcement (Aug 2, 2026) &mdash; Annex IV evidence packages, automated.
+  <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">GitHub &rarr;</a>
 </div>
+<script>
+(function(){
+  const DEAD=new Date('2026-08-02T00:00:00Z');
+  function tick(){
+    const ms=DEAD-new Date();
+    const el=document.getElementById('hf-cd-days');
+    if(el)el.textContent=ms>0?Math.floor(ms/864e5):'0';
+  }
+  tick();setInterval(tick,60000);
+})();
+</script>
 
 <!-- Nav -->
 <nav class="gb-nav">
