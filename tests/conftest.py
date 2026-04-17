@@ -24,13 +24,14 @@ do not need PyTorch or TransformerLens.  We inject lightweight sys.modules
 stubs HERE — before pytest collects any test file — so that
 ``glassbox/__init__.py`` can be imported without torch being installed.
 
-The stubs are MagicMocks, which means any attribute access or call on the
-fake modules silently returns another MagicMock.  Tests that actually need a
-real model (test_engine.py) skip themselves gracefully when the real
-transformer_lens is unavailable.
+IMPORTANT: stubs are ONLY injected when the top-level package is genuinely
+not installed.  If torch / transformer_lens are installed (e.g. in CI after
+``pip install -e ".[dev]"``), we leave sys.modules alone so that real imports
+work correctly in test_engine.py.
 ─────────────────────────────────────────────────────────────────────────────
 """
 
+import importlib.util
 import sys
 from unittest.mock import MagicMock
 
@@ -39,33 +40,46 @@ from unittest.mock import MagicMock
 # offline test environment.  This MUST happen at conftest import time
 # (i.e. module level, not inside a fixture) so the stubs are present before
 # pytest imports any test module.
+#
+# Each entry is (stub_module_path, top_level_package).  A stub is only
+# injected when the top-level package cannot be found by importlib — i.e.
+# it is genuinely NOT installed.  This prevents the stub from shadowing the
+# real package when running in an environment that has torch/transformer_lens.
 # ---------------------------------------------------------------------------
 
 _STUB_MODULES = [
     # torch and every submodule imported anywhere in glassbox/
-    "torch",
-    "torch.nn",
-    "torch.nn.functional",
-    "torch.autograd",
-    "torch.autograd.functional",
-    "torch.cuda",
-    "torch.utils",
-    "torch.utils.data",
-    "torch.linalg",
+    ("torch",                       "torch"),
+    ("torch.nn",                    "torch"),
+    ("torch.nn.functional",         "torch"),
+    ("torch.autograd",              "torch"),
+    ("torch.autograd.functional",   "torch"),
+    ("torch.cuda",                  "torch"),
+    ("torch.utils",                 "torch"),
+    ("torch.utils.data",            "torch"),
+    ("torch.linalg",                "torch"),
     # transformer_lens
-    "transformer_lens",
-    "transformer_lens.hook_points",
-    "transformer_lens.utilities",
+    ("transformer_lens",            "transformer_lens"),
+    ("transformer_lens.hook_points","transformer_lens"),
+    ("transformer_lens.utilities",  "transformer_lens"),
     # other heavy deps
-    "einops",
-    "scipy",
-    "scipy.stats",
-    "scipy.spatial",
-    "scipy.spatial.distance",
+    ("einops",                      "einops"),
+    ("scipy",                       "scipy"),
+    ("scipy.stats",                 "scipy"),
+    ("scipy.spatial",               "scipy"),
+    ("scipy.spatial.distance",      "scipy"),
     # sae_lens (optional dep)
-    "sae_lens",
+    ("sae_lens",                    "sae_lens"),
 ]
 
-for _mod in _STUB_MODULES:
-    if _mod not in sys.modules:
+# Track which top-level packages are genuinely absent (cache the spec lookup).
+_absent: dict[str, bool] = {}
+
+def _is_absent(top_level: str) -> bool:
+    if top_level not in _absent:
+        _absent[top_level] = importlib.util.find_spec(top_level) is None
+    return _absent[top_level]
+
+for _mod, _top in _STUB_MODULES:
+    if _mod not in sys.modules and _is_absent(_top):
         sys.modules[_mod] = MagicMock()

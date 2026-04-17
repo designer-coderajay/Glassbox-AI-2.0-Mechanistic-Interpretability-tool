@@ -6,6 +6,15 @@ import time
 import pytest
 
 # ---------------------------------------------------------------------------
+# All tests in this file require a real GPT-2 model download (~500 MB) and
+# a working torch + transformer_lens installation.  They are marked slow so
+# that fast CI (`pytest -m "not slow"`) skips the entire file cleanly.
+# Run the full suite with:  pytest -m slow  (or pytest tests/test_engine.py)
+# ---------------------------------------------------------------------------
+pytestmark = pytest.mark.slow
+
+
+# ---------------------------------------------------------------------------
 # Module-scope fixture — load model once for the whole test session
 # ---------------------------------------------------------------------------
 @pytest.fixture(scope="module")

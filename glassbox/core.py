@@ -243,21 +243,27 @@ class GlassboxV2:
         self.uses_gqa: bool  = (self.n_kv_heads != self.n_heads)
 
         # ── Memory / device check for large models ─────────────────────────
-        d_model   = getattr(cfg, "d_model", 768)
-        n_params_approx = (
-            self.n_layers * self.n_heads * d_model * d_model * 4  # rough QKV+O
-        )
-        if n_params_approx > self._LARGE_MODEL_THRESHOLD_PARAMS:
-            logger.warning(
-                "GlassboxV2: large model detected (~%s parameters). "
-                "Attribution patching requires gradient computation — ensure "
-                "sufficient GPU VRAM (fp16: ~%.0fGB, fp32: ~%.0fGB). "
-                "Use model.eval() and torch.inference_mode(False) for backward passes. "
-                "For memory-constrained environments consider a quantised checkpoint.",
-                f"{n_params_approx / 1e9:.1f}B",
-                n_params_approx * 2 / 1e9,
-                n_params_approx * 4 / 1e9,
+        # Guard with try/except: cfg attributes may be non-numeric (e.g.
+        # MagicMock objects in test environments), in which case we skip
+        # the warning rather than crashing the constructor.
+        try:
+            d_model         = int(getattr(cfg, "d_model", None) or 768)
+            n_params_approx = (
+                int(self.n_layers) * int(self.n_heads) * d_model * d_model * 4
             )
+            if n_params_approx > self._LARGE_MODEL_THRESHOLD_PARAMS:
+                logger.warning(
+                    "GlassboxV2: large model detected (~%s parameters). "
+                    "Attribution patching requires gradient computation — ensure "
+                    "sufficient GPU VRAM (fp16: ~%.0fGB, fp32: ~%.0fGB). "
+                    "Use model.eval() and torch.inference_mode(False) for backward passes. "
+                    "For memory-constrained environments consider a quantised checkpoint.",
+                    f"{n_params_approx / 1e9:.1f}B",
+                    n_params_approx * 2 / 1e9,
+                    n_params_approx * 4 / 1e9,
+                )
+        except (TypeError, ValueError):
+            pass  # Non-numeric cfg attributes — skip large-model warning
 
     def model_info(self) -> Dict[str, object]:
         """
