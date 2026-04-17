@@ -15,16 +15,23 @@
 <link rel="canonical" href="https://project-gu05p.vercel.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Outfit:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── RESET ───────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
-  font-family:'Inter',ui-sans-serif,-apple-system,BlinkMacSystemFont,sans-serif;
+  font-family:'Outfit',ui-sans-serif,-apple-system,BlinkMacSystemFont,sans-serif;
   background:#07080A;color:#EBE7DE;line-height:1.6;overflow-x:hidden;
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
-  font-optical-sizing:auto;font-feature-settings:'cv01' 1,'cv03' 1,'cv04' 1;
+  font-optical-sizing:auto;font-feature-settings:'liga' 1,'kern' 1;
+}
+/* Grain atmosphere — subtle tactile depth layer */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat:repeat;background-size:200px 200px;
+  opacity:.032;mix-blend-mode:overlay;
 }
 ::selection{background:rgba(217,119,87,.28)}
 ::-webkit-scrollbar{width:5px}
@@ -42,7 +49,8 @@ img{display:block;max-width:100%}
   --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);--bd3:rgba(255,255,255,.22);
   --sf:rgba(255,255,255,.03);--sf2:rgba(255,255,255,.06);
   --mono:'JetBrains Mono','Fira Code',monospace;
-  --display:'Bricolage Grotesque','Inter',ui-sans-serif,sans-serif;
+  --body:'Outfit',ui-sans-serif,sans-serif;
+  --display:'Bricolage Grotesque','Outfit',ui-sans-serif,sans-serif;
   --r:8px;--r2:12px;--r3:16px;
 }
 
@@ -153,9 +161,9 @@ nav{
 @keyframes shine{from{background-position:0% 50%}to{background-position:100% 50%}}
 /* Sub */
 .hsub{
-  font-size:clamp(16px,1.8vw,18px);color:var(--t2);
-  max-width:540px;margin:0 auto 52px;line-height:1.78;font-weight:420;
-  text-wrap:pretty;letter-spacing:.01em;
+  font-size:clamp(16px,1.8vw,18.5px);color:var(--t2);
+  max-width:540px;margin:0 auto 52px;line-height:1.82;font-weight:350;
+  text-wrap:pretty;letter-spacing:.015em;
 }
 /* Actions */
 .hactions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:52px}
@@ -312,8 +320,22 @@ nav{
 .tsep{width:1px;height:20px;background:var(--bd);flex-shrink:0}
 
 /* ─── SECTION BASE ──────────────────────────────────────────────────── */
-.sec{padding:clamp(88px,11vw,136px) clamp(24px,5vw,56px)}
-.sec-in{max-width:1160px;margin:0 auto}
+.sec{padding:clamp(88px,11vw,136px) clamp(24px,5vw,56px);position:relative}
+.sec-in{max-width:1160px;margin:0 auto;position:relative;z-index:1}
+/* Features section — warm-left atmospheric gradient */
+#features{
+  background:
+    radial-gradient(ellipse 70% 55% at 0% 40%,rgba(217,119,87,.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 45% at 100% 80%,rgba(61,110,150,.05) 0%,transparent 55%);
+}
+/* Coverage section — cool-right atmosphere */
+#coverage{
+  background:radial-gradient(ellipse 65% 60% at 100% 30%,rgba(61,110,150,.07) 0%,transparent 60%);
+}
+/* Pricing section — centered warmth */
+#pricing{
+  background:radial-gradient(ellipse 80% 70% at 50% 0%,rgba(217,119,87,.05) 0%,transparent 55%);
+}
 .divider{border:none;border-top:1px solid var(--bd);max-width:1160px;margin:0 auto}
 .slabel{
   display:inline-flex;align-items:center;gap:7px;
@@ -346,7 +368,7 @@ nav{
   content:'';position:absolute;inset:0;pointer-events:none;
   border-radius:inherit;
   background:linear-gradient(135deg,rgba(217,119,87,.5),rgba(61,110,150,.4));
-  opacity:0;transition:opacity .25s;
+  opacity:0;transition:opacity .3s;
   mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -358,14 +380,29 @@ nav{
   padding:1px;
 }
 .fc:hover::after{opacity:1}
+/* Ambient glow under each card icon — high-impact hover moment */
+.fc::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:200px;height:200px;pointer-events:none;
+  background:radial-gradient(circle,var(--fc-glow,rgba(217,119,87,.12)) 0%,transparent 70%);
+  opacity:0;transition:opacity .4s;border-radius:50%;
+}
+.fc:hover::before{opacity:1}
+/* Per-card glow colors matching their icon accent */
+.fc:nth-child(1){--fc-glow:rgba(217,119,87,.14)}
+.fc:nth-child(2){--fc-glow:rgba(61,110,150,.14)}
+.fc:nth-child(3){--fc-glow:rgba(34,197,94,.12)}
+.fc:nth-child(4){--fc-glow:rgba(245,158,11,.12)}
+.fc:nth-child(5){--fc-glow:rgba(192,132,252,.12)}
+.fc:nth-child(6){--fc-glow:rgba(217,119,87,.14)}
 .ficon{
   width:44px;height:44px;border-radius:11px;
   display:flex;align-items:center;justify-content:center;margin-bottom:20px;
   background:rgba(217,119,87,.1);border:1px solid rgba(217,119,87,.2);
 }
 .ficon svg{width:20px;height:20px}
-.ftitle{font-size:15px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;color:#fff;text-wrap:balance}
-.fdesc{font-size:14px;color:var(--t2);line-height:1.72;text-wrap:pretty}
+.ftitle{font-size:15px;font-weight:700;letter-spacing:-.015em;margin-bottom:10px;color:#fff;text-wrap:balance}
+.fdesc{font-size:14px;font-weight:350;color:var(--t2);line-height:1.76;text-wrap:pretty;letter-spacing:.01em}
 .flink{
   display:inline-flex;align-items:center;gap:5px;
   font-size:12px;font-weight:700;color:var(--indigo-l);margin-top:16px;
@@ -498,11 +535,23 @@ pre{font-family:var(--mono);font-size:13px;line-height:1.85;overflow-x:auto;colo
 .cta-sec::before{
   content:'';position:absolute;inset:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 70% 70% at 50% 50%,rgba(217,119,87,.13) 0%,transparent 60%),
-    radial-gradient(ellipse 55% 55% at 85% 25%,rgba(61,110,150,.08) 0%,transparent 55%),
-    radial-gradient(ellipse 50% 50% at 15% 75%,rgba(217,119,87,.06) 0%,transparent 55%);
+    radial-gradient(ellipse 75% 65% at 50% 50%,rgba(217,119,87,.17) 0%,transparent 60%),
+    radial-gradient(ellipse 55% 55% at 85% 25%,rgba(61,110,150,.1) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 50% at 15% 75%,rgba(217,119,87,.08) 0%,transparent 55%),
+    radial-gradient(ellipse 100% 40% at 50% 100%,rgba(217,119,87,.05) 0%,transparent 55%);
 }
-.cta-in{position:relative;max-width:720px;margin:0 auto}
+/* Animated mesh that slowly drifts on CTA — high-impact, deliberate */
+.cta-sec::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:80px 80px;
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 50%,black,transparent);
+  -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 50%,black,transparent);
+  animation:mesh-drift 14s ease-in-out infinite alternate;
+}
+.cta-in{position:relative;max-width:720px;margin:0 auto;z-index:1}
 .cta-title{
   font-size:clamp(36px,5.5vw,64px);font-weight:800;
   letter-spacing:-.045em;margin-bottom:20px;line-height:1.05;
@@ -547,9 +596,34 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
 .ft-legal a:hover{color:var(--t2)}
 
 /* ─── ANIMATIONS ────────────────────────────────────────────────────── */
-.fu{opacity:0;transform:translateY(22px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
+/* Scroll-triggered fade-up */
+.fu{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
 .fu.in{opacity:1;transform:none}
-.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+.d1{transition-delay:.08s}.d2{transition-delay:.17s}.d3{transition-delay:.27s}
+.d4{transition-delay:.37s}.d5{transition-delay:.48s}.d6{transition-delay:.60s}.d7{transition-delay:.74s}
+
+/* ─── HERO ORCHESTRATED ENTRANCE ────────────────────────────────────── */
+/* Each hero element enters with a distinct stagger — cookbook pattern:
+   "orchestrate page loads with staggered reveals using animation-delay" */
+@keyframes hero-rise{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:none}
+}
+@keyframes hero-fade{
+  from{opacity:0}
+  to{opacity:1}
+}
+.hl{
+  animation:hero-rise .72s cubic-bezier(.16,1,.3,1) both;
+  animation-delay:var(--hd,0ms);
+}
+/* Assign delays per element */
+.hero .hbadge{--hd:80ms}
+.hero .htitle{--hd:210ms}
+.hero .hsub  {--hd:340ms}
+.hero .hactions{--hd:450ms}
+.hero .pip   {--hd:550ms}
+.hero .hstats{--hd:650ms;animation-name:hero-fade}/* stats: fade only, no translate */
 
 /* ─── COMPARISON SECTION ─────────────────────────────────────────────── */
 .cmp-grid{
@@ -680,19 +754,19 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
   <div class="hmesh" aria-hidden="true"></div>
   <div class="hgrid" aria-hidden="true"></div>
   <div class="hero">
-    <div class="hbadge">
+    <div class="hbadge hl">
       <span class="bdot" aria-hidden="true"></span>
       EU AI Act · Annex IV · August 2026
     </div>
 
-    <h1 class="htitle">The compliance layer <span class="dim">for</span> <span class="shine">production&nbsp;AI.</span></h1>
+    <h1 class="htitle hl">The compliance layer <span class="dim">for</span> <span class="shine">production&nbsp;AI.</span></h1>
 
-    <p class="hsub">
+    <p class="hsub hl">
       Glassbox maps your LLM's internal attention circuits to EU AI Act Annex IV requirements.
       One function call generates a complete, regulator-ready evidence package.
     </p>
 
-    <div class="hactions">
+    <div class="hactions hl">
       <a href="#demo" class="btn-p">
         <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="7.5" cy="7.5" r="6.5"/>
@@ -708,13 +782,13 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
       </a>
     </div>
 
-    <div class="pip" role="complementary" aria-label="Install command">
+    <div class="pip hl" role="complementary" aria-label="Install command">
       <span class="pr" aria-hidden="true">$</span>
       <span class="pc">pip install glassbox-mech-interp</span>
       <button class="pip-cp" onclick="copyPip(this)" aria-label="Copy install command">Copy</button>
     </div>
 
-    <div class="hstats" role="list" aria-label="Key metrics">
+    <div class="hstats hl" role="list" aria-label="Key metrics">
       <div class="si" role="listitem"><div class="sn" id="dl-count">1.8<sup>K</sup></div><div class="sl">Downloads/mo</div></div>
       <div class="si" role="listitem"><div class="sn">8</div><div class="sl">Annex IV sections</div></div>
       <div class="si" role="listitem"><div class="sn">&lt;2<sup>s</sup></div><div class="sl">Per audit</div></div>
