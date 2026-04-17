@@ -4,6 +4,9 @@
   "buildCommand": null,
   "installCommand": null,
   "framework": null,
+  "github": {
+    "silent": true
+  },
   "headers": [
     {
       "source": "/(.*)",
