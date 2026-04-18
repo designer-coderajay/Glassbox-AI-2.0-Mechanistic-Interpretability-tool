@@ -15,14 +15,14 @@
 <link rel="canonical" href="https://project-gu05p.vercel.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Outfit:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── RESET ───────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
-  font-family:'Outfit',ui-sans-serif,-apple-system,BlinkMacSystemFont,sans-serif;
-  background:#07080A;color:#EBE7DE;line-height:1.6;overflow-x:hidden;
+  font-family:'DM Sans',ui-sans-serif,-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#050709;color:#EBE7DE;line-height:1.6;overflow-x:hidden;
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
   font-optical-sizing:auto;font-feature-settings:'liga' 1,'kern' 1;
 }
@@ -35,22 +35,22 @@ body::after{
 }
 ::selection{background:rgba(217,119,87,.28)}
 ::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:#07080A}
-::-webkit-scrollbar-thumb{background:#27272a;border-radius:3px}
+::-webkit-scrollbar-track{background:#050709}
+::-webkit-scrollbar-thumb{background:#1e1e2e;border-radius:3px}
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
 
 /* ─── TOKENS ──────────────────────────────────────────────────────── */
 :root{
-  --indigo:#D97757;--indigo-d:#B85E38;--indigo-l:#E89070;
-  --sky:#3D6E96;--sky-l:#5B90B8;
-  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#c084fc;
+  --indigo:#E8724A;--indigo-d:#C45830;--indigo-l:#F0946E;
+  --sky:#0891B2;--sky-l:#38BDF8;
+  --green:#34D399;--amber:#FBBF24;--red:#F87171;--purple:#C084FC;
   --text:#EBE7DE;--t2:#a1a1aa;--t3:#52525b;--t4:#3f3f46;
   --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);--bd3:rgba(255,255,255,.22);
   --sf:rgba(255,255,255,.03);--sf2:rgba(255,255,255,.06);
   --mono:'JetBrains Mono','Fira Code',monospace;
-  --body:'Outfit',ui-sans-serif,sans-serif;
-  --display:'Bricolage Grotesque','Outfit',ui-sans-serif,sans-serif;
+  --body:'DM Sans',ui-sans-serif,sans-serif;
+  --display:'Syne',ui-sans-serif,sans-serif;
   --r:8px;--r2:12px;--r3:16px;
 }
 
@@ -69,7 +69,7 @@ img{display:block;max-width:100%}
 nav{
   position:sticky;top:0;z-index:300;height:64px;
   display:flex;align-items:center;padding:0 clamp(20px,4vw,56px);
-  background:rgba(7,8,10,.90);
+  background:rgba(5,7,9,.92);
   backdrop-filter:blur(24px) saturate(180%);
   -webkit-backdrop-filter:blur(24px) saturate(180%);
   border-bottom:1px solid var(--bd);
@@ -103,28 +103,46 @@ nav{
 
 /* ─── HERO ──────────────────────────────────────────────────────────── */
 .hero-wrap{position:relative;overflow:hidden;isolation:isolate}
-/* Gradient mesh — Stripe-style */
+/* Aurora haze — slow-drifting light fields */
 .hmesh{
   position:absolute;inset:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 80% 60% at 12% 55%,rgba(217,119,87,.18) 0%,transparent 55%),
-    radial-gradient(ellipse 65% 50% at 88% 18%,rgba(61,110,150,.13) 0%,transparent 50%),
-    radial-gradient(ellipse 90% 90% at 50% 120%,rgba(217,119,87,.09) 0%,transparent 50%);
-  animation:mesh-drift 12s ease-in-out infinite alternate;
+    radial-gradient(ellipse 90% 65% at 15% 60%,rgba(232,114,74,.18) 0%,transparent 52%),
+    radial-gradient(ellipse 70% 55% at 85% 15%,rgba(8,145,178,.14) 0%,transparent 50%),
+    radial-gradient(ellipse 55% 75% at 50% 110%,rgba(232,114,74,.08) 0%,transparent 48%),
+    radial-gradient(ellipse 40% 40% at 65% 40%,rgba(52,211,153,.05) 0%,transparent 45%);
+  animation:aurora-drift 18s ease-in-out infinite alternate;
 }
-@keyframes mesh-drift{
-  0%{transform:scale(1) translate(0,0);opacity:1}
-  100%{transform:scale(1.08) translate(8px,-6px);opacity:.82}
+@keyframes aurora-drift{
+  0%  {transform:scale(1)    translate(0,0);    opacity:1}
+  33% {transform:scale(1.04) translate(-10px,6px); opacity:.88}
+  66% {transform:scale(1.06) translate(8px,-4px);  opacity:.92}
+  100%{transform:scale(1.1)  translate(-6px,10px); opacity:.85}
 }
-/* Grid — Vercel-style */
+/* Circuit trace grid — mechanistic interpretability motif */
 .hgrid{
   position:absolute;inset:0;pointer-events:none;
   background-image:
-    linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
-  background-size:72px 72px;
-  mask-image:radial-gradient(ellipse 80% 70% at 50% 35%,black,transparent);
-  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 35%,black,transparent);
+    linear-gradient(rgba(232,114,74,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(232,114,74,.04) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);
+  background-size:40px 40px,40px 40px,200px 200px,200px 200px;
+  mask-image:radial-gradient(ellipse 90% 80% at 50% 30%,black,transparent);
+  -webkit-mask-image:radial-gradient(ellipse 90% 80% at 50% 30%,black,transparent);
+}
+/* Scan-line sweep — oscilloscope aesthetic, high-impact deliberate motion */
+.hscan{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.hscan::after{
+  content:'';position:absolute;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 0%,rgba(232,114,74,.4) 25%,rgba(56,189,248,.6) 50%,rgba(232,114,74,.4) 75%,transparent 100%);
+  animation:scan-line 10s linear infinite;top:0;
+}
+@keyframes scan-line{
+  0%  {top:-2px;opacity:0}
+  4%  {opacity:1}
+  94% {opacity:.3}
+  100%{top:100%;opacity:0}
 }
 .hero{
   position:relative;max-width:1160px;margin:0 auto;
@@ -134,7 +152,7 @@ nav{
 /* Badge */
 .hbadge{
   display:inline-flex;align-items:center;gap:8px;
-  background:rgba(217,119,87,.09);border:1px solid rgba(217,119,87,.26);
+  background:rgba(232,114,74,.09);border:1px solid rgba(232,114,74,.28);
   border-radius:100px;padding:6px 15px 6px 10px;
   font-size:12px;font-weight:700;color:var(--indigo-l);
   letter-spacing:.04em;text-transform:uppercase;margin-bottom:44px;cursor:default;
@@ -143,17 +161,17 @@ nav{
   width:6px;height:6px;background:var(--green);border-radius:50%;
   box-shadow:0 0 8px var(--green);animation:blink 2.8s ease infinite;
 }
-@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.35;box-shadow:none}}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 10px var(--green)}50%{opacity:.3;box-shadow:none}}
 /* Headline */
 .htitle{
   font-family:var(--display);
-  font-size:clamp(42px,6.5vw,84px);font-weight:800;
-  letter-spacing:-.035em;line-height:.97;margin-bottom:32px;
-  text-wrap:balance;max-width:820px;margin-left:auto;margin-right:auto;
+  font-size:clamp(44px,7vw,92px);font-weight:800;
+  letter-spacing:-.04em;line-height:.93;margin-bottom:36px;
+  text-wrap:balance;max-width:860px;margin-left:auto;margin-right:auto;
 }
 .htitle .dim{color:rgba(255,255,255,.38)}
 .htitle .shine{
-  background:linear-gradient(135deg,#EBE7DE 0%,#E89070 40%,#D97757 72%,#EBE7DE 100%);
+  background:linear-gradient(135deg,#F0ECE4 0%,#F0946E 35%,#E8724A 65%,#38BDF8 90%,#F0ECE4 100%);
   background-size:200% 200%;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   animation:shine 7s ease-in-out infinite alternate;
@@ -345,8 +363,8 @@ nav{
 .slabel svg{width:11px;height:11px}
 .stitle{
   font-family:var(--display);
-  font-size:clamp(28px,4vw,48px);font-weight:800;letter-spacing:-.03em;
-  line-height:1.06;margin-bottom:18px;color:#fff;text-wrap:balance;
+  font-size:clamp(28px,4vw,50px);font-weight:800;letter-spacing:-.04em;
+  line-height:1.04;margin-bottom:18px;color:#fff;text-wrap:balance;
 }
 .ssub{font-size:16px;color:var(--t2);max-width:500px;line-height:1.75;text-wrap:pretty;letter-spacing:.01em}
 
@@ -359,9 +377,17 @@ nav{
   gap:1px;background:var(--bd);
 }
 .fc{
-  background:#07080A;padding:36px 30px;position:relative;
+  background:#050709;padding:36px 30px;position:relative;
   transition:background .2s;
+  border-top:2px solid transparent;
 }
+/* Per-card top accent — color-matched to icon */
+.fc:nth-child(1){border-top-color:rgba(232,114,74,.55)}
+.fc:nth-child(2){border-top-color:rgba(56,189,248,.45)}
+.fc:nth-child(3){border-top-color:rgba(52,211,153,.5)}
+.fc:nth-child(4){border-top-color:rgba(251,191,36,.45)}
+.fc:nth-child(5){border-top-color:rgba(192,132,252,.45)}
+.fc:nth-child(6){border-top-color:rgba(232,114,74,.55)}
 .fc:hover{background:rgba(255,255,255,.025)}
 /* gradient border reveal on hover */
 .fc::after{
@@ -398,7 +424,7 @@ nav{
 .ficon{
   width:44px;height:44px;border-radius:11px;
   display:flex;align-items:center;justify-content:center;margin-bottom:20px;
-  background:rgba(217,119,87,.1);border:1px solid rgba(217,119,87,.2);
+  background:rgba(232,114,74,.1);border:1px solid rgba(232,114,74,.22);
 }
 .ficon svg{width:20px;height:20px}
 .ftitle{font-size:15px;font-weight:700;letter-spacing:-.015em;margin-bottom:10px;color:#fff;text-wrap:balance}
@@ -422,8 +448,8 @@ nav{
 .demo-wrap::before{
   content:'';position:absolute;inset:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 55% 80% at 75% 50%,rgba(217,119,87,.07) 0%,transparent 60%),
-    radial-gradient(ellipse 45% 60% at 10% 55%,rgba(61,110,150,.05) 0%,transparent 55%);
+    radial-gradient(ellipse 55% 80% at 75% 50%,rgba(232,114,74,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 45% 60% at 10% 55%,rgba(8,145,178,.06) 0%,transparent 55%);
 }
 .demo-in{
   position:relative;max-width:1160px;margin:0 auto;
@@ -434,7 +460,7 @@ nav{
 .step{display:flex;gap:20px;align-items:flex-start}
 .snum{
   width:32px;height:32px;border-radius:50%;flex-shrink:0;
-  background:rgba(217,119,87,.12);border:1px solid rgba(217,119,87,.28);
+  background:rgba(232,114,74,.1);border:1px solid rgba(232,114,74,.3);
   display:flex;align-items:center;justify-content:center;
   font-size:11px;font-weight:900;color:var(--indigo-l);letter-spacing:-.01em;
 }
@@ -642,7 +668,7 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
 .cmp-old .cmp-col-h{color:var(--t3)}
 .cmp-new .cmp-col-h{color:var(--indigo-l)}
 .cmp-old{background:#07080A}
-.cmp-new{background:rgba(217,119,87,.04)}
+.cmp-new{background:rgba(232,114,74,.05)}
 .cmp-tag{display:inline-flex;align-items:center;justify-content:center;
   width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:900;
   border:1px solid currentColor;flex-shrink:0}
@@ -661,12 +687,12 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
 .socproof{
   border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);
   padding:clamp(64px,8vw,96px) clamp(24px,5vw,56px);
-  background:rgba(217,119,87,.025);
+  background:rgba(232,114,74,.028);
   position:relative;overflow:hidden;
 }
 .socproof::before{
   content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 60% 100% at 50% 0%,rgba(217,119,87,.06),transparent);
+  background:radial-gradient(ellipse 60% 100% at 50% 0%,rgba(232,114,74,.07),transparent);
 }
 .socproof-in{position:relative;max-width:1000px;margin:0 auto}
 .sq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
@@ -753,6 +779,7 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
 <section class="hero-wrap" aria-label="Hero">
   <div class="hmesh" aria-hidden="true"></div>
   <div class="hgrid" aria-hidden="true"></div>
+  <div class="hscan" aria-hidden="true"></div>
   <div class="hero">
     <div class="hbadge hl">
       <span class="bdot" aria-hidden="true"></span>
