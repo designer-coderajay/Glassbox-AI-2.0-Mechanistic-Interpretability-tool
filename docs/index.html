@@ -16,6 +16,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- GSAP + ScrollTrigger — premium scroll animation engine -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
 <style>
 /* ─── RESET ───────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -734,9 +737,104 @@ footer{border-top:1px solid var(--bd);padding:72px clamp(24px,5vw,56px) 48px}
 }
 .cd-u{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-top:3px}
 .cd-sep{font-family:var(--display);font-size:30px;color:var(--t4);font-weight:300;margin-top:-8px}
+
+/* ─── SCROLL PROGRESS BAR ────────────────────────────────────────── */
+#scroll-prog{
+  position:fixed;top:0;left:0;height:2px;width:100%;
+  background:linear-gradient(90deg,var(--indigo) 0%,var(--sky-l) 60%,var(--indigo-l) 100%);
+  transform-origin:left center;transform:scaleX(0);
+  z-index:10000;pointer-events:none;
+  box-shadow:0 0 10px rgba(232,114,74,.6);
+}
+
+/* ─── CUSTOM CURSOR (desktop only) ──────────────────────────────── */
+@media(pointer:fine){
+  body,a,button,[onclick]{cursor:none!important}
+  #c-dot{
+    position:fixed;top:0;left:0;width:7px;height:7px;
+    border-radius:50%;background:var(--indigo);
+    pointer-events:none;z-index:9999;
+    transform:translate(-50%,-50%);
+    transition:width .15s,height .15s,background .15s,opacity .15s;
+    will-change:transform;mix-blend-mode:screen;
+  }
+  #c-ring{
+    position:fixed;top:0;left:0;width:28px;height:28px;
+    border-radius:50%;border:1.5px solid rgba(232,114,74,.45);
+    pointer-events:none;z-index:9998;
+    transform:translate(-50%,-50%);
+    transition:width .28s cubic-bezier(.16,1,.3,1),
+               height .28s cubic-bezier(.16,1,.3,1),
+               border-color .28s;
+    will-change:transform;
+  }
+  #c-dot.on-link{width:4px;height:4px;background:white}
+  #c-ring.on-link{width:44px;height:44px;border-color:rgba(232,114,74,.75)}
+  #c-dot.on-btn{width:12px;height:12px;background:white;mix-blend-mode:difference}
+  #c-ring.on-btn{width:52px;height:52px;border-color:rgba(232,114,74,.9)}
+}
+
+/* ─── NAV SMART HIDE ─────────────────────────────────────────────── */
+nav{transition:transform .38s cubic-bezier(.16,1,.3,1),
+             background .3s,box-shadow .3s}
+nav.nav-hidden{transform:translateY(-100%)}
+nav.nav-scrolled{
+  background:rgba(5,7,9,.97);
+  box-shadow:0 1px 0 var(--bd),0 4px 32px rgba(0,0,0,.4);
+}
+
+/* ─── HERO PARALLAX LAYERS (GSAP scrub) ──────────────────────────── */
+.hmesh,.hgrid{will-change:transform}
+
+/* ─── FEATURE CARD PREMIUM HOVER ────────────────────────────────── */
+.fc{
+  transition:transform .35s cubic-bezier(.16,1,.3,1),
+             box-shadow .35s cubic-bezier(.16,1,.3,1),
+             border-color .2s;
+  will-change:transform;
+}
+.fc:hover{
+  transform:translateY(-6px) scale(1.012);
+  box-shadow:0 24px 64px rgba(0,0,0,.4),
+             0 0 0 1px rgba(232,114,74,.18),
+             inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+/* ─── PRICING CARD FEATURED GLOW ────────────────────────────────── */
+.pc{transition:transform .35s cubic-bezier(.16,1,.3,1),
+             box-shadow .35s;will-change:transform}
+.pc:hover{transform:translateY(-5px)}
+.pc.feat{position:relative}
+.pc.feat::after{
+  content:'';position:absolute;inset:-2px;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(232,114,74,.35),rgba(8,145,178,.25),rgba(232,114,74,.1));
+  z-index:-1;opacity:.7;filter:blur(8px);
+  transition:opacity .3s;
+}
+.pc.feat:hover::after{opacity:1}
+
+/* ─── TESTIMONIAL CARD HOVER ─────────────────────────────────────── */
+.sq{transition:transform .3s cubic-bezier(.16,1,.3,1),
+             border-color .2s,box-shadow .3s}
+.sq:hover{transform:translateY(-4px);
+          box-shadow:0 16px 48px rgba(0,0,0,.3),0 0 0 1px rgba(232,114,74,.12)}
+
+/* ─── MAGNETIC BUTTON RESET ──────────────────────────────────────── */
+.btn-p,.btn-s,.nav-cta{will-change:transform}
+
+/* ─── SECTION TITLE CLIP REVEAL (GSAP) ──────────────────────────── */
+.stitle-wrap{overflow:hidden}
+
+/* ─── GSAP INITIAL STATES — prevent flash before JS runs ────────── */
+.gsap-init .fu{opacity:0;transform:translateY(22px)}
 </style>
 </head>
 <body>
+
+<!-- ─── PREMIUM UI OVERLAYS ──────────────────────────────────────── -->
+<div id="scroll-prog" aria-hidden="true"></div>
+<div id="c-dot"  aria-hidden="true"></div>
+<div id="c-ring" aria-hidden="true"></div>
 
 <!-- ─── ANNOUNCEMENT ─────────────────────────────────────────────── -->
 <div class="topbar">
@@ -1750,18 +1848,22 @@ function downloadJSON() {
 </footer>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════════════
+   GLASSBOX AI — Premium Animation Layer
+   Stack: GSAP 3.12.5 + ScrollTrigger (CDN) + vanilla micro-interactions
+   ═══════════════════════════════════════════════════════════════════════ */
+
 /* ── Copy pip command ─────────────────────────────────────────── */
 function copyPip(btn) {
   navigator.clipboard.writeText('pip install glassbox-mech-interp').then(() => {
     const orig = btn.textContent;
-    btn.textContent = 'Copied!';
-    btn.classList.add('ok');
+    btn.textContent = 'Copied!'; btn.classList.add('ok');
     setTimeout(() => { btn.textContent = orig; btn.classList.remove('ok'); }, 2200);
   }).catch(() => {
     const t = document.createElement('textarea');
     t.value = 'pip install glassbox-mech-interp';
-    document.body.appendChild(t);
-    t.select(); document.execCommand('copy'); document.body.removeChild(t);
+    document.body.appendChild(t); t.select();
+    document.execCommand('copy'); document.body.removeChild(t);
     btn.textContent = 'Copied!'; btn.classList.add('ok');
     setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 2200);
   });
@@ -1779,109 +1881,360 @@ document.querySelectorAll('.ctab').forEach(btn => {
   });
 });
 
-/* ── Scroll fade-up animations ────────────────────────────────── */
-const obs = new IntersectionObserver(
-  entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
-  { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
-);
-document.querySelectorAll('.fu').forEach(el => obs.observe(el));
-
-/* Download count is patched at build time by scripts/patch_download_count.py */
-/* No runtime fetch needed — value is baked in during Vercel deploy. */
-
 /* ── Countdown timer ─────────────────────────────────────────────── */
 (function countdown(){
   const DEAD = new Date('2026-08-02T00:00:00Z');
   function pad(n){return String(n).padStart(2,'0')}
   function tick(){
-    const now=new Date();
-    const ms=DEAD-now;
+    const now=new Date(), ms=DEAD-now;
     if(ms<=0){
       ['tb-days','cd-days','cd-hours','cd-mins'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='0'});
-      const ctaEl=document.getElementById('cta-cd');
-      if(ctaEl)ctaEl.textContent='deadline reached';
-      return;
+      const ctaEl=document.getElementById('cta-cd'); if(ctaEl)ctaEl.textContent='deadline reached'; return;
     }
-    const days=Math.floor(ms/864e5);
-    const hours=Math.floor((ms%864e5)/36e5);
-    const mins=Math.floor((ms%36e5)/6e4);
+    const days=Math.floor(ms/864e5),hours=Math.floor((ms%864e5)/36e5),mins=Math.floor((ms%36e5)/6e4);
     const tbEl=document.getElementById('tb-days');if(tbEl)tbEl.textContent=days;
     const cdD=document.getElementById('cd-days');if(cdD)cdD.textContent=pad(days);
     const cdH=document.getElementById('cd-hours');if(cdH)cdH.textContent=pad(hours);
     const cdM=document.getElementById('cd-mins');if(cdM)cdM.textContent=pad(mins);
-    const ctaEl=document.getElementById('cta-cd');
-    if(ctaEl)ctaEl.textContent=days+' days remaining';
+    const ctaEl=document.getElementById('cta-cd');if(ctaEl)ctaEl.textContent=days+' days remaining';
   }
-  tick();setInterval(tick,30000);
-})();
-
-/* ── Stat counter animation ──────────────────────────────────────── */
-(function animateCounters(){
-  const sn=document.querySelectorAll('.sn');
-  const targets=[{el:document.getElementById('dl-count'),from:0,to:1800,suffix:'',format:n=>n>=1000?(n/1000).toFixed(1)+'K':n},{el:null,from:0,to:8,suffix:'',format:n=>n},{el:null,from:0,to:2,suffix:'s',format:n=>'<2'},{el:null,from:0,to:0,suffix:'MIT',format:n=>'MIT'}];
-  const mainStats=document.querySelector('.hstats');
-  if(!mainStats)return;
-  const allSn=mainStats.querySelectorAll('.sn');
-  let done=false;
-  const obs2=new IntersectionObserver(entries=>{
-    if(done)return;
-    entries.forEach(e=>{
-      if(e.isIntersecting){
-        done=true;
-        // animate downloads
-        const dlEl=document.getElementById('dl-count');
-        if(dlEl){
-          let start=0;const end=1800;const dur=1200;const t0=performance.now();
-          const step=ts=>{
-            const p=Math.min((ts-t0)/dur,1);
-            const val=Math.round(start+p*(end-start));
-            dlEl.innerHTML=val>=1000?(val/1000).toFixed(1)+'<sup>K</sup>':val;
-            if(p<1)requestAnimationFrame(step);
-          };
-          requestAnimationFrame(step);
-        }
-        obs2.disconnect();
-      }
-    });
-  },{threshold:0.5});
-  if(mainStats)obs2.observe(mainStats);
+  tick(); setInterval(tick,30000);
 })();
 
 /* ── Attribution heatmap — real IOI circuit values ───────────────── */
 (function(){
-  const G = document.getElementById('heatmapGrid');
-  if(!G) return;
-  // IOI circuit attribution strengths (Conmy et al., 2023 + Glassbox F1=0.89)
-  // Key: "layer-head" → attribution 0–1
-  const hot = {
-    '9-9':0.92,'9-6':0.87,'10-0':0.84,          // name-mover heads
-    '10-10':0.72,'10-6':0.69,                     // backup name-movers
-    '8-10':0.64,'8-6':0.57,                       // S-inhibition heads
-    '7-9':0.51,'7-3':0.44,                        // induction heads
-    '5-5':0.40,'6-9':0.37,                        // duplicate token
-    '4-11':0.29,'2-2':0.23,'3-6':0.18,           // prev-token heads
-    '1-8':0.13,'11-3':0.11,'0-4':0.08
-  };
-  const seed = (l,h) => {
-    let x = l*17+h*31; x = ((x^x>>5)*0x45d9f3b)&0x7fffffff;
-    return (x/0x7fffffff)*0.07;
-  };
-  const col = v => {
-    if(v>=0.72) return `rgba(217,119,87,${(.4+v*.6).toFixed(2)})`;
-    if(v>=0.45) return `rgba(217,119,87,${(v*.88).toFixed(2)})`;
-    if(v>=0.20) return `rgba(217,119,87,${(v*.55).toFixed(2)})`;
-    return `rgba(255,255,255,${(v*2.2+0.03).toFixed(2)})`;
+  const G = document.getElementById('heatmapGrid'); if(!G) return;
+  const hot = {'9-9':0.92,'9-6':0.87,'10-0':0.84,'10-10':0.72,'10-6':0.69,'8-10':0.64,'8-6':0.57,'7-9':0.51,'7-3':0.44,'5-5':0.40,'6-9':0.37,'4-11':0.29,'2-2':0.23,'3-6':0.18,'1-8':0.13,'11-3':0.11,'0-4':0.08};
+  const seed=(l,h)=>{let x=l*17+h*31;x=((x^x>>5)*0x45d9f3b)&0x7fffffff;return(x/0x7fffffff)*0.07};
+  const col=v=>{
+    if(v>=0.72)return`rgba(217,119,87,${(.4+v*.6).toFixed(2)})`;
+    if(v>=0.45)return`rgba(217,119,87,${(v*.88).toFixed(2)})`;
+    if(v>=0.20)return`rgba(217,119,87,${(v*.55).toFixed(2)})`;
+    return`rgba(255,255,255,${(v*2.2+0.03).toFixed(2)})`;
   };
   let html='';
-  for(let l=11;l>=0;l--){
-    for(let h=0;h<12;h++){
-      const k=l+'-'+h;
-      const v = hot[k]!==undefined ? hot[k] : seed(l,h);
-      html+=`<div class="psh-cell" style="background:${col(v)}" title="L${l}·H${h}: ${v.toFixed(2)}"></div>`;
-    }
-  }
+  for(let l=11;l>=0;l--)for(let h=0;h<12;h++){const k=l+'-'+h,v=hot[k]!==undefined?hot[k]:seed(l,h);html+=`<div class="psh-cell" style="background:${col(v)}" title="L${l}·H${h}: ${v.toFixed(2)}"></div>`;}
   G.innerHTML=html;
 })();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PREMIUM GSAP ANIMATION SYSTEM
+   ═══════════════════════════════════════════════════════════════════════ */
+(function initPremium() {
+  /* Graceful fallback if GSAP didn't load */
+  if (typeof gsap === 'undefined') {
+    const obs = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+    document.querySelectorAll('.fu').forEach(el => obs.observe(el));
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* ── 1. Scroll progress bar ──────────────────────────────────── */
+  const prog = document.getElementById('scroll-prog');
+  if (prog) {
+    gsap.to(prog, {
+      scaleX: 1,
+      ease: 'none',
+      scrollTrigger: { trigger: document.documentElement, start: 'top top', end: 'bottom bottom', scrub: 0 }
+    });
+  }
+
+  /* ── 2. Custom cursor (fine pointer only) ────────────────────── */
+  if (window.matchMedia('(pointer:fine)').matches) {
+    const dot  = document.getElementById('c-dot');
+    const ring = document.getElementById('c-ring');
+    if (dot && ring) {
+      let mx = window.innerWidth/2, my = window.innerHeight/2;
+      let rx = mx, ry = my;
+      let hidden = false;
+
+      const lerp = (a, b, t) => a + (b - a) * t;
+      let rafId;
+      function loop() {
+        rx = lerp(rx, mx, 0.14);
+        ry = lerp(ry, my, 0.14);
+        ring.style.left = rx + 'px';
+        ring.style.top  = ry + 'px';
+        rafId = requestAnimationFrame(loop);
+      }
+      loop();
+
+      document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        dot.style.left = mx + 'px';
+        dot.style.top  = my + 'px';
+        if (hidden) { dot.style.opacity = '1'; ring.style.opacity = '1'; hidden = false; }
+      }, { passive: true });
+
+      document.addEventListener('mouseleave', () => {
+        dot.style.opacity = '0'; ring.style.opacity = '0'; hidden = true;
+      });
+
+      document.querySelectorAll('a,button,[onclick]').forEach(el => {
+        const isBtn = el.matches('.btn-p,.btn-s,.nav-cta,.pbtn');
+        el.addEventListener('mouseenter', () => {
+          dot.classList.add(isBtn ? 'on-btn' : 'on-link');
+          ring.classList.add(isBtn ? 'on-btn' : 'on-link');
+        });
+        el.addEventListener('mouseleave', () => {
+          dot.classList.remove('on-btn','on-link');
+          ring.classList.remove('on-btn','on-link');
+        });
+      });
+    }
+  }
+
+  /* ── 3. Smart nav: hide on scroll down, show on scroll up ──── */
+  const nav = document.querySelector('nav');
+  if (nav) {
+    let lastY = 0, ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (y > 64) {
+          nav.classList.add('nav-scrolled');
+          nav.classList.toggle('nav-hidden', y > lastY + 8);
+        } else {
+          nav.classList.remove('nav-scrolled', 'nav-hidden');
+        }
+        lastY = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  /* ── 4. Hero parallax ────────────────────────────────────────── */
+  const heroWrap = document.querySelector('.hero-wrap');
+  if (heroWrap) {
+    gsap.to('.hmesh', {
+      y: 90, ease: 'none',
+      scrollTrigger: { trigger: heroWrap, start: 'top top', end: 'bottom top', scrub: 1.2 }
+    });
+    gsap.to('.hgrid', {
+      y: 45, ease: 'none',
+      scrollTrigger: { trigger: heroWrap, start: 'top top', end: 'bottom top', scrub: 2 }
+    });
+    /* Subtle hero content depth */
+    gsap.to('.hero', {
+      y: 60, ease: 'none',
+      scrollTrigger: { trigger: heroWrap, start: 'top top', end: 'bottom top', scrub: 1.8 }
+    });
+  }
+
+  /* ── 5. GSAP takes over .fu fade-up animations ───────────────── */
+  /* Reset CSS-set initial states first */
+  document.querySelectorAll('.fu').forEach(el => {
+    el.style.opacity = '';
+    el.style.transform = '';
+    el.style.transition = 'none';
+  });
+
+  /* Stagger feature cards together */
+  const featGrid = document.querySelector('.feat-grid');
+  if (featGrid) {
+    gsap.from(featGrid.querySelectorAll('.fc'), {
+      y: 48, opacity: 0, duration: 0.7,
+      ease: 'power3.out', stagger: 0.09,
+      scrollTrigger: { trigger: featGrid, start: 'top 82%', once: true }
+    });
+  }
+
+  /* Stagger pricing cards */
+  const pgrid = document.querySelector('.pgrid');
+  if (pgrid) {
+    gsap.from(pgrid.querySelectorAll('.pc'), {
+      y: 60, opacity: 0, duration: 0.75,
+      ease: 'back.out(1.5)', stagger: 0.14,
+      scrollTrigger: { trigger: pgrid, start: 'top 82%', once: true }
+    });
+  }
+
+  /* Stagger testimonial cards */
+  const sqGrid = document.querySelector('.sq-grid');
+  if (sqGrid) {
+    gsap.from(sqGrid.querySelectorAll('.sq'), {
+      y: 40, opacity: 0, scale: 0.96, duration: 0.65,
+      ease: 'power3.out', stagger: 0.11,
+      scrollTrigger: { trigger: sqGrid, start: 'top 84%', once: true }
+    });
+  }
+
+  /* Comparison columns slide in from sides */
+  const cmpGrid = document.querySelector('.cmp-grid');
+  if (cmpGrid) {
+    const cols = cmpGrid.querySelectorAll('.cmp-col');
+    if (cols[0]) gsap.from(cols[0], { x: -36, opacity: 0, duration: 0.75, ease: 'power3.out', scrollTrigger: { trigger: cmpGrid, start: 'top 82%', once: true } });
+    if (cols[1]) gsap.from(cols[1], { x:  36, opacity: 0, duration: 0.75, ease: 'power3.out', scrollTrigger: { trigger: cmpGrid, start: 'top 82%', once: true }, delay: 0.12 });
+  }
+
+  /* Coverage articles stagger */
+  const acovGrid = document.querySelector('.acov-grid');
+  if (acovGrid) {
+    gsap.from(acovGrid.querySelectorAll('.acov'), {
+      y: 40, opacity: 0, duration: 0.65, ease: 'power3.out', stagger: 0.08,
+      scrollTrigger: { trigger: acovGrid, start: 'top 82%', once: true }
+    });
+  }
+
+  /* Generic .fu elements not covered by special cases above */
+  document.querySelectorAll('.fu:not(.fc):not(.pc):not(.sq):not(.acov)').forEach(el => {
+    /* Skip if it's inside a grid that's already handled */
+    if (el.closest('.feat-grid,.pgrid,.sq-grid,.acov-grid')) return;
+    gsap.from(el, {
+      y: 24, opacity: 0, duration: 0.65, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 88%', once: true }
+    });
+  });
+
+  /* ── 6. Section title stagger (label + title + sub) ─────────── */
+  document.querySelectorAll('.sec, .demo-wrap').forEach(sec => {
+    const label = sec.querySelector('.slabel');
+    const title = sec.querySelector('.stitle');
+    const sub   = sec.querySelector('.ssub');
+    const items = [label, title, sub].filter(Boolean);
+    if (!items.length) return;
+    gsap.from(items, {
+      y: 32, opacity: 0, duration: 0.75, ease: 'power3.out', stagger: 0.1,
+      scrollTrigger: { trigger: items[0], start: 'top 87%', once: true }
+    });
+  });
+
+  /* ── 7. Product showcase animate in ────────────────────────── */
+  const pshow = document.querySelector('.pshow-frame');
+  if (pshow) {
+    gsap.from(pshow, {
+      y: 52, opacity: 0, scale: 0.97, duration: 0.85, ease: 'power3.out',
+      scrollTrigger: { trigger: pshow, start: 'top 84%', once: true }
+    });
+  }
+
+  /* ── 8. How it works steps stagger ─────────────────────────── */
+  const demoIn = document.querySelector('.demo-in');
+  if (demoIn) {
+    const steps = demoIn.querySelectorAll('.demo-step, [class*="step"]');
+    if (steps.length) {
+      gsap.from(steps, {
+        y: 36, opacity: 0, duration: 0.7, ease: 'power3.out', stagger: 0.13,
+        scrollTrigger: { trigger: demoIn, start: 'top 82%', once: true }
+      });
+    }
+    /* Code window */
+    const cwin = demoIn.querySelector('.cwin');
+    if (cwin) {
+      gsap.from(cwin, {
+        y: 40, opacity: 0, scale: 0.98, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: cwin, start: 'top 84%', once: true }
+      });
+    }
+  }
+
+  /* ── 9. Trust bar logos stagger ─────────────────────────────── */
+  const trustBar = document.querySelector('.trust-bar, .tbar, [class*="trust"]');
+  if (trustBar) {
+    gsap.from(trustBar.children, {
+      y: 16, opacity: 0, duration: 0.5, ease: 'power2.out', stagger: 0.06,
+      scrollTrigger: { trigger: trustBar, start: 'top 90%', once: true }
+    });
+  }
+
+  /* ── 10. CTA section punch-in ───────────────────────────────── */
+  const ctaSec = document.querySelector('.cta-sec');
+  if (ctaSec) {
+    gsap.from(ctaSec.querySelectorAll('h2, p, a, .countdown-band'), {
+      y: 30, opacity: 0, duration: 0.7, ease: 'power3.out', stagger: 0.1,
+      scrollTrigger: { trigger: ctaSec, start: 'top 84%', once: true }
+    });
+  }
+
+  /* ── 11. Magnetic buttons ────────────────────────────────────── */
+  document.querySelectorAll('.btn-p, .btn-s, .nav-cta').forEach(btn => {
+    btn.addEventListener('mousemove', e => {
+      const r = btn.getBoundingClientRect();
+      const x = (e.clientX - r.left - r.width  / 2) * 0.28;
+      const y = (e.clientY - r.top  - r.height / 2) * 0.28;
+      gsap.to(btn, { x, y, duration: 0.4, ease: 'power2.out', overwrite: true });
+    }, { passive: true });
+    btn.addEventListener('mouseleave', () => {
+      gsap.to(btn, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1.1, 0.5)', overwrite: true });
+    });
+  });
+
+  /* ── 12. Stat number countup (GSAP-powered) ──────────────────── */
+  const mainStats = document.querySelector('.hstats');
+  if (mainStats) {
+    let counted = false;
+    ScrollTrigger.create({
+      trigger: mainStats,
+      start: 'top 85%',
+      once: true,
+      onEnter: () => {
+        if (counted) return; counted = true;
+        const dlEl = document.getElementById('dl-count');
+        if (dlEl) {
+          gsap.fromTo({ val: 0 }, { val: 1800 }, {
+            duration: 1.4, ease: 'power2.out',
+            onUpdate() {
+              const v = Math.round(this.targets()[0].val);
+              dlEl.innerHTML = v >= 1000 ? (v/1000).toFixed(1) + '<sup>K</sup>' : v;
+            }
+          });
+        }
+      }
+    });
+  }
+
+  /* ── 13. Heatmap cells cascade on scroll ────────────────────── */
+  const heatGrid = document.getElementById('heatmapGrid');
+  if (heatGrid) {
+    ScrollTrigger.create({
+      trigger: heatGrid,
+      start: 'top 85%',
+      once: true,
+      onEnter: () => {
+        const cells = heatGrid.querySelectorAll('.psh-cell');
+        gsap.from(cells, {
+          opacity: 0, scale: 0, duration: 0.4,
+          ease: 'back.out(2)', stagger: { amount: 0.6, from: 'random' }
+        });
+      }
+    });
+  }
+
+  /* ── 14. Footer links stagger ───────────────────────────────── */
+  const footer = document.querySelector('footer');
+  if (footer) {
+    gsap.from(footer.querySelectorAll('.ft-col'), {
+      y: 28, opacity: 0, duration: 0.65, ease: 'power3.out', stagger: 0.09,
+      scrollTrigger: { trigger: footer, start: 'top 92%', once: true }
+    });
+  }
+
+  /* ── 15. Topbar entrance ─────────────────────────────────────── */
+  gsap.from('.topbar', { y: -40, duration: 0.5, ease: 'power2.out', delay: 0.1 });
+
+  /* ── 16. Nav mark subtle pulse on load ──────────────────────── */
+  const navMark = document.querySelector('.nav-mark svg');
+  if (navMark) {
+    gsap.from(navMark, { scale: 0.6, opacity: 0, duration: 0.6, ease: 'back.out(2)', delay: 0.4 });
+  }
+
+  /* ── 17. Announcement topbar countdown pulse ─────────────────── */
+  const tbDays = document.getElementById('tb-days');
+  if (tbDays) {
+    gsap.to(tbDays, {
+      color: '#F0946E', duration: 1.8, ease: 'sine.inOut',
+      repeat: -1, yoyo: true
+    });
+  }
+
+})(); /* end initPremium */
 </script>
 </body>
 </html>
