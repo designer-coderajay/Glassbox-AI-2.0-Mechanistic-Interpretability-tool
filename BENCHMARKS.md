@@ -114,7 +114,76 @@ dominated by JSON serialisation.
 
 ---
 
-## 8. Planned Benchmarks (v3.5.0)
+## 8. Peer-Reviewed Results — arXiv:2603.09988
+
+The following figures are the **primary source of truth** for Glassbox's faithfulness
+claims. They come directly from the MSc research paper:
+
+> **Mahale, A.P. (2026).** *Causally Grounded Mechanistic Interpretability for LLMs
+> with Faithful Natural Language Explanations.* arXiv:2603.09988.
+> [https://arxiv.org/abs/2603.09988](https://arxiv.org/abs/2603.09988)
+>
+> Code: [Causally-Grounded-Mechanistic-Interpretability-for-LLMs-with-Faithful-Natural-Language-Explanations](https://github.com/designer-coderajay/Causally-Grounded-Mechanistic-Interpretability-for-LLMs-with-Faithful-Natural-Language-Explanations)
+
+**Model:** GPT-2 Small (124M) · **Task:** Indirect Object Identification (IOI)
+
+### Circuit Analysis (Wang et al. 2022 IOI benchmark)
+
+| Metric | Value | Description |
+|--------|-------|-------------|
+| Circuit heads identified | 6 | Minimal faithful set |
+| Circuit coverage (logit diff) | **61.4%** | % of prediction explained |
+| Sufficiency | **100.0%** | Prediction preserved using only cited heads |
+| Comprehensiveness | **22.0%** | Prediction reduction when ablating cited heads |
+| Local Faithfulness Score (F1) | **36.0%** | Harmonic mean of S and Comp |
+
+### Head-Level Attribution (Global Importance)
+
+| Head | Role | Global Importance |
+|------|------|------------------|
+| L9H9 | Name Mover (Primary) | 17.4% |
+| L8H10 | S-Inhibition | 12.3% |
+| L7H3 | Name Mover (Secondary) | 10.3% |
+| L10H6 | Backup Name Mover | 8.9% |
+| L9H6 | Name Mover (Tertiary) | 6.3% |
+| L10H0 | Output Head | 6.2% |
+
+### Explanation Quality
+
+| Method | Quality Score |
+|--------|--------------|
+| Template baseline | 1.0× |
+| LLM-generated (Glassbox) | **+64%** over template |
+| Attention baseline | **+75%** beat |
+
+### Confidence–Faithfulness Orthogonality
+
+```
+r = 0.009   (Pearson correlation, model confidence vs explanation faithfulness)
+S = 1.00    Sufficiency
+Comp = 0.22 Comprehensiveness
+F1 = 0.64   (full 26-head Wang et al. IOI circuit)
+```
+
+**Interpretation:** `r = 0.009` means model confidence and explanation faithfulness are
+essentially uncorrelated — high confidence does not imply a faithful explanation, and
+vice versa. This is a core finding of the paper, not a performance score.
+
+The `r=0.009` figure is cited in the Glassbox marketing as evidence that Glassbox's
+circuit-based approach provides mechanistically grounded explanations that operate
+independently of the model's output confidence — i.e., the explainability is driven
+by causal circuit structure, not by surface-level prediction strength.
+
+### Limitations Disclosed in Paper
+
+- All results restricted to the IOI task on GPT-2 Small
+- Comprehensiveness gap (~78%) reflects distributed backup mechanisms
+- Results should not be generalised to arbitrary tasks or model families without
+  further empirical validation
+
+---
+
+## 9. Planned Benchmarks (v3.5.0)
 
 The following benchmarks are in preparation and will be published with
 the v3.5.0 release:
