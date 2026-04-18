@@ -1828,6 +1828,8 @@ z = atanh(r),   SE = 1/√(n−3),   Z = z/SE  ~  N(0,1)  under H₀: ρ = 0
 
 Reference values from Mahale (2026) / arXiv:2603.09988:
 `r = 0.009`, `S = 1.00`, `Comp = 0.22`, `F1 = 0.64` (full 26-head Wang et al. IOI circuit).
+Circuit coverage: **61.4%** of logit difference explained by 6 identified heads.
+Full results documented in [`BENCHMARKS.md § 8`](./BENCHMARKS.md#8-peer-reviewed-results--arxiv26039988).
 
 ---
 
