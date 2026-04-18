@@ -1068,13 +1068,43 @@ HEADER = """
 <!-- Nav -->
 <nav class="gb-nav">
   <a class="gb-nav-logo" href="https://project-gu05p.vercel.app/" target="_blank">
-    <div class="gb-nav-mark">
-      <svg fill="none" viewBox="0 0 13 13" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="1.5" y="1.5" width="10" height="10" rx="2"/>
-        <path d="M4 6.5h5M6.5 4v5"/>
-      </svg>
+    <div class="gb-nav-mark" style="display:flex;align-items:center;gap:9px">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" aria-hidden="true" style="display:block;flex-shrink:0">
+      <defs>
+        <linearGradient id="hf-f" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stop-color="#F0946E"/><stop offset="42%" stop-color="#E8724A"/><stop offset="100%" stop-color="#0891B2"/>
+        </linearGradient>
+        <radialGradient id="hf-g" cx="38%" cy="32%" r="70%" gradientUnits="objectBoundingBox">
+          <stop offset="0%" stop-color="#E8724A" stop-opacity="0.12"/><stop offset="100%" stop-color="#050709" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="hf-go" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2.8" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="hf-gs" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <rect x="6" y="6" width="88" height="88" rx="13" fill="url(#hf-g)"/>
+      <rect x="6" y="6" width="88" height="88" rx="13" fill="none" stroke="url(#hf-f)" stroke-width="2.4"/>
+      <path d="M 50 15 C 42 21, 23 33, 16 50" fill="none" stroke="#E8724A" stroke-width="1.55" stroke-linecap="round" opacity="0.80"/>
+      <path d="M 50 15 C 58 21, 77 33, 84 50" fill="none" stroke="#0891B2" stroke-width="1.55" stroke-linecap="round" opacity="0.78"/>
+      <path d="M 16 50 C 23 67, 38 79, 50 85" fill="none" stroke="#E8724A" stroke-width="1.38" stroke-linecap="round" opacity="0.68"/>
+      <path d="M 84 50 C 77 67, 62 79, 50 85" fill="none" stroke="#0891B2" stroke-width="1.38" stroke-linecap="round" opacity="0.68"/>
+      <path d="M 16 50 C 30 40, 70 40, 84 50" fill="none" stroke="#38BDF8" stroke-width="0.85" stroke-dasharray="2.8 2.4" stroke-linecap="round" opacity="0.38"/>
+      <circle cx="50" cy="85" r="5.5" fill="#38BDF8" filter="url(#hf-gs)" opacity="0.88"/>
+      <circle cx="50" cy="85" r="2.0" fill="#E0F4FF" opacity="0.92"/>
+      <circle cx="16" cy="50" r="7.0" fill="#E8724A" filter="url(#hf-gs)"/>
+      <circle cx="16" cy="50" r="2.7" fill="#F5B799" opacity="0.90"/>
+      <circle cx="84" cy="50" r="7.0" fill="#0891B2" filter="url(#hf-gs)"/>
+      <circle cx="84" cy="50" r="2.7" fill="#93D4EC" opacity="0.90"/>
+      <circle cx="50" cy="15" r="10" fill="#E8724A" filter="url(#hf-go)"/>
+      <circle cx="50" cy="15" r="4.0" fill="#F0946E"/>
+      <circle cx="50" cy="15" r="1.6" fill="#ffffff" opacity="0.96"/>
+    </svg>
+      <span style="font-family:'Syne','DM Sans',sans-serif;font-size:17px;font-weight:700;letter-spacing:-.03em;color:#EBE7DE;line-height:1">GLASSBOX<span style="font-family:'DM Sans',sans-serif;font-size:8px;font-weight:300;letter-spacing:.45em;color:#E8724A;display:block;margin-top:2px;opacity:.88">AI</span></span>
     </div>
-    Glassbox AI
   </a>
   <div class="gb-nav-cx">
     <ul class="gb-nav-links">

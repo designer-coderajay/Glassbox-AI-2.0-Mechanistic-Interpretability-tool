@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/glassbox-brand.png" alt="Glassbox AI — Brand Identity" width="720" style="max-width:100%;margin-bottom:8px"/>
+
 # Glassbox 4.2.6
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
