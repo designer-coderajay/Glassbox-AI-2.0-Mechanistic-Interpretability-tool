@@ -76,11 +76,9 @@ nav{
 }
 .nav-logo{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;letter-spacing:-.02em;flex-shrink:0}
 .nav-mark{
-  width:28px;height:28px;border-radius:7px;
-  background:linear-gradient(135deg,var(--indigo),var(--sky));
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  display:flex;align-items:center;gap:9px;flex-shrink:0;
 }
-.nav-mark svg{width:13px;height:13px}
+.nav-mark svg{display:block;flex-shrink:0}
 .nav-cx{flex:1;display:flex;justify-content:center}
 .nav-links{display:flex;align-items:center;gap:2px;list-style:none}
 .nav-links a{
@@ -824,6 +822,104 @@ nav.nav-scrolled{
 
 /* ─── GSAP INITIAL STATES — prevent flash before JS runs ────────── */
 .gsap-init .fu{opacity:0;transform:translateY(22px)}
+
+/* ─── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+/* Core rules that apply broadly to keep layout from breaking */
+html{overflow-x:hidden}
+.sec{overflow-x:hidden}
+
+/* Pip install box: allow horizontal scroll on tiny screens */
+.pip{max-width:100%;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.pip::-webkit-scrollbar{display:none}
+
+/* Nav: don't let the CTA crush on mid-small screens */
+@media(max-width:520px){
+  .nav-cta span:last-child{display:none} /* hide "Live demo" label */
+  .nav-cta{padding:8px 13px}
+  .nav-logo{font-size:13px}
+}
+
+/* Small phones (≤520px): hero section */
+@media(max-width:520px){
+  /* Stack CTA buttons vertically */
+  .hactions{flex-direction:column;align-items:stretch;
+             max-width:300px;margin-left:auto;margin-right:auto}
+  .btn-p,.btn-s{width:100%;justify-content:center}
+
+  /* Stats bar: 2×2 grid layout */
+  .hstats{flex-wrap:wrap;border-radius:var(--r2)}
+  .si{flex:0 0 50%;min-width:0;border-bottom:1px solid var(--bd)}
+  .si:nth-child(odd){border-right:1px solid var(--bd)}
+  .si:nth-child(even){border-right:none}
+  .si:nth-last-child(-n+2){border-bottom:none}
+
+  /* Hero mark + title block */
+  .hero{padding-left:20px;padding-right:20px}
+  .hbadge{font-size:10px;padding:5px 12px 5px 8px}
+
+  /* Product showcase: hide runtime pill, truncate cmd */
+  .pshow-runtime{display:none}
+  .pshow-bar{padding:8px 12px}
+
+  /* Feature cards */
+  .fc{padding:24px 20px}
+
+  /* Comparison section */
+  .cmp-col{padding:28px 20px}
+
+  /* Countdown widget */
+  .countdown-band{padding:24px 18px;flex-direction:column;align-items:flex-start;gap:20px}
+  .cd-n{font-size:34px}
+  .cd-units{gap:10px}
+
+  /* Section heading: prevent widow */
+  .stitle{text-wrap:balance}
+  .ssub{font-size:14px}
+}
+
+/* Very small phones (≤380px) */
+@media(max-width:380px){
+  /* Stats bar: single column */
+  .si{flex:0 0 100%;border-right:none !important}
+  .si{border-bottom:1px solid var(--bd) !important}
+  .si:last-child{border-bottom:none !important}
+
+  /* Nav */
+  .nav-logo{font-size:12px}
+
+  /* Section pads */
+  .sec{padding-left:14px;padding-right:14px}
+  footer{padding-left:14px;padding-right:14px}
+
+  /* Pip */
+  .pip{padding:10px 12px;font-size:12px;gap:8px}
+  .pip-cp{padding:2px 8px;font-size:10px}
+
+  /* Hero */
+  .hbadge{display:none}
+}
+
+/* Medium phones (521px–767px): fine-tune spacing */
+@media(min-width:521px) and (max-width:767px){
+  .hactions{justify-content:center}
+  .btn-p,.btn-s{flex:0 1 auto}
+}
+
+/* Ensure no section bleeds past viewport on any phone */
+@media(max-width:768px){
+  .pshow-frame{border-radius:12px}
+  .art-grid{border-radius:12px}
+  .cmp-grid{border-radius:12px}
+  .countdown-band{margin-left:0;margin-right:0}
+  .stitle{font-size:clamp(24px,6.5vw,40px);letter-spacing:-.03em}
+  .ssub{max-width:100%}
+
+  /* Footer: tighten up */
+  .ft-bot{flex-direction:column;align-items:flex-start;gap:10px}
+
+  /* Demo code window: allow horizontal scroll */
+  pre{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
 </style>
 </head>
 <body>
@@ -842,7 +938,7 @@ nav.nav-scrolled{
 <!-- ─── NAV ─────────────────────────────────────────────────────── -->
 <nav aria-label="Main navigation">
   <a href="/" class="nav-logo" aria-label="Glassbox AI home">
-    <div class="nav-mark" style="display:flex;align-items:center;gap:9px">
+    <div class="nav-mark">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" aria-hidden="true" style="display:block;flex-shrink:0">
 <defs>
   <radialGradient id="ngl-g" cx="50%" cy="50%" r="60%">
