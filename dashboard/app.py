@@ -115,7 +115,7 @@ def _attribution_heatmap(attrs: dict, circuit: list, n_layers=12, n_heads=12) ->
         rect = mpatches.FancyBboxPatch(
             (h - 0.45, l - 0.45), 0.9, 0.9,
             boxstyle="round,pad=0.05",
-            linewidth=2, edgecolor="#E8724A", facecolor="none"
+            linewidth=2, edgecolor="#00C8E8", facecolor="none"
         )
         ax.add_patch(rect)
     ax.set_xlabel("Head Index", fontsize=12, color="white")
@@ -156,8 +156,8 @@ def _logit_lens_plot(prompt: str, target_token: str) -> Image.Image:
         ax.grid(True, alpha=0.15, color="#ffffff")
         for spine in ax.spines.values():
             spine.set_edgecolor("#1a2030")
-    ax1.plot(layers, probs, "o-", lw=2, ms=7, color="#E8724A")
-    ax1.fill_between(layers, probs, alpha=0.15, color="#E8724A")
+    ax1.plot(layers, probs, "o-", lw=2, ms=7, color="#00C8E8")
+    ax1.fill_between(layers, probs, alpha=0.15, color="#00C8E8")
     ax1.set_ylabel("Probability (%)", fontsize=11, color="white")
     ax1.set_title(f"Logit Lens — token: '{target_token}'", fontsize=13, color="white")
     ax1.set_ylim(bottom=0)
@@ -337,9 +337,9 @@ def run_compliance_report(prompt: str, correct: str, incorrect: str,
 
     # ── Step 3: compute grade + status from raw F1 (no AnnexIVReport needed) ──
     if f1_score >= 0.80:
-        grade, grade_color, status_label = "A", "#E8724A", "Compliant"
+        grade, grade_color, status_label = "A", "#00C8E8", "Compliant"
     elif f1_score >= 0.65:
-        grade, grade_color, status_label = "B", "#E8724A", "Conditionally Compliant"
+        grade, grade_color, status_label = "B", "#00C8E8", "Conditionally Compliant"
     elif f1_score >= 0.50:
         grade, grade_color, status_label = "C", "#f59e0b", "Partially Compliant"
     else:
@@ -484,8 +484,8 @@ GB_CSS = """
 
 /* ── Design tokens ── */
 :root {
-  --indigo:#E8724A; --indigo-d:#C45A30; --indigo-l:#F0946E;
-  --sky:#0891B2; --green:#34D399; --amber:#f59e0b; --red:#ef4444;
+  --indigo:#00C8E8; --indigo-d:#009AB5; --indigo-l:#38D8F0;
+  --sky:#38BDF8; --green:#34D399; --amber:#f59e0b; --red:#ef4444;
   --text:#e2e8f0; --t2:#a1a1aa; --t3:#52525b; --t4:#3f3f46;
   --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13); --bd3:rgba(255,255,255,.22);
   --sf:rgba(255,255,255,.03); --sf2:rgba(255,255,255,.06);
@@ -512,7 +512,7 @@ gradio-app::after {
   background-repeat:repeat; background-size:200px 200px;
   opacity:.028; mix-blend-mode:overlay;
 }
-::selection { background:rgba(217,119,87,.28); }
+::selection { background:rgba(0,200,232,.28); }
 ::-webkit-scrollbar { width:5px; }
 ::-webkit-scrollbar-track { background:#07080A; }
 ::-webkit-scrollbar-thumb { background:#27272a; border-radius:3px; }
@@ -521,9 +521,9 @@ gradio-app::after {
 body::before {
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(ellipse 80% 60% at 12% 55%, rgba(217,119,87,.18) 0%, transparent 55%),
-    radial-gradient(ellipse 65% 50% at 88% 18%, rgba(61,110,150,.13) 0%, transparent 50%),
-    radial-gradient(ellipse 90% 90% at 50% 120%, rgba(217,119,87,.09) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 60% at 12% 55%, rgba(0,200,232,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 50% at 88% 18%, rgba(56,189,248,.13) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 90% at 50% 120%, rgba(0,200,232,.09) 0%, transparent 50%);
   animation:mesh-drift 12s ease-in-out infinite alternate;
 }
 @keyframes mesh-drift {
@@ -633,10 +633,10 @@ gradio-app footer { display:none !important; }
   transform:translateY(-1px) !important;
 }
 .tab-nav button.selected {
-  background:linear-gradient(135deg,rgba(217,119,87,.2),rgba(217,119,87,.1)) !important;
-  color:#F0946E !important;
-  border-color:rgba(217,119,87,.35) !important;
-  box-shadow:0 2px 12px rgba(217,119,87,.15) !important;
+  background:linear-gradient(135deg,rgba(0,200,232,.2),rgba(0,200,232,.1)) !important;
+  color:#38D8F0 !important;
+  border-color:rgba(0,200,232,.35) !important;
+  box-shadow:0 2px 12px rgba(0,200,232,.15) !important;
   font-weight:600 !important;
 }
 
@@ -676,8 +676,8 @@ input[type=text], input[type=number], textarea, select {
 }
 input[type=text]:focus, textarea:focus {
   outline:none !important;
-  border-color:rgba(217,119,87,.55) !important;
-  box-shadow:0 0 0 3px rgba(217,119,87,.11) !important;
+  border-color:rgba(0,200,232,.55) !important;
+  box-shadow:0 0 0 3px rgba(0,200,232,.11) !important;
 }
 input::placeholder, textarea::placeholder { color:var(--t3) !important; }
 textarea.scroll-hide { color:#e2e8f0 !important; background:rgba(255,255,255,.04) !important; }
@@ -692,22 +692,22 @@ label, label span, .label-wrap, .label-wrap span,
 
 /* ── Buttons ── */
 button.primary, button[variant="primary"] {
-  background:linear-gradient(135deg,#E8724A,#C96A45) !important; border:none !important;
+  background:linear-gradient(135deg,#00C8E8,#009AB5) !important; border:none !important;
   border-radius:var(--r2) !important; color:#fff !important;
   font-family:'DM Sans',sans-serif !important; font-size:14px !important;
   font-weight:600 !important; padding:13px 28px !important;
   letter-spacing:-.01em !important; cursor:pointer !important;
   transition:opacity .15s, box-shadow .2s, transform .1s !important;
-  box-shadow:0 4px 16px rgba(217,119,87,.25) !important;
+  box-shadow:0 4px 16px rgba(0,200,232,.25) !important;
 }
 button.primary:hover, button[variant="primary"]:hover {
   opacity:.88 !important;
-  box-shadow:0 8px 32px rgba(217,119,87,.45) !important;
+  box-shadow:0 8px 32px rgba(0,200,232,.45) !important;
   transform:translateY(-1px) !important;
 }
 button.primary:active, button[variant="primary"]:active {
   transform:translateY(0) !important;
-  box-shadow:0 2px 8px rgba(217,119,87,.2) !important;
+  box-shadow:0 2px 8px rgba(0,200,232,.2) !important;
 }
 button.secondary, button[variant="secondary"] {
   background:rgba(255,255,255,.04) !important; border:1px solid var(--bd2) !important;
@@ -734,10 +734,10 @@ ul.options li {
   padding:9px 13px !important; font-family:'DM Sans',sans-serif !important;
 }
 ul.options li:hover, ul.options li.selected {
-  background:rgba(217,119,87,.14) !important; color:#e2e8f0 !important;
+  background:rgba(0,200,232,.14) !important; color:#e2e8f0 !important;
 }
 .secondary-wrap { background:rgba(255,255,255,.04) !important; color:#e2e8f0 !important; }
-.token { background:rgba(217,119,87,.15) !important; color:#F0946E !important; border-radius:4px !important; }
+.token { background:rgba(0,200,232,.15) !important; color:#38D8F0 !important; border-radius:4px !important; }
 
 /* ── Image output ── */
 [data-testid="image"] { background:#07080d !important; border-radius:10px !important; overflow:hidden !important; }
@@ -767,9 +767,9 @@ ul.options li:hover, ul.options li.selected {
   margin:14px 0 !important; font-size:13px !important;
 }
 .markdown th, .prose th {
-  background:rgba(217,119,87,.09) !important; color:#F0946E !important;
+  background:rgba(0,200,232,.09) !important; color:#38D8F0 !important;
   font-weight:600 !important; padding:9px 13px !important;
-  border:1px solid rgba(217,119,87,.18) !important; text-align:left !important;
+  border:1px solid rgba(0,200,232,.18) !important; text-align:left !important;
 }
 .markdown td, .prose td {
   padding:9px 13px !important; border:1px solid var(--bd) !important; color:#cbd5e1 !important;
@@ -777,8 +777,8 @@ ul.options li:hover, ul.options li.selected {
 .markdown tr:nth-child(even) td,
 .prose tr:nth-child(even) td { background:rgba(255,255,255,.018) !important; }
 .markdown code, .prose code {
-  color:#F0946E !important; background:rgba(217,119,87,.09) !important;
-  border:1px solid rgba(217,119,87,.2) !important; padding:1px 6px !important;
+  color:#38D8F0 !important; background:rgba(0,200,232,.09) !important;
+  border:1px solid rgba(0,200,232,.2) !important; padding:1px 6px !important;
   border-radius:4px !important; font-family:var(--mono) !important; font-size:12px !important;
 }
 .markdown pre, .prose pre {
@@ -788,7 +788,7 @@ ul.options li:hover, ul.options li.selected {
 }
 .markdown pre code, .prose pre code {
   background:transparent !important; border:none !important; padding:0 !important;
-  color:#F0946E !important; font-size:12.5px !important; font-family:var(--mono) !important;
+  color:#38D8F0 !important; font-size:12.5px !important; font-family:var(--mono) !important;
 }
 
 /* ── Code editor (gr.Code) ── */
@@ -797,16 +797,16 @@ ul.options li:hover, ul.options li.selected {
   border-radius:8px !important; overflow:hidden !important; min-height:200px !important;
 }
 .cm-content, .cm-line {
-  color:#F0946E !important; font-family:var(--mono) !important;
+  color:#38D8F0 !important; font-family:var(--mono) !important;
   font-size:12.5px !important; line-height:1.65 !important;
   caret-color:var(--indigo) !important;
 }
 .cm-gutters {
   background:#06060e !important; border-right:1px solid var(--bd) !important; color:var(--t4) !important;
 }
-.cm-activeLine { background:rgba(217,119,87,.05) !important; }
+.cm-activeLine { background:rgba(0,200,232,.05) !important; }
 .cm-scroller { background:#06060e !important; }
-.cm-selectionBackground { background:rgba(217,119,87,.22) !important; }
+.cm-selectionBackground { background:rgba(0,200,232,.22) !important; }
 .cm-cursor { border-left-color:var(--indigo) !important; }
 
 /* ── Accordion ── */
@@ -868,7 +868,7 @@ HEADER = """
 .gb-topbar {
   position:sticky; top:0; z-index:1000;
   margin:0 calc(-1 * clamp(20px,4vw,56px));
-  background:#E8724A; padding:9px 24px; text-align:center;
+  background:#00C8E8; padding:9px 24px; text-align:center;
   font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
   letter-spacing:.01em; color:#fff;
 }
@@ -897,7 +897,7 @@ HEADER = """
 }
 .gb-nav-mark {
   width:28px; height:28px; border-radius:7px; flex-shrink:0;
-  background:linear-gradient(135deg,#E8724A,#0891B2);
+  background:linear-gradient(135deg,#00C8E8,#0891B2);
   display:flex; align-items:center; justify-content:center;
 }
 .gb-nav-mark svg { width:13px; height:13px; }
@@ -919,11 +919,11 @@ HEADER = """
 .gb-nav-cta {
   display:inline-flex; align-items:center; gap:6px;
   font-size:13px; font-weight:600; color:#fff;
-  background:#E8724A; padding:8px 18px; border-radius:12px;
+  background:#00C8E8; padding:8px 18px; border-radius:12px;
   letter-spacing:-.01em; text-decoration:none;
   transition:background .15s, box-shadow .2s;
 }
-.gb-nav-cta:hover { background:#C45A30; box-shadow:0 0 0 4px rgba(217,119,87,.18); }
+.gb-nav-cta:hover { background:#009AB5; box-shadow:0 0 0 4px rgba(0,200,232,.18); }
 .gb-nav-cta svg { width:12px; height:12px; }
 @media(max-width:768px){ .gb-nav-cx,.gb-nav-ghost{ display:none; } }
 
@@ -935,9 +935,9 @@ HEADER = """
 .gb-hmesh {
   position:absolute; inset:0; pointer-events:none;
   background:
-    radial-gradient(ellipse 80% 60% at 12% 55%, rgba(217,119,87,.18) 0%, transparent 55%),
-    radial-gradient(ellipse 65% 50% at 88% 18%, rgba(61,110,150,.13) 0%, transparent 50%),
-    radial-gradient(ellipse 90% 90% at 50% 120%, rgba(217,119,87,.09) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 60% at 12% 55%, rgba(0,200,232,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 50% at 88% 18%, rgba(56,189,248,.13) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 90% at 50% 120%, rgba(0,200,232,.09) 0%, transparent 50%);
   animation:mesh-hero 12s ease-in-out infinite alternate;
 }
 .gb-hgrid {
@@ -958,10 +958,10 @@ HEADER = """
 /* ─ Badge ─ */
 .gb-hbadge {
   display:inline-flex; align-items:center; gap:8px;
-  background:rgba(217,119,87,.09); border:1px solid rgba(217,119,87,.26);
+  background:rgba(0,200,232,.09); border:1px solid rgba(0,200,232,.26);
   border-radius:20px; padding:6px 15px 6px 10px; margin-bottom:44px;
   font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700;
-  letter-spacing:.04em; color:#F0946E; text-transform:uppercase;
+  letter-spacing:.04em; color:#38D8F0; text-transform:uppercase;
 }
 .gb-hblink { color:rgba(255,255,255,.6); text-decoration:none; margin-left:6px; font-weight:500; font-size:11px; }
 .gb-hblink:hover { color:#fff; }
@@ -980,7 +980,7 @@ HEADER = """
   text-wrap:balance; max-width:760px;
 }
 .gb-shine {
-  background:linear-gradient(135deg,#EBE7DE 0%,#F0946E 40%,#E8724A 72%,#EBE7DE 100%);
+  background:linear-gradient(135deg,#EBE7DE 0%,#38D8F0 40%,#00C8E8 72%,#EBE7DE 100%);
   background-size:200% 200%;
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   background-clip:text;
@@ -1000,12 +1000,12 @@ HEADER = """
 .gb-hctas { display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:56px; }
 .gb-hbtn-p {
   display:inline-flex; align-items:center; gap:8px;
-  background:#E8724A; color:#fff; padding:13px 28px; border-radius:12px;
+  background:#00C8E8; color:#fff; padding:13px 28px; border-radius:12px;
   font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600;
   letter-spacing:-.01em; text-decoration:none;
   transition:background .15s, box-shadow .2s;
 }
-.gb-hbtn-p:hover { background:#C45A30; box-shadow:0 8px 32px rgba(217,119,87,.42); }
+.gb-hbtn-p:hover { background:#009AB5; box-shadow:0 8px 32px rgba(0,200,232,.42); }
 .gb-hbtn-s {
   display:inline-flex; align-items:center; gap:8px;
   background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.13);
@@ -1072,12 +1072,12 @@ HEADER = """
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" aria-hidden="true" style="display:block;flex-shrink:0">
 <defs>
   <linearGradient id="hf-f" x1="0%" y1="100%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#F0946E"/><stop offset="28%" stop-color="#E8724A"/>
+    <stop offset="0%" stop-color="#38D8F0"/><stop offset="28%" stop-color="#00C8E8"/>
     <stop offset="56%" stop-color="#0891B2"/><stop offset="80%" stop-color="#0891B2"/>
-    <stop offset="100%" stop-color="#E8724A"/>
+    <stop offset="100%" stop-color="#00C8E8"/>
   </linearGradient>
   <radialGradient id="hf-g" cx="50%" cy="50%" r="60%">
-    <stop offset="0%" stop-color="#E8724A" stop-opacity="0.08"/>
+    <stop offset="0%" stop-color="#00C8E8" stop-opacity="0.08"/>
     <stop offset="100%" stop-color="#050709" stop-opacity="0"/>
   </radialGradient>
   <filter id="hf-go" x="-150%" y="-150%" width="400%" height="400%">
@@ -1088,12 +1088,12 @@ HEADER = """
 <rect x="5" y="5" width="90" height="90" rx="10.35" fill="url(#hf-g)"/>
 <rect x="8" y="44" width="84" height="12" rx="6" fill="#38BDF8" fill-opacity="0.05"/>
 <rect x="5" y="5" width="90" height="90" rx="10.35" fill="none" stroke="url(#hf-f)" stroke-width="1.75"/>
-<circle cx="50" cy="33.8" r="24" fill="#E8724A" fill-opacity="0.04"/>
-<circle cx="50" cy="33.8" r="17" fill="#E8724A" fill-opacity="0.07"/>
-<circle cx="50" cy="33.8" r="12" fill="#E8724A" fill-opacity="0.11"/>
-<circle cx="50" cy="33.8" r="8" fill="#E8724A" fill-opacity="0.18"/>
-<circle cx="50" cy="33.8" r="9.8" fill="#E8724A" filter="url(#hf-go)"/>
-<circle cx="50" cy="33.8" r="3.5" fill="#F0946E"/>
+<circle cx="50" cy="33.8" r="24" fill="#00C8E8" fill-opacity="0.04"/>
+<circle cx="50" cy="33.8" r="17" fill="#00C8E8" fill-opacity="0.07"/>
+<circle cx="50" cy="33.8" r="12" fill="#00C8E8" fill-opacity="0.11"/>
+<circle cx="50" cy="33.8" r="8" fill="#00C8E8" fill-opacity="0.18"/>
+<circle cx="50" cy="33.8" r="9.8" fill="#00C8E8" filter="url(#hf-go)"/>
+<circle cx="50" cy="33.8" r="3.5" fill="#38D8F0"/>
 <circle cx="50" cy="33.8" r="1.4" fill="white" fill-opacity="0.96"/>
 <line x1="50" y1="43.5" x2="50" y2="56.5" stroke="#0891B2" stroke-width="1.1" stroke-opacity="0.38"/>
 <polyline points="50,56.5 50,64.5 23,64.5 23,74.3" fill="none" stroke="#0891B2" stroke-width="0.9" stroke-opacity="0.34" stroke-linecap="square"/>
@@ -1101,7 +1101,7 @@ HEADER = """
 <rect x="20" y="72.3" width="6" height="6" fill="#0891B2" fill-opacity="0.48"/>
 <rect x="74" y="72.3" width="6" height="6" fill="#38BDF8" fill-opacity="0.48"/>
 </svg>
-      <span style="font-family:'Syne','DM Sans',sans-serif;font-size:17px;font-weight:700;letter-spacing:-.03em;color:#EBE7DE;line-height:1">GLASSBOX<span style="font-family:'DM Sans',sans-serif;font-size:8px;font-weight:300;letter-spacing:.45em;color:#E8724A;display:block;margin-top:2px;opacity:.88">AI</span></span>
+      <span style="font-family:'Syne','DM Sans',sans-serif;font-size:17px;font-weight:700;letter-spacing:-.03em;color:#EBE7DE;line-height:1">GLASSBOX<span style="font-family:'DM Sans',sans-serif;font-size:8px;font-weight:300;letter-spacing:.45em;color:#00C8E8;display:block;margin-top:2px;opacity:.88">AI</span></span>
     </div>
   </a>
   <div class="gb-nav-cx">
@@ -1246,9 +1246,9 @@ with gr.Blocks(
         input_border_color_dark="rgba(255,255,255,0.13)",
         input_placeholder_color="#52525b",
         input_placeholder_color_dark="#52525b",
-        button_primary_background_fill="#E8724A",
-        button_primary_background_fill_dark="#E8724A",
-        button_primary_background_fill_hover="#C45A30",
+        button_primary_background_fill="#00C8E8",
+        button_primary_background_fill_dark="#00C8E8",
+        button_primary_background_fill_hover="#009AB5",
         button_primary_text_color="#ffffff",
         button_primary_text_color_dark="#ffffff",
         button_secondary_background_fill="rgba(255,255,255,0.05)",
@@ -1256,8 +1256,8 @@ with gr.Blocks(
         button_secondary_text_color="#a1a1aa",
         shadow_drop="0 4px 24px rgba(0,0,0,0.6)",
         shadow_drop_lg="0 8px 40px rgba(0,0,0,0.8)",
-        color_accent_soft="rgba(217,119,87,0.15)",
-        color_accent_soft_dark="rgba(217,119,87,0.15)",
+        color_accent_soft="rgba(0,200,232,0.15)",
+        color_accent_soft_dark="rgba(0,200,232,0.15)",
     ),
 ) as demo:
     if _STARTUP_ERROR:
@@ -1395,7 +1395,7 @@ with gr.Blocks(
 .gb-ft-top { display:flex; align-items:flex-start; gap:40px; flex-wrap:wrap; margin-bottom:24px; }
 .gb-ft-brand { flex:2; min-width:200px; }
 .gb-ft-logo { display:flex; align-items:center; gap:8px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700; letter-spacing:-.02em; color:#fff; margin-bottom:8px; }
-.gb-ft-logo-mark { width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,#E8724A,#0891B2); display:flex; align-items:center; justify-content:center; }
+.gb-ft-logo-mark { width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,#00C8E8,#0891B2); display:flex; align-items:center; justify-content:center; }
 .gb-ft-logo-mark svg { width:11px; height:11px; }
 .gb-ft-tag { font-family:'DM Sans',sans-serif; font-size:13px; color:#52525b; line-height:1.6; max-width:260px; }
 .gb-ft-col { flex:1; min-width:120px; }
