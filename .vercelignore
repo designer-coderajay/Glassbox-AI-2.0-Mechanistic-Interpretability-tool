@@ -2,9 +2,9 @@
 # Without this, Vercel tries to build api/*.py as serverless functions,
 # fails (no requirements.txt for torch/FastAPI), and silently stops auto-deploys.
 #
-# api/*.js are Edge Functions (waitlist, health) — explicitly kept via negation.
-api/
-!api/*.js
+# IMPORTANT: Do NOT exclude the api/ directory as a whole — api/*.js are
+# Edge Functions (waitlist, health). Exclude only Python files inside api/.
+api/*.py
 mcp/
 glassbox/
 dashboard/
