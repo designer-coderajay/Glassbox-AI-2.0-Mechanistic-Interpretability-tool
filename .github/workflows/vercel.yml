@@ -8,15 +8,15 @@ name: Vercel Deployment Status
 #      the GitHub App posts so GitHub shows a definitive green checkmark.
 #
 # Contexts managed:
-#   "Vercel"                  — our primary status context
-#   "Vercel \u2013 project-gu05p" — GitHub App posts here; we overwrite it to
-#                               suppress spurious "Canceled" failures from
-#                               rapid successive pushes
+#   "Vercel"        — our primary status context
+#   "Vercel – repo" — GitHub App posts here; we overwrite it to suppress
+#                     spurious "Canceled" failures from rapid successive pushes
+#   "Vercel – project-gu05p" — legacy project; overwritten to suppress noise
 #
 # Required secrets (Settings → Secrets and variables → Actions):
 #   VERCEL_TOKEN      — Vercel personal access token
-#   VERCEL_ORG_ID     — Vercel team ID
-#   VERCEL_PROJECT_ID — Vercel project ID
+#   VERCEL_ORG_ID     — team_lKQMS6ZfVVe1y9KXXN7Kt6jJ
+#   VERCEL_PROJECT_ID — prj_mBTzpIpJOtgkdtrJvPJeUH09tXSB  (the "repo" project)
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -45,10 +45,10 @@ jobs:
               repo:  context.repo.repo,
               sha:   context.sha,
               state: 'pending',
-              target_url:  'https://project-gu05p.vercel.app',
+              target_url:  'https://repo-ashen-psi.vercel.app',
               description: 'Deploying to Vercel...',
             };
-            const contexts = ['Vercel', 'Vercel \u2013 project-gu05p'];
+            const contexts = ['Vercel', 'Vercel \u2013 repo', 'Vercel \u2013 project-gu05p'];
             for (const ctx of contexts) {
               await github.rest.repos.createCommitStatus({ ...base, context: ctx });
             }
@@ -65,7 +65,7 @@ jobs:
           MAX_WAIT=420
           INTERVAL=15
           ELAPSED=0
-          DEPLOY_URL="https://project-gu05p.vercel.app"
+          DEPLOY_URL="https://repo-ashen-psi.vercel.app"
           EXIT_CODE=0
           SHORT_SHA="${COMMIT_SHA:0:7}"
 
@@ -125,7 +125,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const url = '${{ steps.wait.outputs.deploy_url }}' || 'https://project-gu05p.vercel.app';
+            const url = '${{ steps.wait.outputs.deploy_url }}' || 'https://repo-ashen-psi.vercel.app';
             const base = {
               owner: context.repo.owner,
               repo:  context.repo.repo,
@@ -134,7 +134,7 @@ jobs:
               target_url:  url,
               description: 'Deployed to Vercel',
             };
-            const contexts = ['Vercel', 'Vercel \u2013 project-gu05p'];
+            const contexts = ['Vercel', 'Vercel \u2013 repo', 'Vercel \u2013 project-gu05p'];
             for (const ctx of contexts) {
               await github.rest.repos.createCommitStatus({ ...base, context: ctx });
             }
@@ -150,10 +150,10 @@ jobs:
               repo:  context.repo.repo,
               sha:   context.sha,
               state: 'failure',
-              target_url:  'https://vercel.com/designer-coderajays-projects/project-gu05p',
+              target_url:  'https://vercel.com/designer-coderajays-projects/repo',
               description: 'Vercel deploy failed',
             };
-            const contexts = ['Vercel', 'Vercel \u2013 project-gu05p'];
+            const contexts = ['Vercel', 'Vercel \u2013 repo', 'Vercel \u2013 project-gu05p'];
             for (const ctx of contexts) {
               await github.rest.repos.createCommitStatus({ ...base, context: ctx });
             }

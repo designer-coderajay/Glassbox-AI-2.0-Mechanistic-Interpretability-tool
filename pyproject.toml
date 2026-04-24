@@ -87,7 +87,7 @@ dependencies = [
 
 
 [project.urls]
-Homepage      = "https://project-gu05p.vercel.app"
+Homepage      = "https://repo-ashen-psi.vercel.app"
 Dashboard     = "https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
 Documentation = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool#readme"
 Repository    = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"

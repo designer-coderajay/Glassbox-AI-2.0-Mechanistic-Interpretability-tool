@@ -3,6 +3,7 @@ export const config = {
 };
 
 const ALLOWED_ORIGINS = [
+  'https://repo-ashen-psi.vercel.app',
   'https://project-gu05p.vercel.app',
   'https://glassbox-ai.vercel.app',
 ];
