@@ -1051,7 +1051,7 @@ HEADER = """
 <!-- Topbar -->
 <div class="gb-topbar">
   ⏱ <strong id="hf-cd-days">—</strong> days until EU AI Act enforcement (Aug 2, 2026) &mdash; Annex IV evidence packages, automated.
-  <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">GitHub &rarr;</a>
+  <a href="https://github.com/designer-coderajay/glassbox-mech" target="_blank">GitHub &rarr;</a>
 </div>
 <script>
 (function(){
@@ -1067,7 +1067,7 @@ HEADER = """
 
 <!-- Nav -->
 <nav class="gb-nav">
-  <a class="gb-nav-logo" href="https://project-gu05p.vercel.app/" target="_blank">
+  <a class="gb-nav-logo" href="https://repo-ashen-psi.vercel.app/" target="_blank">
     <div class="gb-nav-mark" style="display:flex;align-items:center;gap:9px">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" aria-hidden="true" style="display:block;flex-shrink:0">
 <defs>
@@ -1110,12 +1110,12 @@ HEADER = """
       <li><a href="#logit">Logit Lens</a></li>
       <li><a href="#attention">Attention</a></li>
       <li><a href="#compliance">Compliance</a></li>
-      <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">Docs</a></li>
+      <li><a href="https://github.com/designer-coderajay/glassbox-mech" target="_blank">Docs</a></li>
     </ul>
   </div>
   <div class="gb-nav-r">
     <a class="gb-nav-ghost" href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI</a>
-    <a class="gb-nav-cta" href="https://project-gu05p.vercel.app/" target="_blank">
+    <a class="gb-nav-cta" href="https://repo-ashen-psi.vercel.app/" target="_blank">
       Website
       <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 10L10 2M6 2h4v4"/></svg>
     </a>
@@ -1138,7 +1138,7 @@ HEADER = """
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M7 1v4M7 9v4M1 7h4M9 7h4"/><circle cx="7" cy="7" r="2"/></svg>
         pip install glassbox-mech-interp
       </a>
-      <a class="gb-hbtn-s" href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">
+      <a class="gb-hbtn-s" href="https://github.com/designer-coderajay/glassbox-mech" target="_blank">
         <svg fill="none" viewBox="0 0 15 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 1C3.91 1 1 3.91 1 7.5c0 2.87 1.86 5.3 4.44 6.16.32.06.44-.14.44-.31v-1.08c-1.8.39-2.18-.87-2.18-.87-.3-.75-.72-.95-.72-.95-.59-.4.04-.39.04-.39.65.04 1 .67 1 .67.58 1 1.53.71 1.9.54.06-.42.23-.71.41-.87-1.44-.16-2.95-.72-2.95-3.2 0-.71.25-1.29.67-1.74-.07-.17-.29-.82.06-1.72 0 0 .55-.18 1.8.67a6.27 6.27 0 013.26 0c1.25-.85 1.8-.67 1.8-.67.35.9.13 1.55.06 1.72.42.45.67 1.03.67 1.74 0 2.49-1.52 3.04-2.96 3.2.23.2.44.6.44 1.21v1.79c0 .17.12.37.44.31A6.5 6.5 0 0014 7.5C14 3.91 11.09 1 7.5 1z"/></svg>
         GitHub
       </a>
@@ -1199,7 +1199,7 @@ Enforcement starts **August 2026**. High-risk AI systems must explain decisions 
   author  = {Mahale, Ajay Pravin},
   title   = {Glassbox 4.2: Mechanistic Interpretability and EU AI Act Compliance Toolkit},
   year    = {2026},
-  url     = {https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool},
+  url     = {https://github.com/designer-coderajay/glassbox-mech},
   version = {4.2.6}
 }
 ```
@@ -1426,23 +1426,23 @@ with gr.Blocks(
     <div class="gb-ft-col">
       <div class="gb-ft-ctitle">Product</div>
       <ul>
-        <li><a href="https://project-gu05p.vercel.app/#features" target="_blank">Features</a></li>
-        <li><a href="https://project-gu05p.vercel.app/#pricing" target="_blank">Pricing</a></li>
-        <li><a href="https://project-gu05p.vercel.app/#coverage" target="_blank">EU AI Act</a></li>
+        <li><a href="https://repo-ashen-psi.vercel.app/#features" target="_blank">Features</a></li>
+        <li><a href="https://repo-ashen-psi.vercel.app/#pricing" target="_blank">Pricing</a></li>
+        <li><a href="https://repo-ashen-psi.vercel.app/#coverage" target="_blank">EU AI Act</a></li>
       </ul>
     </div>
     <div class="gb-ft-col">
       <div class="gb-ft-ctitle">Developers</div>
       <ul>
-        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">GitHub</a></li>
+        <li><a href="https://github.com/designer-coderajay/glassbox-mech" target="_blank">GitHub</a></li>
         <li><a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI</a></li>
-        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool#readme" target="_blank">Docs</a></li>
+        <li><a href="https://github.com/designer-coderajay/glassbox-mech#readme" target="_blank">Docs</a></li>
       </ul>
     </div>
     <div class="gb-ft-col">
       <div class="gb-ft-ctitle">Legal</div>
       <ul>
-        <li><a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/LICENSE" target="_blank">MIT License</a></li>
+        <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/LICENSE" target="_blank">MIT License</a></li>
         <li><a href="mailto:mahale.ajay01@gmail.com">Contact</a></li>
       </ul>
     </div>
@@ -1450,7 +1450,7 @@ with gr.Blocks(
   <div class="gb-ft-bot">
     <div class="gb-ft-copy">&copy; 2026 Glassbox AI &nbsp;&middot;&nbsp; Built on TransformerLens &nbsp;&middot;&nbsp; v4.2.6</div>
     <div class="gb-ft-legal">
-      <a href="https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/blob/main/LICENSE" target="_blank">MIT License</a>
+      <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/LICENSE" target="_blank">MIT License</a>
       <a href="mailto:mahale.ajay01@gmail.com">mahale.ajay01@gmail.com</a>
       <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank">EU AI Act (EU) 2024/1689</a>
     </div>

@@ -3,8 +3,8 @@ site_description: "Open-source circuit discovery, SAE feature attribution, and h
 site_author: "Ajay Pravin Mahale"
 site_url: "https://designer-coderajay.github.io/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/"
 
-repo_name: "designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
-repo_url: "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
+repo_name: "designer-coderajay/glassbox-mech"
+repo_url: "https://github.com/designer-coderajay/glassbox-mech"
 edit_uri: "blob/main/docs/"
 
 theme:

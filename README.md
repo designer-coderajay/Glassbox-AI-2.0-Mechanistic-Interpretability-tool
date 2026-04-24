@@ -15,11 +15,11 @@
 [![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](LICENSE-COMMERCIAL) [![Patents Pending](https://img.shields.io/badge/Patents-Pending-blue.svg)](PATENTS.md)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
-[![Website](https://img.shields.io/badge/Website-glassboxai.online-blue)](https://project-gu05p.vercel.app)
+[![Website](https://img.shields.io/badge/Website-glassbox--ai-blue)](https://repo-ashen-psi.vercel.app)
 [![arXiv](https://img.shields.io/badge/arXiv-2603.09988-b31b1b?logo=arxiv)](https://arxiv.org/abs/2603.09988)
 [![Tests](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml)
 
-[**Website**](https://project-gu05p.vercel.app) · [**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**GitHub**](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
+[**Website**](https://repo-ashen-psi.vercel.app) · [**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**GitHub**](https://github.com/designer-coderajay/glassbox-mech)
 
 </div>
 
@@ -76,7 +76,7 @@
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Website** | [project-gu05p.vercel.app](https://project-gu05p.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
+| **Website** | [repo-ashen-psi.vercel.app](https://repo-ashen-psi.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
 | **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
 | **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.2.6 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |

@@ -1,6 +1,6 @@
 # glassbox-mcp
 
-MCP server for [Glassbox](https://project-gu05p.vercel.app) — mechanistic interpretability + EU AI Act Annex IV compliance tools, exposed via the [Model Context Protocol](https://modelcontextprotocol.io).
+MCP server for [Glassbox](https://repo-ashen-psi.vercel.app) — mechanistic interpretability + EU AI Act Annex IV compliance tools, exposed via the [Model Context Protocol](https://modelcontextprotocol.io).
 
 Connect Claude (or any MCP-compatible client) to Glassbox with a single pip install. No cloning, no manual server setup.
 
@@ -62,5 +62,5 @@ Once connected, ask Claude things like:
 
 - Paper: [arXiv 2603.09988](https://arxiv.org/abs/2603.09988)
 - PyPI (core library): [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp)
-- Website: [project-gu05p.vercel.app](https://project-gu05p.vercel.app)
-- GitHub: [designer-coderajay/Glassbox-AI-2.0](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
+- Website: [repo-ashen-psi.vercel.app](https://repo-ashen-psi.vercel.app)
+- GitHub: [designer-coderajay/glassbox-mech](https://github.com/designer-coderajay/glassbox-mech)

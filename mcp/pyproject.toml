@@ -37,9 +37,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage    = "https://project-gu05p.vercel.app"
-Repository  = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
-"Bug Tracker" = "https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues"
+Homepage    = "https://repo-ashen-psi.vercel.app"
+Repository  = "https://github.com/designer-coderajay/glassbox-mech"
+"Bug Tracker" = "https://github.com/designer-coderajay/glassbox-mech/issues"
 PyPI        = "https://pypi.org/project/glassbox-mcp"
 Paper       = "https://arxiv.org/abs/2603.09988"
 

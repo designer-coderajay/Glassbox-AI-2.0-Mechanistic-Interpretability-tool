@@ -253,7 +253,7 @@ def create_app() -> "FastAPI":
     # Add CORS middleware for Vercel and local development
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["https://project-gu05p.vercel.app", "http://localhost:3000", "*"],
+        allow_origins=["https://repo-ashen-psi.vercel.app", "https://project-gu05p.vercel.app", "http://localhost:3000", "*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
