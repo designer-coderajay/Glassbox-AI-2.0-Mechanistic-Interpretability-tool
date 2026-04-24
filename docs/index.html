@@ -59,6 +59,10 @@ h1,h2,h3,h4{font-family:var(--display);line-height:1.12;letter-spacing:-.03em}
 .reveal-delay-3{transition-delay:.24s}.reveal-delay-4{transition-delay:.32s}
 .reveal-delay-5{transition-delay:.40s}.reveal-delay-6{transition-delay:.48s}
 
+/* ─── TOPBAR/NAV OFFSET (JS-driven, adapts to any topbar height) */
+:root{--topbar-h:40px}
+html{scroll-padding-top:calc(var(--topbar-h) + 64px)}
+
 /* ─── BACKGROUND MESH ────────────────────────────────────────── */
 .bg-mesh{
   position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -77,10 +81,10 @@ h1,h2,h3,h4{font-family:var(--display);line-height:1.12;letter-spacing:-.03em}
 
 /* ─── NAV ────────────────────────────────────────────────────── */
 nav{
-  position:fixed;top:0;left:0;right:0;z-index:200;
+  position:fixed;top:var(--topbar-h);left:0;right:0;z-index:200;
   display:flex;align-items:center;justify-content:space-between;
   padding:0 clamp(20px,4vw,56px);height:64px;
-  transition:background .3s,border-color .3s,backdrop-filter .3s;
+  transition:background .3s,border-color .3s,backdrop-filter .3s,top .15s;
 }
 nav.scrolled{
   background:rgba(5,7,9,.80);backdrop-filter:blur(20px);
@@ -112,7 +116,7 @@ nav.scrolled{
 .nav-ham.open span:nth-child(2){opacity:0}
 .nav-ham.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 .nav-mob{
-  display:none;position:fixed;top:64px;left:0;right:0;z-index:199;
+  display:none;position:fixed;top:calc(var(--topbar-h) + 64px);left:0;right:0;z-index:199;
   background:rgba(5,7,9,.97);backdrop-filter:blur(24px);
   border-bottom:1px solid var(--bd);padding:24px clamp(20px,4vw,56px) 32px;
 }
@@ -124,7 +128,7 @@ nav.scrolled{
 /* ─── HERO ───────────────────────────────────────────────────── */
 .hero-wrap{
   position:relative;min-height:100vh;display:flex;align-items:center;
-  padding:120px clamp(20px,4vw,56px) 80px;
+  padding:calc(var(--topbar-h) + 96px) clamp(20px,4vw,56px) 80px;
 }
 .hero-inner{
   max-width:1160px;width:100%;margin:0 auto;
@@ -594,7 +598,7 @@ footer{border-top:1px solid var(--bd);padding:72px 0 48px}
   background:rgba(0,200,232,.08);border-bottom:1px solid rgba(0,200,232,.15);
   padding:10px clamp(20px,4vw,56px);display:flex;align-items:center;justify-content:center;
   gap:8px;font-family:var(--mono);font-size:12px;color:var(--indigo);
-  position:relative;z-index:201;
+  position:fixed;top:0;left:0;right:0;z-index:202;
 }
 .topbar strong{color:var(--t1)}
 .topbar a{color:var(--indigo-l);text-decoration:underline;text-underline-offset:2px}
@@ -790,12 +794,12 @@ footer{border-top:1px solid var(--bd);padding:72px 0 48px}
 <div class="proof">
   <div class="proof-in">
     <div class="proof-item reveal">
-      <div class="proof-num" data-target="2847" data-suffix="">—</div>
-      <div class="proof-lbl">PyPI installs<br>this month</div>
+      <div class="proof-num" data-target="37" data-suffix="×">—</div>
+      <div class="proof-lbl">Faster than ACDC<br><span style="font-size:11px;opacity:.6">(Conmy et al. 2023)</span></div>
     </div>
     <div class="proof-item reveal reveal-delay-1">
-      <div class="proof-num" data-target="94" data-suffix="">—</div>
-      <div class="proof-lbl">GitHub<br>stars</div>
+      <div class="proof-num" data-target="9" data-suffix="">—</div>
+      <div class="proof-lbl">Annex IV sections<br>automated</div>
     </div>
     <div class="proof-item reveal reveal-delay-2">
       <div class="proof-num" data-target="100" data-suffix="%">—</div>
@@ -1275,6 +1279,15 @@ function updateCountdown(){
 }
 updateCountdown(); setInterval(updateCountdown,1000);
 
+/* ─── TOPBAR HEIGHT → CSS CUSTOM PROPERTY ─────────────────────── */
+const topbarEl = document.querySelector('.topbar');
+function syncTopbarH(){
+  const h = topbarEl ? topbarEl.getBoundingClientRect().height : 40;
+  document.documentElement.style.setProperty('--topbar-h', Math.round(h) + 'px');
+}
+syncTopbarH();
+window.addEventListener('resize', syncTopbarH, {passive:true});
+
 /* ─── NAV ────────────────────────────────────────────────────── */
 const nav = document.getElementById('nav');
 window.addEventListener('scroll',()=>{ nav.classList.toggle('scrolled', window.scrollY > 20); }, {passive:true});
@@ -1320,11 +1333,14 @@ document.querySelectorAll('[data-target]').forEach(el=>proofObs.observe(el));
 const LINES = [
   {text:'$ pip install glassbox-mech-interp', cls:'cmd', pause:600},
   {text:'Collecting glassbox-mech-interp...', cls:'dim', pause:200},
-  {text:'Installing glassbox-mech-interp v2.0.0 ✓', cls:'ok', pause:500},
+  {text:'Installing glassbox-mech-interp v4.2.6 ✓', cls:'ok', pause:500},
   {text:'', cls:'out', pause:100},
-  {text:'>>> import glassbox', cls:'cmd', pause:300},
-  {text:'>>> model = load_model("llama-3-8b")', cls:'cmd', pause:300},
-  {text:'>>> audit = glassbox.audit(model)', cls:'cmd', pause:800},
+  {text:'>>> from glassbox import GlassboxAuditor', cls:'cmd', pause:300},
+  {text:'>>> auditor = GlassboxAuditor("gpt2")', cls:'cmd', pause:300},
+  {text:'>>> result = auditor.audit(', cls:'cmd', pause:200},
+  {text:'...   decision_prompt="Loan for {name}?",', cls:'dim', pause:200},
+  {text:'...   expected_positive=" approved",', cls:'dim', pause:200},
+  {text:'...   expected_negative=" denied")', cls:'dim', pause:800},
   {text:'Tracing attention circuits...', cls:'dim', pause:1200},
   {text:'', cls:'out', pause:80},
   {text:'✓ Art. 11 technical documentation   [PASS]', cls:'ok', pause:180},

@@ -37,7 +37,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install huggingface_hub
-        run: pip install "huggingface_hub>=0.22.0" --quiet
+        # Pin <0.26.0: HfFolder was removed in 0.26.0, breaking gradio 4.x oauth.
+        # Until the Space upgrades to gradio 5.x, keep hub pinned here AND in Space requirements.
+        run: pip install "huggingface_hub>=0.22.0,<0.26.0" --quiet
 
       - name: Check HF_TOKEN availability
         id: token-check
@@ -64,6 +66,8 @@ jobs:
 
           cat > hf_payload/requirements.txt << 'REQS'
           gradio>=4.43.0,<5.0
+          # Pin huggingface_hub: HfFolder removed in >=0.26.0, breaking gradio 4.x oauth.py
+          huggingface_hub>=0.22.0,<0.26.0
           numpy>=1.24.0
           scipy>=1.9.0
           matplotlib>=3.7.0
@@ -98,7 +102,7 @@ jobs:
 
           **pip install:** \`pip install glassbox-mech-interp\`
 
-          **Website:** https://project-gu05p.vercel.app
+          **Website:** https://repo-ashen-psi.vercel.app
 
           **GitHub:** https://github.com/designer-coderajay/glassbox-mech
           RDME
