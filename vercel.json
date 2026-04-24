@@ -7,16 +7,6 @@
   "github": {
     "silent": true
   },
-  "rewrites": [
-    {
-      "source": "/api/waitlist",
-      "destination": "/api/waitlist.js"
-    },
-    {
-      "source": "/api/health",
-      "destination": "/api/health.js"
-    }
-  ],
   "headers": [
     {
       "source": "/api/(.*)",
@@ -31,11 +21,7 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
+          "value": "Content-Type"
         }
       ]
     },
@@ -45,10 +31,6 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
         },
         {
           "key": "Referrer-Policy",
