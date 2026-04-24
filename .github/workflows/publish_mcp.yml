@@ -61,7 +61,7 @@ jobs:
     #   3. Fill in:
     #        PyPI project name:   glassbox-mcp
     #        Owner:               designer-coderajay
-    #        Repository name:     Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+    #        Repository name:     glassbox-mech
     #        Workflow name:       publish_mcp.yml
     #        Environment name:    pypi
     #   4. Save — that's it. No token needed ever again.
