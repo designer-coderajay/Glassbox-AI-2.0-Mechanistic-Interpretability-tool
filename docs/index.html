@@ -405,7 +405,7 @@ nav.scrolled{
 .demo-frame{
   width:100%;height:600px;border:1px solid var(--bd);border-radius:var(--r3);
   overflow:hidden;background:var(--bg1);margin-top:48px;
-  box-shadow:var(--glow);
+  box-shadow:var(--glow);position:relative;
 }
 .demo-frame iframe{width:100%;height:100%;border:none}
 .demo-fallback{
@@ -413,6 +413,29 @@ nav.scrolled{
   height:100%;gap:16px;text-align:center;padding:40px;
 }
 .demo-fallback p{color:var(--t3);font-size:15px}
+.demo-poster{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;cursor:pointer;padding:48px;text-align:center;position:relative;
+  transition:background .3s;
+}
+.demo-poster:hover{background:rgba(0,200,232,.03)}
+.demo-poster-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(0,200,232,.07),transparent 70%);
+  pointer-events:none;
+}
+.demo-poster-title{font-size:22px;font-weight:600;color:var(--t1);font-family:var(--display)}
+.demo-poster-sub{font-size:14px;color:var(--t3);margin-top:6px;font-family:var(--mono)}
+.demo-launch-btn{display:inline-flex;align-items:center;gap:8px;margin-top:24px}
+.demo-loading{
+  display:flex;align-items:center;justify-content:center;
+  height:100%;color:var(--t3);font-size:14px;gap:12px;
+}
+.demo-loading::before{
+  content:'';width:18px;height:18px;border:2px solid rgba(0,200,232,.3);
+  border-top-color:var(--indigo);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
 
 /* ─── PRICING ────────────────────────────────────────────────── */
 .pricing-grid{
@@ -947,17 +970,39 @@ footer{border-top:1px solid var(--bd);padding:72px 0 48px}
     <span class="sec-tag reveal">Live Demo</span>
     <h2 class="sec-h reveal reveal-delay-1">Try it now.</h2>
     <p class="sec-sub reveal reveal-delay-2">Run Glassbox on a real model in your browser. No sign-up, no credit card.</p>
-    <div class="demo-frame reveal reveal-delay-3">
-      <iframe
-        src="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool"
-        title="Glassbox AI Live Demo"
-        loading="lazy"
-        allow="accelerometer; camera; microphone"
-        onerror="this.parentNode.innerHTML='<div class=demo-fallback><p>Demo unavailable inline — open directly</p><a href=\'https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool\' class=btn-primary target=_blank>Open full demo →</a></div>'"
-      ></iframe>
+    <!-- Click-to-load iframe — avoids showing HF "sleeping" state on page load -->
+    <div class="demo-frame reveal reveal-delay-3" id="demo-container">
+      <div class="demo-poster" id="demo-poster" onclick="loadHfDemo()">
+        <!-- Animated pulse bg -->
+        <div class="demo-poster-bg"></div>
+        <!-- Glass box icon -->
+        <svg width="72" height="72" viewBox="0 0 100 100" style="position:relative;z-index:1;margin-bottom:20px;filter:drop-shadow(0 0 24px rgba(0,200,232,.45))">
+          <polygon points="50,19.69 85,34.85 50,50 15,34.85" fill="#00C8E8" fill-opacity="0.08"/>
+          <polygon points="85,34.85 85,65.15 50,80.31 50,50" fill="#00C8E8" fill-opacity="0.14"/>
+          <polygon points="15,34.85 50,50 50,80.31 15,65.15" fill="#00C8E8" fill-opacity="0.05"/>
+          <polygon points="50,19.69 85,34.85 85,65.15 50,80.31 15,65.15 15,34.85" fill="none" stroke="#00C8E8" stroke-width="2.4"/>
+          <line x1="50" y1="50" x2="50" y2="19.69" stroke="#00C8E8" stroke-width="1.6" stroke-opacity="0.82"/>
+          <line x1="50" y1="50" x2="85" y2="65.15" stroke="#00C8E8" stroke-width="1.6" stroke-opacity="0.82"/>
+          <line x1="50" y1="50" x2="15" y2="65.15" stroke="#00C8E8" stroke-width="1.6" stroke-opacity="0.82"/>
+          <circle cx="79.75" cy="45.60" r="1.5" fill="#00C8E8"/>
+          <circle cx="79.75" cy="58.94" r="1.5" fill="#00C8E8"/>
+          <circle cx="67.5" cy="47.88" r="1.9" fill="#00C8E8"/>
+          <circle cx="67.5" cy="57.58" r="1.5" fill="#00C8E8"/>
+          <circle cx="67.5" cy="67.27" r="1.5" fill="#00C8E8"/>
+          <circle cx="56.3" cy="55.75" r="1.5" fill="#00C8E8"/>
+          <circle cx="56.3" cy="69.10" r="1.5" fill="#00C8E8"/>
+        </svg>
+        <p class="demo-poster-title" style="position:relative;z-index:1">Glassbox AI — Interactive Demo</p>
+        <p class="demo-poster-sub" style="position:relative;z-index:1">GPT-2 circuit analysis · SAE tracing · Annex IV generation</p>
+        <button class="btn-primary demo-launch-btn" style="position:relative;z-index:1;margin-top:8px">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><polygon points="6,5 12,8 6,11" fill="currentColor" stroke="none"/></svg>
+          Launch demo
+        </button>
+        <p style="position:relative;z-index:1;margin-top:12px;font-size:12px;color:var(--t4)">Hosted on HuggingFace Spaces · may take ~30s to wake up</p>
+      </div>
     </div>
     <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--t4)">
-      Can't see the embed? <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank" style="color:var(--indigo)">Open full demo →</a>
+      Prefer full screen? <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank" rel="noopener" style="color:var(--indigo)">Open in new tab →</a>
     </p>
   </div>
 </section>
@@ -1322,6 +1367,24 @@ const termObs = new IntersectionObserver((entries)=>{
   if(entries[0].isIntersecting && !isTyping){ isTyping=true; typeChar(); termObs.disconnect(); }
 },{threshold:0.3});
 termObs.observe(termEl);
+
+/* ─── HF DEMO LOADER ─────────────────────────────────────────── */
+function loadHfDemo(){
+  const container = document.getElementById('demo-container');
+  const hfUrl = 'https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool';
+  // Show loading state
+  container.innerHTML = '<div class="demo-loading">Waking up demo space&hellip;</div>';
+  // Load iframe
+  setTimeout(()=>{
+    const iframe = document.createElement('iframe');
+    iframe.src = hfUrl;
+    iframe.title = 'Glassbox AI Live Demo';
+    iframe.allow = 'accelerometer; camera; microphone';
+    iframe.style.cssText = 'width:100%;height:100%;border:none';
+    container.innerHTML = '';
+    container.appendChild(iframe);
+  }, 400);
+}
 
 /* ─── COPY BUTTON ────────────────────────────────────────────── */
 function copyPip(btn, codeId){
