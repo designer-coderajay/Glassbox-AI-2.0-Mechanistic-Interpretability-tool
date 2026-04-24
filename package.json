@@ -1,0 +1,10 @@
+{
+  "name": "glassbox-ai-site",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Glassbox AI — EU AI Act compliance automation site",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  }
+}
