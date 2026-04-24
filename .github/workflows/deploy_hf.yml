@@ -100,7 +100,7 @@ jobs:
 
           **Website:** https://project-gu05p.vercel.app
 
-          **GitHub:** https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+          **GitHub:** https://github.com/designer-coderajay/glassbox-mech
           RDME
 
           echo "Payload built — files:"
