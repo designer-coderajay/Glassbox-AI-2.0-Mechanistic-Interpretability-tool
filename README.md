@@ -9,15 +9,15 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/glassbox-mech-interp?color=blue)](https://pypi.org/project/glassbox-mech-interp/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/glassbox-mech-interp?color=blue&label=downloads%2Fmonth)](https://pypistats.org/packages/glassbox-mech-interp)
-[![GitHub last commit](https://img.shields.io/github/last-commit/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool?color=green)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/commits/main)
-[![GitHub issues](https://img.shields.io/github/issues/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/designer-coderajay/glassbox-mech?color=green)](https://github.com/designer-coderajay/glassbox-mech/commits/main)
+[![GitHub issues](https://img.shields.io/github/issues/designer-coderajay/glassbox-mech)](https://github.com/designer-coderajay/glassbox-mech/issues)
 [![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
 [![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](LICENSE-COMMERCIAL) [![Patents Pending](https://img.shields.io/badge/Patents-Pending-blue.svg)](PATENTS.md)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
 [![Website](https://img.shields.io/badge/Website-glassbox--ai-blue)](https://repo-ashen-psi.vercel.app)
 [![arXiv](https://img.shields.io/badge/arXiv-2603.09988-b31b1b?logo=arxiv)](https://arxiv.org/abs/2603.09988)
-[![Tests](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool/actions/workflows/tests.yml)
+[![Tests](https://github.com/designer-coderajay/glassbox-mech/actions/workflows/tests.yml/badge.svg)](https://github.com/designer-coderajay/glassbox-mech/actions/workflows/tests.yml)
 
 [**Website**](https://repo-ashen-psi.vercel.app) · [**Live Demo**](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) · [**Paper**](https://arxiv.org/abs/2603.09988) · [**PyPI**](https://pypi.org/project/glassbox-mech-interp/) · [**GitHub**](https://github.com/designer-coderajay/glassbox-mech)
 
@@ -1483,8 +1483,8 @@ pip install "glassbox-mech-interp[sae]"
 pip install "glassbox-mech-interp[api]"
 
 # Full development install
-git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
-cd Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+git clone https://github.com/designer-coderajay/glassbox-mech
+cd glassbox-mech
 pip install -e ".[dev]"
 ```
 
@@ -1509,8 +1509,8 @@ Two dashboard options:
 
 ```bash
 pip install glassbox-mech-interp gradio matplotlib
-git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
-cd Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+git clone https://github.com/designer-coderajay/glassbox-mech
+cd glassbox-mech
 python dashboard/app.py
 # Opens Gradio at http://localhost:7860
 # Tabs: Circuit Analysis · Logit Lens · Attention Patterns
@@ -1527,8 +1527,8 @@ Run the full Glassbox stack on your own infrastructure. **No data leaves your en
 ### Quick start — single container
 
 ```bash
-git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
-cd Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+git clone https://github.com/designer-coderajay/glassbox-mech
+cd glassbox-mech
 
 # API only
 docker build --target api -t glassbox-api:4.1.0 .
@@ -1589,7 +1589,7 @@ docker run -p 8000:8000 \
 
 One-click deploy to Railway (always-on, no sleep):
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/designer-coderajay/glassbox-mech)
 
 ---
 
@@ -1894,7 +1894,7 @@ If you use Glassbox 2.0 in your research, please cite:
   title     = {Glassbox: A Causal Mechanistic Interpretability Toolkit with Circuit Alignment Scoring},
   year      = {2026},
   publisher = {GitHub},
-  url       = {https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool},
+  url       = {https://github.com/designer-coderajay/glassbox-mech},
   note      = {arXiv:2603.09988}
 }
 ```
@@ -2025,7 +2025,7 @@ For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 - **Contact for data inquiries:** [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com)
 - **Responsible person (§5 TMG / Impressum):** Ajay Pravin Mahale, student, Germany. Contact: mahale.ajay01@gmail.com
 
-**Trademark notice.** "Glassbox AI" and the full project name "Glassbox-AI-2.0-Mechanistic-Interpretability-tool" are used as academic project identifiers only. The unrelated commercial company Glassbox Ltd (digital customer experience analytics) may hold trademark registrations for "Glassbox" in certain jurisdictions. This academic project has no affiliation with, and makes no claim against, any trademarks held by Glassbox Ltd or any affiliated entities. If you are Glassbox Ltd and have a trademark concern, please contact [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com) before taking legal action.
+**Trademark notice.** "Glassbox AI" and the project repository "glassbox-mech" are used as academic project identifiers only. The unrelated commercial company Glassbox Ltd (digital customer experience analytics) may hold trademark registrations for "Glassbox" in certain jurisdictions. This academic project has no affiliation with, and makes no claim against, any trademarks held by Glassbox Ltd or any affiliated entities. If you are Glassbox Ltd and have a trademark concern, please contact [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com) before taking legal action.
 
 ---
 

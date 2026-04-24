@@ -383,7 +383,7 @@ class HuggingFaceModelCard:
         section = textwrap.dedent(f"""
             {_COMPLIANCE_SECTION_HEADER}
 
-            This model has been audited using [Glassbox AI](https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) v4.2.6
+            This model has been audited using [Glassbox AI](https://github.com/designer-coderajay/glassbox-mech) v4.2.6
             for mechanistic interpretability and EU AI Act Annex IV compliance.
 
             | Metric | Value |

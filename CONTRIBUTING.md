@@ -18,8 +18,8 @@ integrity matter more than feature count. A few principles:
 ## Development setup
 
 ```bash
-git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
-cd Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+git clone https://github.com/designer-coderajay/glassbox-mech
+cd glassbox-mech
 pip install -e ".[dev]"
 ```
 

@@ -850,4 +850,4 @@ by Glassbox maps to a specific EU AI Act provision.
 
 ---
 
-*This document is maintained by Ajay Pravin Mahale. For corrections or additions, open an issue at https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool.*
+*This document is maintained by Ajay Pravin Mahale. For corrections or additions, open an issue at https://github.com/designer-coderajay/glassbox-mech.*

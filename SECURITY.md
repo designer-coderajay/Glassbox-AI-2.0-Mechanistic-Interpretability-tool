@@ -23,7 +23,7 @@ Glassbox never stores, logs, or retains your model provider API keys.
 For production compliance audits, run Glassbox locally. Your keys never leave your infrastructure:
 
 ```bash
-git clone https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool
+git clone https://github.com/designer-coderajay/glassbox-mech
 docker build -t glassbox .
 docker run -p 8000:8000 glassbox
 ```

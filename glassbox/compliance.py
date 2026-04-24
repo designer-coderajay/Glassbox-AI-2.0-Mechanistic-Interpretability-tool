@@ -643,7 +643,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
   author  = {{Mahale, Ajay Pravin}},
   title   = {{Glassbox: A Causal Mechanistic Interpretability Toolkit with Circuit Alignment Scoring}},
   year    = {{2026}},
-  url     = {{https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool}},
+  url     = {{https://github.com/designer-coderajay/glassbox-mech}},
   note    = {{arXiv:2603.09988}}
 }}
 ```
@@ -1517,7 +1517,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         ))
         story.append(Spacer(1, 4))
         story.append(Paragraph(
-            "Source code: https://github.com/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool | "
+            "Source code: https://github.com/designer-coderajay/glassbox-mech | "
             "PyPI: pip install glassbox-mech-interp",
             styles["legal_ref"],
         ))
