@@ -7,7 +7,50 @@
   "github": {
     "silent": true
   },
+  "functions": {
+    "api/waitlist.js": {
+      "runtime": "edge"
+    },
+    "api/health.js": {
+      "runtime": "edge"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/waitlist",
+      "dest": "/api/waitlist.js"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/api/health.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js"
+    }
+  ],
   "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://project-gu05p.vercel.app"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
