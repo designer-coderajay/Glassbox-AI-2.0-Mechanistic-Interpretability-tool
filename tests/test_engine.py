@@ -19,6 +19,16 @@ pytestmark = pytest.mark.slow
 # ---------------------------------------------------------------------------
 @pytest.fixture(scope="module")
 def engine():
+    # Skip when transformer_lens is a MagicMock stub rather than the real package.
+    # conftest.py injects stubs into sys.modules when the package is absent;
+    # those stubs have no __file__ attribute, which is a reliable sentinel.
+    # We cannot use importlib.util.find_spec() here because the stub's missing
+    # __spec__ causes find_spec to raise ValueError.
+    import sys
+    tl = sys.modules.get("transformer_lens")
+    if tl is None or not hasattr(tl, "__file__"):
+        pytest.skip("transformer_lens not installed — slow model tests skipped")
+
     from transformer_lens import HookedTransformer
     from glassbox import GlassboxV2
     model = HookedTransformer.from_pretrained("gpt2")
@@ -1005,6 +1015,22 @@ class TestNegativeInputs:
 # ===========================================================================
 # TestCLI — smoke tests for glassbox-ai CLI subcommands
 # ===========================================================================
+
+@pytest.fixture(autouse=True, scope="class")
+def _require_torch_for_cli(request):
+    """Skip all TestCLI tests when torch is a MagicMock stub.
+
+    `python3 -m glassbox.cli` imports the full glassbox package at startup
+    (before main() is even called), which triggers `import torch` in core.py.
+    Without real torch installed, the subprocess crashes before executing any
+    sub-command.  These tests are meaningful only in a full dev environment.
+    """
+    import sys
+    if request.cls is TestCLI:
+        torch_mod = sys.modules.get("torch")
+        if torch_mod is None or not hasattr(torch_mod, "__file__"):
+            pytest.skip("torch not installed — CLI subprocess tests skipped")
+
 
 class TestCLI:
     """

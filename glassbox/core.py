@@ -439,6 +439,21 @@ class GlassboxV2:
                 ],
             )
 
+        # Guard: if hooks were never called (e.g. mocked model in unit tests),
+        # fail with a descriptive message rather than a confusing KeyError later.
+        missing = [
+            f"blocks.{l}.attn.hook_z"
+            for l in range(n_layers)
+            if f"blocks.{l}.attn.hook_z" not in clean_cache
+        ]
+        if missing:
+            raise RuntimeError(
+                f"attribution_patching: clean-pass hooks did not fire for "
+                f"{len(missing)}/{n_layers} layers (first: {missing[0]!r}). "
+                "Verify that model.run_with_hooks() is a real TransformerLens "
+                "HookedTransformer, not a mock."
+            )
+
         # ── Pass 2: cache corrupted activations (no grad) ─────────────────
         corr_cache: Dict[str, torch.Tensor] = {}
 

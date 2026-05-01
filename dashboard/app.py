@@ -16,6 +16,7 @@ v3.7.0: MultiCorruptionPipeline (4 strategies), SampleSizeGate, HeldOutValidator
 v3.4.0: MultiAgentAudit, SteeringVectorExporter, AnnexIVEvidenceVault
 """
 
+import ast
 import io
 
 # ── gradio_client boolean-schema compatibility fix ────────────────────────────
@@ -101,7 +102,7 @@ def _fig_to_pil(fig: plt.Figure) -> Image.Image:
 def _attribution_heatmap(attrs: dict, circuit: list, n_layers=12, n_heads=12) -> Image.Image:
     grid = np.zeros((n_layers, n_heads))
     for k, v in attrs.items():
-        l, h = eval(k)
+        l, h = k if isinstance(k, tuple) else ast.literal_eval(k)
         grid[l, h] = v
     vmax = max(abs(grid.min()), grid.max(), 0.01)
     fig, ax = plt.subplots(figsize=(10, 7), facecolor="#07080d")
