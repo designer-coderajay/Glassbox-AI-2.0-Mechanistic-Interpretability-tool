@@ -3,1521 +3,671 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="description" content="Glassbox AI maps your LLM's attention circuits to EU AI Act Annex IV requirements. One function call. Complete evidence package. August 2026 ready.">
-<meta property="og:title" content="Glassbox AI — EU AI Act Compliance, Automated">
-<meta property="og:description" content="One pip install. Complete Annex IV evidence package. Ship before August 2026.">
+<meta name="description" content="Glassbox AI generates EU AI Act Annex IV compliance documentation from your model's internal circuits. One function call. Any prompt. Any model.">
+<meta property="og:title" content="Glassbox AI — The compliance layer for production AI">
+<meta property="og:description" content="One function call generates a regulator-ready Annex IV evidence package from your model's internal circuits. August 2026 deadline.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://repo-ashen-psi.vercel.app">
 <meta property="og:image" content="https://repo-ashen-psi.vercel.app/glassbox-brand.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://repo-ashen-psi.vercel.app/glassbox-brand.png">
-<meta name="twitter:title" content="Glassbox AI — EU AI Act Compliance, Automated">
-<meta name="twitter:description" content="Map your LLM's attention circuits to Annex IV in one function call. 100% sufficiency · 61.4% circuit coverage.">
-<title>Glassbox AI — EU AI Act Compliance, Automated</title>
+<meta name="twitter:title" content="Glassbox AI — The compliance layer for production AI">
+<meta name="twitter:description" content="One function call generates Annex IV documentation. Open source. 1,500+ monthly installs.">
+<title>Glassbox AI — The compliance layer for production AI</title>
 <link rel="canonical" href="https://repo-ashen-psi.vercel.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ─── DESIGN TOKENS ───────────────────────────────────────────── */
 :root{
-  --bg:#050709;--bg1:#080b0f;--bg2:#0d1117;--sf:#111820;
-  --bd:rgba(0,200,232,.10);--bd2:rgba(255,255,255,.07);--bd3:rgba(255,255,255,.04);
-  --indigo:#00C8E8;--indigo-d:#009AB5;--indigo-l:#38D8F0;--sky:#38BDF8;
-  --t1:#EBE7DE;--t2:rgba(235,231,222,.72);--t3:rgba(235,231,222,.44);--t4:rgba(235,231,222,.20);
-  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;
-  --r:8px;--r2:12px;--r3:20px;
-  --glow:0 0 40px rgba(0,200,232,.18),0 0 80px rgba(0,200,232,.06);
+  --bg:#0a0a0c;--bg1:#111114;--bg2:#16161a;
+  --bd:#1e1e26;--bd2:rgba(255,255,255,.05);
+  --t1:#f0ede6;--t2:#9a9a9f;--t3:#5a5a62;--tinv:#0a0a0c;
+  --ac:#00C8E8;--acd:#0099b2;--acbg:rgba(0,200,232,.08);
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'Inter',-apple-system,sans-serif;
+  --mono:'JetBrains Mono','Fira Code',monospace;
+  --sec:clamp(80px,10vw,140px);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
 body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:16px;line-height:1.6;overflow-x:hidden}
-a{color:inherit;text-decoration:none}img,svg{display:block}
+a{color:inherit;text-decoration:none}
+img,svg{display:block}
 button{font-family:inherit;cursor:pointer;border:none;background:none}
 
-/* ─── TYPOGRAPHY ─────────────────────────────────────────────── */
-h1,h2,h3,h4{font-family:var(--display);line-height:1.12;letter-spacing:-.03em}
+.wrap{max-width:1160px;margin:0 auto;padding:0 clamp(20px,5vw,60px)}
+.sec{padding:var(--sec) 0}
+hr.div{border:none;border-top:1px solid var(--bd)}
+
+/* typography */
+.display{font-family:var(--serif);font-size:clamp(40px,6vw,76px);line-height:1.08;letter-spacing:-.02em}
+.headline{font-family:var(--serif);font-size:clamp(26px,3.5vw,44px);line-height:1.12;letter-spacing:-.015em}
+.subhead{font-size:clamp(15px,1.5vw,17px);color:var(--t2);line-height:1.7;max-width:540px}
+.label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
 .mono{font-family:var(--mono)}
 
-/* ─── LAYOUT ─────────────────────────────────────────────────── */
-.wrap{max-width:1160px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
-.sec{padding:100px 0}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:6px;font-size:14px;font-weight:500;transition:all .15s ease;white-space:nowrap}
+.btn-p{background:var(--t1);color:var(--tinv)}.btn-p:hover{background:#fff}
+.btn-g{border:1px solid var(--bd);color:var(--t2)}.btn-g:hover{border-color:rgba(255,255,255,.2);color:var(--t1)}
+.btn-a{background:var(--ac);color:#000;font-weight:600}.btn-a:hover{background:#22d9f5}
 
-/* ─── ANIMATIONS ─────────────────────────────────────────────── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,200,232,.4)}70%{opacity:.8;box-shadow:0 0 0 8px rgba(0,200,232,0)}}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes scanmove{0%{transform:translateY(0%)}100%{transform:translateY(3000%)}}
-@keyframes hexspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes glow-pulse{0%,100%{filter:drop-shadow(0 0 6px #00C8E8)}50%{filter:drop-shadow(0 0 18px #00C8E8)}}
-@keyframes countup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
-.reveal{opacity:0;transform:translateY(32px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+/* reveal */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .55s cubic-bezier(.16,1,.3,1),transform .55s cubic-bezier(.16,1,.3,1)}
 .reveal.in{opacity:1;transform:translateY(0)}
-.reveal-delay-1{transition-delay:.08s}.reveal-delay-2{transition-delay:.16s}
-.reveal-delay-3{transition-delay:.24s}.reveal-delay-4{transition-delay:.32s}
-.reveal-delay-5{transition-delay:.40s}.reveal-delay-6{transition-delay:.48s}
+.r1{transition-delay:.06s}.r2{transition-delay:.12s}.r3{transition-delay:.18s}
+.r4{transition-delay:.24s}.r5{transition-delay:.30s}
 
-/* ─── TOPBAR/NAV OFFSET (JS-driven, adapts to any topbar height) */
-:root{--topbar-h:40px}
-html{scroll-padding-top:calc(var(--topbar-h) + 64px)}
+/* announce */
+.announce{background:var(--acbg);border-bottom:1px solid rgba(0,200,232,.12);padding:10px 0;text-align:center}
+.ann-inner{display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--t2)}
+.ann-inner strong{color:var(--t1);font-weight:500}
+.ann-badge{background:var(--ac);color:#000;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:3px}
 
-/* ─── BACKGROUND MESH ────────────────────────────────────────── */
-.bg-mesh{
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(ellipse 70% 50% at 10% 15%,rgba(0,200,232,.07) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 60% at 90% 80%,rgba(56,212,240,.05) 0%,transparent 55%),
-    radial-gradient(ellipse 40% 40% at 50% 50%,rgba(0,154,181,.04) 0%,transparent 50%);
-}
-.bg-grid{
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:
-    linear-gradient(var(--bd3) 1px,transparent 1px),
-    linear-gradient(90deg,var(--bd3) 1px,transparent 1px);
-  background-size:48px 48px;
-}
-
-/* ─── NAV ────────────────────────────────────────────────────── */
-nav{
-  position:fixed;top:var(--topbar-h);left:0;right:0;z-index:200;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 clamp(20px,4vw,56px);height:64px;
-  transition:background .3s,border-color .3s,backdrop-filter .3s,top .15s;
-}
-nav.scrolled{
-  background:rgba(5,7,9,.80);backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--bd);
-}
-.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.nav-logo svg{flex-shrink:0}
-.nav-wordmark{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:-.03em;color:var(--t1);line-height:1}
-.nav-wordmark span{font-family:var(--mono);font-size:8px;font-weight:300;letter-spacing:.5em;color:var(--indigo);display:block;margin-top:3px;opacity:.88}
+/* nav */
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,12,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.logo-mark{width:28px;height:28px;background:var(--ac);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:16px;height:16px}
 .nav-links{display:flex;align-items:center;gap:32px;list-style:none}
-.nav-links a{font-size:14px;font-weight:400;color:var(--t3);transition:color .2s}
-.nav-links a:hover{color:var(--t1)}
-.nav-r{display:flex;align-items:center;gap:10px}
-.nav-ghost{
-  font-size:14px;font-weight:500;color:var(--t2);
-  padding:7px 16px;border:1px solid var(--bd2);border-radius:var(--r);
-  transition:color .2s,border-color .2s;
-}
-.nav-ghost:hover{color:var(--t1);border-color:var(--bd)}
-.nav-cta{
-  font-size:14px;font-weight:600;color:#050709;
-  padding:8px 18px;background:var(--indigo);border-radius:var(--r);
-  transition:background .2s,transform .15s;
-}
-.nav-cta:hover{background:var(--indigo-l);transform:translateY(-1px)}
-.nav-ham{display:none;flex-direction:column;gap:5px;padding:8px}
-.nav-ham span{display:block;width:22px;height:2px;background:var(--t2);border-radius:2px;transition:transform .3s,opacity .3s}
-.nav-ham.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-.nav-ham.open span:nth-child(2){opacity:0}
-.nav-ham.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-.nav-mob{
-  display:none;position:fixed;top:calc(var(--topbar-h) + 64px);left:0;right:0;z-index:199;
-  background:rgba(5,7,9,.97);backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--bd);padding:24px clamp(20px,4vw,56px) 32px;
-}
-.nav-mob.open{display:block}
-.nav-mob ul{list-style:none;display:flex;flex-direction:column;gap:20px;margin-bottom:24px}
-.nav-mob ul a{font-size:17px;font-weight:500;color:var(--t2)}
-.nav-mob .nav-cta{display:inline-flex;width:100%;justify-content:center;padding:14px}
+.nav-links a{font-size:14px;color:var(--t2);transition:color .15s}.nav-links a:hover{color:var(--t1)}
+.nav-cta{display:flex;align-items:center;gap:12px}
+.nav-tog{display:none;flex-direction:column;gap:5px;padding:8px;cursor:pointer}
+.nav-tog span{display:block;width:22px;height:1.5px;background:var(--t2)}
+.mob-menu{display:none;flex-direction:column;padding:20px 0;border-top:1px solid var(--bd)}
+.mob-menu a{font-size:15px;color:var(--t2);padding:12px 0;border-bottom:1px solid var(--bd)}
+.mob-menu a:last-child{border-bottom:none}
+@media(max-width:768px){.nav-links,.nav-cta .btn-g{display:none}.nav-tog{display:flex}.mob-menu.open{display:flex}}
 
-/* ─── HERO ───────────────────────────────────────────────────── */
-.hero-wrap{
-  position:relative;min-height:100vh;display:flex;align-items:center;
-  padding:calc(var(--topbar-h) + 96px) clamp(20px,4vw,56px) 80px;
-}
-.hero-inner{
-  max-width:1160px;width:100%;margin:0 auto;
-  display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;
-}
-.hero-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.08em;
-  color:var(--indigo);background:rgba(0,200,232,.08);
-  border:1px solid rgba(0,200,232,.20);border-radius:100px;
-  padding:6px 14px;margin-bottom:28px;
-  animation:fadeIn .6s ease both;
-}
-.bdot{
-  width:7px;height:7px;border-radius:50%;background:var(--indigo);
-  animation:pulse 2s ease-in-out infinite;flex-shrink:0;
-}
-.hero h1{
-  font-family:var(--display);font-weight:800;
-  font-size:clamp(42px,6vw,76px);line-height:1.05;letter-spacing:-.04em;
-  color:var(--t1);margin-bottom:24px;
-  animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .1s both;
-}
-.hero h1 em{
-  font-style:normal;
-  background:linear-gradient(90deg,var(--t1) 0%,var(--indigo-l) 50%,var(--indigo) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hero-sub{
-  font-size:17px;font-weight:300;color:var(--t2);line-height:1.7;
-  max-width:480px;margin-bottom:36px;
-  animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .2s both;
-}
-.hero-pip{
-  display:flex;align-items:center;gap:0;margin-bottom:16px;
-  background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r2);
-  overflow:hidden;max-width:420px;
-  animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .3s both;
-}
-.hero-pip code{
-  flex:1;font-family:var(--mono);font-size:13px;font-weight:400;
-  color:var(--indigo-l);padding:12px 16px;white-space:nowrap;overflow:hidden;
-}
-.hero-pip .copy-btn{
-  padding:12px 16px;color:var(--t3);border-left:1px solid var(--bd);
-  font-family:var(--mono);font-size:11px;letter-spacing:.04em;
-  transition:color .2s,background .2s;flex-shrink:0;
-}
-.hero-pip .copy-btn:hover{color:var(--indigo);background:rgba(0,200,232,.06)}
-.hero-pip .copy-btn.copied{color:#34D399}
-.hero-btns{
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:36px;
-  animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .35s both;
-}
-.btn-primary{
-  display:inline-flex;align-items:center;gap:8px;
-  font-size:15px;font-weight:600;color:#050709;
-  padding:12px 24px;background:var(--indigo);border-radius:var(--r);
-  transition:background .2s,transform .15s,box-shadow .2s;
-}
-.btn-primary:hover{background:var(--indigo-l);transform:translateY(-2px);box-shadow:var(--glow)}
-.btn-secondary{
-  display:inline-flex;align-items:center;gap:8px;
-  font-size:15px;font-weight:500;color:var(--t2);
-  padding:12px 24px;border:1px solid var(--bd2);border-radius:var(--r);
-  transition:color .2s,border-color .2s,transform .15s;
-}
-.btn-secondary:hover{color:var(--indigo);border-color:var(--bd);transform:translateY(-2px)}
-.btn-arrow{font-size:14px;transition:transform .2s}
-.btn-secondary:hover .btn-arrow{transform:translateX(4px)}
-.hero-trust{
-  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
-  animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .42s both;
-}
-.hero-trust-item{
-  display:flex;align-items:center;gap:6px;
-  font-family:var(--mono);font-size:11px;color:var(--t3);
-}
-.trust-check{color:var(--indigo);font-size:13px}
-.hero-trust-sep{color:var(--t4)}
+/* hero */
+.hero{padding:clamp(80px,12vw,160px) 0 clamp(60px,8vw,100px)}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--bg1);border:1px solid var(--bd);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--t2);margin-bottom:36px}
+.hero-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--ac);flex-shrink:0}
+.hero-title{font-family:var(--serif);font-size:clamp(44px,7vw,88px);line-height:1.0;letter-spacing:-.03em;color:var(--t1);margin-bottom:28px;max-width:820px}
+.hero-title em{font-style:italic;color:var(--t2)}
+.hero-sub{font-size:clamp(16px,1.8vw,19px);color:var(--t2);line-height:1.65;max-width:520px;margin-bottom:44px}
+.hero-acts{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hero-acts .btn{font-size:15px;padding:12px 26px}
+.hero-meta{display:flex;align-items:center;gap:24px;margin-top:56px;flex-wrap:wrap}
+.hero-meta-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t3)}
 
-/* TERMINAL */
-.terminal{
-  background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r3);
-  overflow:hidden;box-shadow:var(--glow);
-  animation:fadeUp .8s cubic-bezier(.16,1,.3,1) .15s both;
-  position:relative;
-}
-.terminal-bar{
-  display:flex;align-items:center;gap:8px;
-  padding:14px 18px;border-bottom:1px solid var(--bd);
-  background:rgba(255,255,255,.02);
-}
-.t-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.t-dot-r{background:#ff5f57}.t-dot-y{background:#febc2e}.t-dot-g{background:#28c840}
-.terminal-title{font-family:var(--mono);font-size:12px;color:var(--t4);margin-left:auto;margin-right:auto}
-.terminal-body{padding:20px;min-height:320px;position:relative;overflow:hidden}
-.terminal-scan{
-  position:absolute;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,rgba(0,200,232,.4),transparent);
-  animation:scanmove 4s linear infinite;pointer-events:none;opacity:.5;
-}
-.t-line{
-  font-family:var(--mono);font-size:12.5px;line-height:1.8;
-  white-space:pre;overflow:hidden;
-}
-.t-line.cmd{color:var(--indigo-l)}.t-line.out{color:var(--t3)}
-.t-line.ok{color:#34D399}.t-line.dim{color:var(--t4)}.t-line.highlight{color:var(--t1)}
-.t-cursor{
-  display:inline-block;width:7px;height:14px;background:var(--indigo);
-  margin-left:2px;vertical-align:middle;animation:blink 1s step-end infinite;
-}
+/* code block */
+.codebox{background:var(--bg1);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-top:60px}
+.code-tb{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--bd)}
+.code-dots{display:flex;gap:6px}
+.code-dots span{width:11px;height:11px;border-radius:50%;background:var(--bg2)}
+.code-lang{font-size:11px;color:var(--t3);font-family:var(--mono)}
+.code-body{padding:24px;font-family:var(--mono);font-size:13.5px;line-height:1.75;overflow-x:auto}
+.code-body pre{white-space:pre}
+.cc{color:#5a5a6a}.ck{color:#af87ff}.cf{color:#00C8E8}.cs{color:#8abf7a}.cn{color:#e8a87a}.cp{color:#d0ccc5}
 
-/* COUNTDOWN in hero */
-.hero-countdown{
-  display:flex;align-items:center;gap:6px;margin-top:20px;
-  animation:fadeUp .7s cubic-bezier(.16,1,.3,1) .50s both;
-}
-.cdown-label{font-family:var(--mono);font-size:11px;color:var(--t4);margin-right:4px}
-.cdown-unit{text-align:center}
-.cdown-num{
-  font-family:var(--mono);font-size:18px;font-weight:500;color:var(--indigo);
-  background:rgba(0,200,232,.08);border:1px solid rgba(0,200,232,.15);
-  border-radius:6px;padding:4px 10px;line-height:1;min-width:44px;display:block;
-}
-.cdown-lbl{font-family:var(--mono);font-size:9px;color:var(--t4);letter-spacing:.08em;margin-top:3px;display:block;text-align:center}
-.cdown-sep{font-family:var(--mono);font-size:18px;color:var(--t4);align-self:flex-start;padding-top:4px}
+/* stats */
+.stats-bar{border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:32px 0}
+.stats-in{display:grid;grid-template-columns:repeat(4,1fr)}
+.stat-item{padding:0 clamp(16px,3vw,40px);border-right:1px solid var(--bd)}
+.stat-item:first-child{padding-left:0}.stat-item:last-child{border-right:none}
+.stat-val{font-family:var(--serif);font-size:clamp(28px,4vw,44px);color:var(--t1);line-height:1;margin-bottom:6px}
+.stat-lbl{font-size:13px;color:var(--t3);line-height:1.4}
+@media(max-width:600px){.stats-in{grid-template-columns:1fr 1fr}.stat-item{padding:20px 0;border-right:none;border-bottom:1px solid var(--bd)}.stat-item:nth-child(3),.stat-item:nth-child(4){border-bottom:none}}
 
-/* ─── PROOF BAR ───────────────────────────────────────────────── */
-.proof{
-  border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);
-  padding:40px 0;background:linear-gradient(180deg,rgba(0,200,232,.03) 0%,transparent 100%);
-}
-.proof-in{display:flex;justify-content:center;align-items:center;gap:0;flex-wrap:wrap}
-.proof-item{
-  display:flex;flex-direction:column;align-items:center;
-  padding:16px 40px;border-right:1px solid var(--bd);
-}
-.proof-item:last-child{border-right:none}
-.proof-num{
-  font-family:var(--mono);font-size:28px;font-weight:500;color:var(--indigo);
-  line-height:1;margin-bottom:6px;
-}
-.proof-lbl{font-size:12px;color:var(--t3);text-align:center;line-height:1.4}
+/* pillars */
+.pillars-hd{margin-bottom:64px}
+.pillars-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.pillar{background:var(--bg);padding:clamp(28px,4vw,48px);transition:background .2s}.pillar:hover{background:var(--bg1)}
+.pillar-icon{width:40px;height:40px;border-radius:8px;background:var(--acbg);border:1px solid rgba(0,200,232,.15);display:flex;align-items:center;justify-content:center;margin-bottom:24px}
+.pillar-icon svg{width:20px;height:20px;color:var(--ac)}
+.pillar-title{font-family:var(--serif);font-size:clamp(20px,2.5vw,26px);margin-bottom:14px;line-height:1.15}
+.pillar-body{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:28px}
+.pillar-proof{list-style:none;display:flex;flex-direction:column;gap:12px}
+.pillar-proof li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--t3);line-height:1.5}
+.pillar-proof li::before{content:'→';color:var(--ac);font-size:12px;flex-shrink:0;margin-top:1px}
+@media(max-width:900px){.pillars-grid{grid-template-columns:1fr}}
 
-/* ─── SECTION HEADER ─────────────────────────────────────────── */
-.sec-tag{
-  font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--indigo);
-  margin-bottom:16px;display:block;text-transform:uppercase;
-}
-.sec-h{
-  font-family:var(--display);font-weight:800;
-  font-size:clamp(30px,4vw,48px);line-height:1.1;letter-spacing:-.03em;
-  color:var(--t1);margin-bottom:16px;
-}
-.sec-sub{font-size:17px;font-weight:300;color:var(--t2);max-width:560px;line-height:1.65}
+/* feature */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,6vw,80px);align-items:start}
+.feat-grid.rev{direction:rtl}.feat-grid.rev>*{direction:ltr}
+.feat-eye{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:16px}
+.feat-title{font-family:var(--serif);font-size:clamp(24px,3.5vw,38px);line-height:1.12;letter-spacing:-.015em;margin-bottom:18px}
+.feat-body{font-size:15px;color:var(--t2);line-height:1.75;margin-bottom:28px}
+.feat-list{list-style:none;display:flex;flex-direction:column;gap:14px}
+.feat-list li{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:var(--t2);line-height:1.55}
+.feat-list li::before{content:'✓';color:var(--ac);font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px}
+@media(max-width:840px){.feat-grid,.feat-grid.rev{grid-template-columns:1fr;direction:ltr}}
 
-/* ─── PROBLEM ─────────────────────────────────────────────────── */
-.problem-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px;
-}
-.problem-card{
-  background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);
-  padding:28px 24px;position:relative;overflow:hidden;
-  transition:border-color .3s,transform .3s;
-}
-.problem-card:hover{border-color:rgba(0,200,232,.3);transform:translateY(-3px)}
-.problem-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--indigo),transparent);opacity:0;
-  transition:opacity .3s;
-}
-.problem-card:hover::before{opacity:1}
-.problem-icon{
-  width:44px;height:44px;border-radius:10px;
-  background:rgba(0,200,232,.08);border:1px solid rgba(0,200,232,.15);
-  display:flex;align-items:center;justify-content:center;margin-bottom:18px;
-}
-.problem-icon svg{width:22px;height:22px;stroke:var(--indigo)}
-.problem-card h3{font-size:17px;font-weight:700;color:var(--t1);margin-bottom:10px;letter-spacing:-.02em}
-.problem-card p{font-size:14px;color:var(--t3);line-height:1.6}
-.problem-stat{
-  display:inline-block;margin-top:14px;
-  font-family:var(--mono);font-size:11px;color:var(--indigo);
-  background:rgba(0,200,232,.08);border:1px solid rgba(0,200,232,.18);
-  border-radius:4px;padding:3px 10px;
-}
+/* prompt cards */
+.pcards{display:flex;flex-direction:column;gap:12px}
+.pcard{background:var(--bg1);border:1px solid var(--bd);border-radius:8px;padding:20px;transition:border-color .2s}.pcard:hover{border-color:rgba(0,200,232,.3)}
+.pcard-dom{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:10px}
+.pcard-txt{font-size:13px;color:var(--t2);line-height:1.6;font-family:var(--mono);margin-bottom:10px}
+.pcard-st{font-size:11px;color:var(--t3)}.pcard-st strong{color:var(--t2);font-weight:500}
 
-/* ─── HOW IT WORKS ───────────────────────────────────────────── */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:64px;position:relative}
-.steps::before{
-  content:'';position:absolute;top:28px;left:16.67%;right:16.67%;height:1px;
-  background:linear-gradient(90deg,var(--indigo),rgba(0,200,232,.2),var(--indigo));
-  opacity:.3;
-}
-.step{padding:0 24px;position:relative;z-index:1}
-.step-num{
-  width:56px;height:56px;border-radius:50%;
-  background:var(--bg2);border:1px solid var(--bd);
-  display:flex;align-items:center;justify-content:center;margin-bottom:24px;
-  font-family:var(--mono);font-size:14px;font-weight:500;color:var(--indigo);
-  position:relative;
-}
-.step-num::after{
-  content:'';position:absolute;inset:-4px;border-radius:50%;
-  border:1px solid rgba(0,200,232,.15);
-}
-.step h3{font-size:18px;font-weight:700;color:var(--t1);margin-bottom:10px;letter-spacing:-.02em}
-.step-code{
-  font-family:var(--mono);font-size:12px;color:var(--indigo-l);
-  background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);
-  padding:10px 14px;margin-bottom:12px;display:block;
-}
-.step p{font-size:14px;color:var(--t3);line-height:1.6}
+/* model table */
+.model-wrap{background:var(--bg1);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.model-table{width:100%;border-collapse:collapse}
+.model-table th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:12px 16px;border-bottom:1px solid var(--bd)}
+.model-table td{padding:14px 16px;font-size:13.5px;color:var(--t2);border-bottom:1px solid var(--bd2);vertical-align:middle}
+.model-table tr:last-child td{border-bottom:none}
+.model-table tr:hover td{background:var(--bg2)}
+.mfam{color:var(--t1);font-weight:500;font-family:var(--mono)}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px}
+.bgqa{background:rgba(0,200,232,.1);color:var(--ac)}
+.bmha{background:rgba(255,255,255,.06);color:var(--t2)}
 
-/* ─── FEATURES ───────────────────────────────────────────────── */
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
-.feature-card{
-  background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);
-  padding:28px 24px;position:relative;overflow:hidden;
-  transition:border-color .3s,transform .3s,box-shadow .3s;
-}
-.feature-card:hover{
-  border-color:rgba(0,200,232,.35);transform:translateY(-4px);
-  box-shadow:0 16px 48px rgba(0,0,0,.4),0 0 0 1px rgba(0,200,232,.1);
-}
-.feature-card::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--indigo),var(--indigo-l));
-  transform:scaleX(0);transform-origin:left;transition:transform .35s cubic-bezier(.16,1,.3,1);
-}
-.feature-card:hover::after{transform:scaleX(1)}
-.feat-icon{
-  width:44px;height:44px;border-radius:10px;
-  background:rgba(0,200,232,.07);border:1px solid rgba(0,200,232,.12);
-  display:flex;align-items:center;justify-content:center;margin-bottom:20px;
-}
-.feat-icon svg{width:22px;height:22px;stroke:var(--indigo);fill:none}
-.feature-card h3{font-size:16px;font-weight:700;color:var(--t1);margin-bottom:8px;letter-spacing:-.02em}
-.feature-card p{font-size:14px;color:var(--t3);line-height:1.6}
-.feat-tag{
-  display:inline-block;margin-top:14px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--indigo);
-  background:rgba(0,200,232,.07);border:1px solid rgba(0,200,232,.15);
-  border-radius:4px;padding:3px 8px;text-transform:uppercase;
-}
+/* pricing */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.price-card{background:var(--bg1);border:1px solid var(--bd);border-radius:10px;padding:32px 28px;position:relative;transition:border-color .2s}.price-card:hover{border-color:rgba(255,255,255,.1)}
+.price-card.feat{border-color:rgba(0,200,232,.3);background:rgba(0,200,232,.03)}
+.price-badge{position:absolute;top:-11px;left:28px;background:var(--ac);color:#000;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:4px}
+.price-tier{font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.price-val{font-family:var(--serif);font-size:clamp(32px,4vw,44px);color:var(--t1);line-height:1;margin-bottom:6px}
+.price-val sup{font-size:.5em;vertical-align:super}
+.price-per{font-size:13px;color:var(--t3);margin-bottom:28px}
+.price-feats{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.price-feats li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--t2);line-height:1.5}
+.price-feats li::before{content:'✓';color:var(--ac);font-weight:700;flex-shrink:0;font-size:12px;margin-top:2px}
+.price-card .btn{width:100%;justify-content:center}
+@media(max-width:840px){.price-grid{grid-template-columns:1fr}}
 
-/* ─── EU COVERAGE ────────────────────────────────────────────── */
-.coverage-table{
-  width:100%;margin-top:48px;border-collapse:collapse;
-  border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;
-}
-.coverage-table th{
-  padding:14px 20px;background:var(--sf);
-  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--t3);
-  text-align:left;border-bottom:1px solid var(--bd);
-}
-.coverage-table td{
-  padding:14px 20px;border-bottom:1px solid var(--bd3);
-  font-size:14px;color:var(--t2);
-}
-.coverage-table tr:last-child td{border-bottom:none}
-.coverage-table tr:hover td{background:rgba(0,200,232,.03)}
-.cov-check{
-  display:inline-flex;align-items:center;gap:6px;
-  color:#34D399;font-family:var(--mono);font-size:12px;font-weight:500;
-}
-.cov-edge{
-  display:inline-flex;align-items:center;gap:6px;
-  color:var(--indigo);font-family:var(--mono);font-size:11px;
-  background:rgba(0,200,232,.08);border:1px solid rgba(0,200,232,.18);
-  border-radius:4px;padding:2px 8px;
-}
-.cov-req{font-weight:500;color:var(--t1)}
-.cov-article{font-family:var(--mono);font-size:11px;color:var(--indigo);margin-right:6px}
+/* research */
+.research-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rcard{background:var(--bg1);border:1px solid var(--bd);border-radius:8px;padding:24px;transition:border-color .2s}.rcard:hover{border-color:rgba(255,255,255,.12)}
+.rcat{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:12px}
+.rtitle{font-size:15px;font-weight:500;color:var(--t1);line-height:1.4;margin-bottom:12px}
+.rbody{font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:20px}
+.rlink{font-size:13px;color:var(--ac);display:inline-flex;align-items:center;gap:4px;transition:gap .15s}.rlink:hover{gap:7px}
+@media(max-width:768px){.research-grid{grid-template-columns:1fr}}
 
-/* ─── LIVE DEMO ───────────────────────────────────────────────── */
-.demo-frame{
-  width:100%;height:600px;border:1px solid var(--bd);border-radius:var(--r3);
-  overflow:hidden;background:var(--bg1);margin-top:48px;
-  box-shadow:var(--glow);position:relative;
-}
-.demo-frame iframe{width:100%;height:100%;border:none}
-.demo-fallback{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  height:100%;gap:16px;text-align:center;padding:40px;
-}
-.demo-fallback p{color:var(--t3);font-size:15px}
-.demo-poster{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  height:100%;cursor:pointer;padding:48px;text-align:center;position:relative;
-  transition:background .3s;
-}
-.demo-poster:hover{background:rgba(0,200,232,.03)}
-.demo-poster-bg{
-  position:absolute;inset:0;
-  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(0,200,232,.07),transparent 70%);
-  pointer-events:none;
-}
-.demo-poster-title{font-size:22px;font-weight:600;color:var(--t1);font-family:var(--display)}
-.demo-poster-sub{font-size:14px;color:var(--t3);margin-top:6px;font-family:var(--mono)}
-.demo-launch-btn{display:inline-flex;align-items:center;gap:8px;margin-top:24px}
-.demo-loading{
-  display:flex;align-items:center;justify-content:center;
-  height:100%;color:var(--t3);font-size:14px;gap:12px;
-}
-.demo-loading::before{
-  content:'';width:18px;height:18px;border:2px solid rgba(0,200,232,.3);
-  border-top-color:var(--indigo);border-radius:50%;
-  animation:spin .8s linear infinite;
-}
+/* cta */
+.cta-box{background:var(--bg1);border:1px solid var(--bd);border-radius:12px;padding:clamp(48px,6vw,80px) clamp(32px,6vw,80px);text-align:center}
+.cta-box .display{max-width:640px;margin:0 auto 20px}
+.cta-box .subhead{margin:0 auto 36px}
+.cta-acts{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
 
-/* ─── PRICING ────────────────────────────────────────────────── */
-.pricing-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px;
-  align-items:start;
-}
-.price-card{
-  background:var(--sf);border:1px solid var(--bd);border-radius:var(--r3);
-  padding:32px 28px;position:relative;overflow:hidden;
-  transition:transform .3s,box-shadow .3s;
-}
-.price-card:hover{transform:translateY(-4px)}
-.price-card.featured{
-  border-color:var(--indigo);
-  box-shadow:0 0 0 1px rgba(0,200,232,.15),var(--glow);
-}
-.price-card.featured::before{
-  content:'Most Popular';position:absolute;top:0;right:24px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:#050709;
-  background:var(--indigo);padding:4px 12px;border-radius:0 0 8px 8px;
-}
-.price-tier{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--indigo);margin-bottom:12px;text-transform:uppercase}
-.price-amount{
-  font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.04em;
-  color:var(--t1);line-height:1;margin-bottom:4px;
-}
-.price-amount sup{font-size:22px;font-weight:600;vertical-align:top;margin-top:8px;margin-right:2px}
-.price-amount span{font-size:14px;font-weight:400;color:var(--t3);letter-spacing:0}
-.price-desc{font-size:14px;color:var(--t3);margin-bottom:24px;line-height:1.5}
-.price-divider{height:1px;background:var(--bd);margin:20px 0}
-.price-feats{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:28px}
-.price-feats li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--t2);line-height:1.45}
-.price-feats li::before{content:'✓';color:var(--indigo);font-family:var(--mono);font-size:13px;flex-shrink:0;margin-top:1px}
-.price-feats li.dim{color:var(--t4)}
-.price-feats li.dim::before{color:var(--t4)}
-.price-btn{
-  display:block;width:100%;text-align:center;
-  padding:12px;border-radius:var(--r);font-size:14px;font-weight:600;
-  transition:all .2s;
-}
-.price-btn-outline{border:1px solid var(--bd2);color:var(--t2)}
-.price-btn-outline:hover{border-color:var(--indigo);color:var(--indigo);background:rgba(0,200,232,.06)}
-.price-btn-filled{background:var(--indigo);color:#050709}
-.price-btn-filled:hover{background:var(--indigo-l);transform:translateY(-1px)}
-.price-btn-ghost{border:1px solid var(--bd2);color:var(--t3)}
-.price-btn-ghost:hover{color:var(--t2);border-color:var(--bd2)}
-
-/* ─── TEAM ────────────────────────────────────────────────────── */
-.team-grid{display:grid;grid-template-columns:360px 1fr;gap:64px;align-items:center;margin-top:64px}
-.team-card{
-  background:var(--sf);border:1px solid var(--bd);border-radius:var(--r3);
-  padding:36px;text-align:center;
-}
-.team-avatar{
-  width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--indigo-d),var(--indigo));
-  display:flex;align-items:center;justify-content:center;margin:0 auto 20px;
-  font-family:var(--display);font-size:28px;font-weight:800;color:#050709;
-}
-.team-name{font-size:20px;font-weight:700;color:var(--t1);letter-spacing:-.02em;margin-bottom:4px}
-.team-role{font-family:var(--mono);font-size:12px;color:var(--indigo);letter-spacing:.05em;margin-bottom:16px}
-.team-bio{font-size:14px;color:var(--t3);line-height:1.65;margin-bottom:20px}
-.team-links{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-.team-link{
-  display:inline-flex;align-items:center;gap:6px;
-  font-family:var(--mono);font-size:11px;color:var(--t3);
-  border:1px solid var(--bd2);border-radius:var(--r);padding:6px 14px;
-  transition:color .2s,border-color .2s;
-}
-.team-link:hover{color:var(--indigo);border-color:var(--bd)}
-.team-right h3{font-size:22px;font-weight:700;color:var(--t1);letter-spacing:-.03em;margin-bottom:12px}
-.team-right p{font-size:15px;color:var(--t3);line-height:1.7;margin-bottom:20px}
-.team-paper{
-  background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);
-  padding:20px 22px;display:flex;gap:16px;align-items:flex-start;
-}
-.tp-icon{color:var(--indigo);font-family:var(--mono);font-size:20px;flex-shrink:0;line-height:1}
-.tp-title{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:4px}
-.tp-meta{font-family:var(--mono);font-size:11px;color:var(--t3)}
-
-/* ─── FAQ ─────────────────────────────────────────────────────── */
-.faq-list{max-width:720px;margin:56px auto 0;display:flex;flex-direction:column;gap:8px}
-.faq-item{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden}
-.faq-q{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:20px 22px;cursor:pointer;user-select:none;gap:16px;
-  transition:background .2s;
-}
-.faq-q:hover{background:rgba(0,200,232,.04)}
-.faq-q-text{font-size:15px;font-weight:600;color:var(--t1);letter-spacing:-.01em}
-.faq-icon{
-  width:24px;height:24px;border-radius:50%;border:1px solid var(--bd2);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  color:var(--t3);font-size:18px;transition:transform .3s,color .2s;
-}
-.faq-item.open .faq-icon{transform:rotate(45deg);color:var(--indigo)}
-.faq-a{
-  max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.16,1,.3,1);
-}
-.faq-item.open .faq-a{max-height:400px}
-.faq-a-in{padding:0 22px 20px;font-size:14px;color:var(--t3);line-height:1.7}
-
-/* ─── CTA SECTION ────────────────────────────────────────────── */
-.cta-sec{
-  border-top:1px solid var(--bd);padding:100px 0;text-align:center;
-  background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(0,200,232,.07) 0%,transparent 70%);
-}
-.cta-sec h2{
-  font-family:var(--display);font-weight:800;
-  font-size:clamp(32px,5vw,60px);letter-spacing:-.04em;
-  color:var(--t1);margin-bottom:20px;line-height:1.08;
-}
-.cta-sec h2 em{font-style:normal;color:var(--indigo)}
-.cta-sec p{font-size:17px;font-weight:300;color:var(--t2);max-width:480px;margin:0 auto 40px;line-height:1.65}
-.cta-actions{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
-.cta-pip{
-  display:flex;align-items:center;gap:0;
-  background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);
-  overflow:hidden;
-}
-.cta-pip code{font-family:var(--mono);font-size:13px;color:var(--indigo-l);padding:12px 18px}
-.cta-pip .copy-btn{padding:12px 14px;color:var(--t3);border-left:1px solid var(--bd);font-family:var(--mono);font-size:11px;transition:color .2s,background .2s}
-.cta-pip .copy-btn:hover{color:var(--indigo);background:rgba(0,200,232,.06)}
-.cta-deadline{
-  margin-top:36px;font-family:var(--mono);font-size:12px;color:var(--t4);
-}
-.cta-deadline strong{color:var(--indigo)}
-
-/* ─── FOOTER ─────────────────────────────────────────────────── */
-footer{border-top:1px solid var(--bd);padding:72px 0 48px}
-.ft-in{max-width:1160px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
-.ft-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px}
-.ft-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.ft-brand-name{font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:-.02em}
-.ft-brand-name span{font-family:var(--mono);font-size:8px;font-weight:300;letter-spacing:.5em;color:var(--indigo);display:block;margin-top:3px;opacity:.88}
-.ft-tag{font-size:14px;color:var(--t3);line-height:1.65;max-width:240px;margin-bottom:20px}
-.ft-soc{display:flex;gap:8px}
-.sbtn{
-  width:34px;height:34px;background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r);
-  display:flex;align-items:center;justify-content:center;color:var(--t3);
-  transition:color .2s,border-color .2s;
-}
-.sbtn:hover{color:var(--indigo);border-color:var(--bd)}
-.sbtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round}
-.ft-ctitle{font-family:var(--mono);font-size:11px;letter-spacing:.10em;color:var(--t3);text-transform:uppercase;margin-bottom:16px}
-.ft-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
-.ft-col ul a{font-size:14px;color:var(--t3);transition:color .2s}
-.ft-col ul a:hover{color:var(--indigo)}
-.ft-bot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-top:1px solid var(--bd3);padding-top:32px}
-.ft-copy{font-size:12px;color:var(--t4)}
-.ft-legal{display:flex;gap:20px}
-.ft-legal a{font-size:12px;color:var(--t4);transition:color .2s}
-.ft-legal a:hover{color:var(--t3)}
-
-/* ─── TOPBAR ─────────────────────────────────────────────────── */
-.topbar{
-  background:rgba(0,200,232,.08);border-bottom:1px solid rgba(0,200,232,.15);
-  padding:10px clamp(20px,4vw,56px);display:flex;align-items:center;justify-content:center;
-  gap:8px;font-family:var(--mono);font-size:12px;color:var(--indigo);
-  position:fixed;top:0;left:0;right:0;z-index:202;
-}
-.topbar strong{color:var(--t1)}
-.topbar a{color:var(--indigo-l);text-decoration:underline;text-underline-offset:2px}
-
-/* ─── WAITLIST FORM ──────────────────────────────────────────── */
-.waitlist-form{
-  display:flex;gap:10px;max-width:460px;margin:28px auto 0;flex-wrap:wrap;
-  justify-content:center;
-}
-.waitlist-form input{
-  flex:1;min-width:200px;padding:11px 16px;
-  background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);
-  color:var(--t1);font-size:14px;font-family:var(--sans);
-  outline:none;transition:border-color .2s;
-}
-.waitlist-form input:focus{border-color:var(--indigo)}
-.waitlist-form input::placeholder{color:var(--t4)}
-.waitlist-submit{
-  padding:11px 22px;background:var(--indigo);color:#050709;
-  font-size:14px;font-weight:600;border-radius:var(--r);
-  transition:background .2s,transform .15s;flex-shrink:0;
-}
-.waitlist-submit:hover{background:var(--indigo-l);transform:translateY(-1px)}
-.waitlist-msg{font-family:var(--mono);font-size:12px;text-align:center;margin-top:10px;min-height:18px}
-.waitlist-msg.ok{color:#34D399}.waitlist-msg.err{color:#f87171}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────────── */
-@media(max-width:900px){
-  .hero-inner{grid-template-columns:1fr;gap:40px}
-  .terminal{max-width:520px}
-  .problem-grid{grid-template-columns:1fr}
-  .steps{grid-template-columns:1fr;gap:32px}
-  .steps::before{display:none}
-  .features-grid{grid-template-columns:1fr 1fr}
-  .pricing-grid{grid-template-columns:1fr}
-  .team-grid{grid-template-columns:1fr}
-  .team-card{max-width:360px}
-  .ft-top{grid-template-columns:1fr 1fr}
-  .proof-in{flex-wrap:wrap}
-  .proof-item{border-right:none;border-bottom:1px solid var(--bd);width:50%}
-  .proof-item:nth-last-child(-n+2){border-bottom:none}
-}
-@media(max-width:600px){
-  .features-grid{grid-template-columns:1fr}
-  .hero-btns{flex-direction:column;align-items:flex-start}
-  .btn-primary,.btn-secondary{width:100%;justify-content:center}
-  .nav-links,.nav-r{display:none}
-  .nav-ham{display:flex}
-  .hero-countdown{flex-wrap:wrap}
-  .ft-top{grid-template-columns:1fr}
-  .cta-actions{flex-direction:column;align-items:center}
-  .proof-item{width:100%}
-  .proof-item{border-bottom:1px solid var(--bd)}
-  .proof-item:last-child{border-bottom:none}
-  .coverage-table th:nth-child(2),.coverage-table td:nth-child(2){display:none}
-}
+/* footer */
+footer{border-top:1px solid var(--bd);padding:60px 0 40px}
+.foot-top{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:40px;margin-bottom:48px}
+.foot-logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;margin-bottom:14px}
+.foot-tag{font-size:13px;color:var(--t3);line-height:1.6}
+.foot-col-h{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:18px}
+.foot-links{list-style:none;display:flex;flex-direction:column;gap:11px}
+.foot-links a{font-size:14px;color:var(--t3);transition:color .15s}.foot-links a:hover{color:var(--t1)}
+.foot-bot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding-top:32px;border-top:1px solid var(--bd)}
+.foot-copy{font-size:13px;color:var(--t3)}
+.foot-legal{display:flex;gap:24px}
+.foot-legal a{font-size:13px;color:var(--t3);transition:color .15s}.foot-legal a:hover{color:var(--t1)}
+@media(max-width:900px){.foot-top{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.foot-top{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<div class="bg-mesh" aria-hidden="true"></div>
-<div class="bg-grid" aria-hidden="true"></div>
-
-<!-- TOPBAR -->
-<div class="topbar">
-  <span class="bdot" style="width:6px;height:6px;flex-shrink:0"></span>
-  <strong>EU AI Act</strong> compliance deadline:&nbsp;<strong id="tb-days">—</strong>&nbsp;days left&nbsp;·&nbsp;
-  <a href="#pricing">Get early access →</a>
+<!-- ANNOUNCE -->
+<div class="announce">
+  <div class="ann-inner">
+    <span class="ann-badge">v4.3.0</span>
+    <strong>Any-prompt engine + billion-parameter support —</strong>
+    works on credit, medical, HR, legal, any domain
+    <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/CHANGELOG.md" style="color:var(--ac)">See what's new →</a>
+  </div>
 </div>
 
 <!-- NAV -->
-<nav id="nav">
-  <a href="/" class="nav-logo" aria-label="Glassbox AI home">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" aria-hidden="true">
-<defs><radialGradient id="ngl-g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#00C8E8" stop-opacity="0.10"/><stop offset="100%" stop-color="#050709" stop-opacity="0"/></radialGradient></defs>
-<rect x="2" y="2" width="96" height="96" rx="10" fill="url(#ngl-g)"/>
-<polygon points="50,19.69 85,34.85 50,50 15,34.85" fill="#00C8E8" fill-opacity="0.055"/>
-<polygon points="85,34.85 85,65.15 50,80.31 50,50" fill="#00C8E8" fill-opacity="0.105"/>
-<polygon points="15,34.85 50,50 50,80.31 15,65.15" fill="#00C8E8" fill-opacity="0.030"/>
-<polygon points="50,19.69 85,34.85 85,65.15 50,80.31 15,65.15 15,34.85" fill="none" stroke="#00C8E8" stroke-width="6" stroke-opacity="0.07"/>
-<polygon points="50,19.69 85,34.85 85,65.15 50,80.31 15,65.15 15,34.85" fill="none" stroke="#00C8E8" stroke-width="3.8" stroke-opacity="0.12"/>
-<polygon points="50,19.69 85,34.85 85,65.15 50,80.31 15,65.15 15,34.85" fill="none" stroke="#00C8E8" stroke-width="2.4"/>
-<line x1="50" y1="50" x2="50" y2="19.69" stroke="#00C8E8" stroke-width="2" stroke-opacity="0.82" stroke-linecap="round"/>
-<line x1="50" y1="50" x2="85" y2="65.15" stroke="#00C8E8" stroke-width="2" stroke-opacity="0.82" stroke-linecap="round"/>
-<line x1="50" y1="50" x2="15" y2="65.15" stroke="#00C8E8" stroke-width="2" stroke-opacity="0.82" stroke-linecap="round"/>
-<line x1="79.75" y1="45.60" x2="67.5" y2="47.88" stroke="#00C8E8" stroke-width="1.1" stroke-opacity="0.65" stroke-linecap="round"/>
-<line x1="79.75" y1="45.60" x2="67.5" y2="57.58" stroke="#00C8E8" stroke-width="1.1" stroke-opacity="0.65" stroke-linecap="round"/>
-<line x1="79.75" y1="58.94" x2="67.5" y2="47.88" stroke="#00C8E8" stroke-width="1.1" stroke-opacity="0.65" stroke-linecap="round"/>
-<line x1="79.75" y1="58.94" x2="67.5" y2="57.58" stroke="#00C8E8" stroke-width="1.1" stroke-opacity="0.65" stroke-linecap="round"/>
-<line x1="67.5" y1="47.88" x2="56.3" y2="55.75" stroke="#00C8E8" stroke-width="1.1" stroke-opacity="0.65" stroke-linecap="round"/>
-<line x1="67.5" y1="57.58" x2="56.3" y2="55.75" stroke="#00C8E8" stroke-width="1.1" stroke-opacity="0.65" stroke-linecap="round"/>
-<circle cx="79.75" cy="45.60" r="1.5" fill="#00C8E8"/><circle cx="79.75" cy="58.94" r="1.5" fill="#00C8E8"/>
-<circle cx="67.5" cy="47.88" r="1.9" fill="#00C8E8"/><circle cx="67.5" cy="57.58" r="1.5" fill="#00C8E8"/>
-<circle cx="56.3" cy="55.75" r="1.5" fill="#00C8E8"/>
-    </svg>
-    <div class="nav-wordmark">GLASSBOX<span>AI</span></div>
-  </a>
-  <ul class="nav-links">
-    <li><a href="#features">Features</a></li>
-    <li><a href="#how-it-works">How it works</a></li>
-    <li><a href="#coverage">EU AI Act</a></li>
-    <li><a href="#pricing">Pricing</a></li>
-    <li><a href="#team">Team</a></li>
-  </ul>
-  <div class="nav-r">
-    <a href="https://github.com/designer-coderajay/glassbox-mech" class="nav-ghost" target="_blank" rel="noopener">GitHub</a>
-    <a href="#pricing" class="nav-cta">Get early access</a>
-  </div>
-  <button class="nav-ham" id="nav-ham" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
+<header>
+  <nav class="nav">
+    <div class="wrap nav-in">
+      <a href="/" class="nav-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#000"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#000" opacity=".5"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#000" opacity=".5"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#000" opacity=".8"/></svg>
+        </div>
+        Glassbox AI
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#models">Models</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#research">Research</a></li>
+        <li><a href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn btn-g">Live demo</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech" class="btn btn-p">Get started</a>
+      </div>
+      <div class="nav-tog" id="navTog" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="wrap mob-menu" id="mobMenu">
+      <a href="#features">Features</a>
+      <a href="#models">Models</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#research">Research</a>
+      <a href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a>
+      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a>
+    </div>
+  </nav>
+</header>
 
-<!-- MOBILE NAV -->
-<div class="nav-mob" id="nav-mob">
-  <ul>
-    <li><a href="#features" class="nav-mob-link">Features</a></li>
-    <li><a href="#how-it-works" class="nav-mob-link">How it works</a></li>
-    <li><a href="#coverage" class="nav-mob-link">EU AI Act</a></li>
-    <li><a href="#pricing" class="nav-mob-link">Pricing</a></li>
-    <li><a href="#team" class="nav-mob-link">Team</a></li>
-  </ul>
-  <a href="#pricing" class="nav-cta nav-mob-link" style="display:block;text-align:center;padding:14px;border-radius:8px">Get early access</a>
-</div>
+<main>
 
 <!-- HERO -->
-<section class="hero-wrap" aria-label="Hero">
-  <div class="hero-inner">
-    <!-- LEFT: copy -->
-    <div>
-      <div class="hero-badge">
-        <span class="bdot"></span>
-        EU AI Act · Annex IV · August 2026
-      </div>
-      <h1>Your LLMs ship<br>to EU customers.<br><em>Your compliance doesn't.</em></h1>
-      <p class="hero-sub">Glassbox maps your model's attention circuits to all Annex IV requirements in one function call. A complete, court-ready evidence package. Ship before August 2026.</p>
-
-      <div class="hero-pip">
-        <code id="pip-cmd">pip install glassbox-mech-interp</code>
-        <button class="copy-btn" id="pip-copy" onclick="copyPip(this,'pip-cmd')">copy</button>
-      </div>
-
-      <div class="hero-btns">
-        <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn-primary" target="_blank" rel="noopener">
-          Live demo
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 14 14"><path d="M2 12L12 2M8 2h4v4"/></svg>
-        </a>
-        <a href="https://arxiv.org/abs/2603.09988" class="btn-secondary" target="_blank" rel="noopener">
-          arXiv paper <span class="btn-arrow">→</span>
-        </a>
-      </div>
-
-      <div class="hero-trust">
-        <div class="hero-trust-item"><span class="trust-check">✓</span>100% Annex IV sufficiency</div>
-        <span class="hero-trust-sep">·</span>
-        <div class="hero-trust-item"><span class="trust-check">✓</span>61.4% circuit coverage</div>
-        <span class="hero-trust-sep">·</span>
-        <div class="hero-trust-item"><span class="trust-check">✓</span>MIT licensed</div>
-      </div>
-
-      <div class="hero-countdown">
-        <span class="cdown-label">Deadline in</span>
-        <div class="cdown-unit"><span class="cdown-num" id="cd-d">—</span><span class="cdown-lbl">DAYS</span></div>
-        <span class="cdown-sep">:</span>
-        <div class="cdown-unit"><span class="cdown-num" id="cd-h">—</span><span class="cdown-lbl">HRS</span></div>
-        <span class="cdown-sep">:</span>
-        <div class="cdown-unit"><span class="cdown-num" id="cd-m">—</span><span class="cdown-lbl">MIN</span></div>
-        <span class="cdown-sep">:</span>
-        <div class="cdown-unit"><span class="cdown-num" id="cd-s">—</span><span class="cdown-lbl">SEC</span></div>
-      </div>
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-tag reveal">
+      <span class="hero-tag-dot"></span>
+      EU AI Act enforcement — August 2, 2026
     </div>
-
-    <!-- RIGHT: terminal -->
-    <div>
-      <div class="terminal">
-        <div class="terminal-bar">
-          <span class="t-dot t-dot-r"></span>
-          <span class="t-dot t-dot-y"></span>
-          <span class="t-dot t-dot-g"></span>
-          <span class="terminal-title">glassbox — terminal</span>
-        </div>
-        <div class="terminal-body">
-          <div class="terminal-scan"></div>
-          <div id="term-out"></div>
-          <span class="t-cursor" id="t-cursor"></span>
-        </div>
+    <h1 class="hero-title reveal r1">
+      The compliance layer<br>
+      for <em>production</em> AI
+    </h1>
+    <p class="hero-sub reveal r2">
+      One function call generates a regulator-ready Annex IV evidence package from your model's internal circuits. Open source. Any model. Any prompt.
+    </p>
+    <div class="hero-acts reveal r3">
+      <a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof" class="btn btn-p">Get compliance proof →</a>
+      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn btn-g">Try live demo</a>
+    </div>
+    <div class="hero-meta reveal r4">
+      <span class="hero-meta-item">1,500+ monthly installs</span>
+      <span class="hero-meta-item">37× faster than ACDC</span>
+      <span class="hero-meta-item">arXiv:2603.09988</span>
+      <span class="hero-meta-item">MIT open source</span>
+    </div>
+    <div class="codebox reveal r5">
+      <div class="code-tb">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">Python · 5 lines → Annex IV</span>
       </div>
+      <div class="code-body"><pre><span class="cc"># Works on any prompt — credit, medical, HR, legal, dialogue</span>
+<span class="ck">from</span> <span class="cp">glassbox</span> <span class="ck">import</span> <span class="cf">GlassboxV2</span>
+<span class="cp">gb</span> = <span class="cf">GlassboxV2</span>(<span class="cp">model</span>)
+
+<span class="cc"># Auto-selects best corruption strategy for your domain</span>
+<span class="cp">result</span> = <span class="cp">gb</span>.<span class="cf">analyze</span>(<span class="cs">"Loan application. Annual income: €42,000. Decision:"</span>,
+                   <span class="cs">" Approved"</span>, <span class="cs">" Denied"</span>)
+
+<span class="cc"># → regulator-ready PDF + JSON (all 8 Annex IV sections, &lt;2 seconds)</span>
+<span class="cf">AnnexIVReport</span>(<span class="cp">...</span>).<span class="cf">add_analysis</span>(<span class="cp">result</span>).<span class="cf">to_pdf</span>(<span class="cs">"annex_iv.pdf"</span>)</pre></div>
     </div>
   </div>
 </section>
 
-<!-- PROOF BAR -->
-<div class="proof">
-  <div class="proof-in">
-    <div class="proof-item reveal">
-      <div class="proof-num" data-target="37" data-suffix="×">—</div>
-      <div class="proof-lbl">Faster than ACDC<br><span style="font-size:11px;opacity:.6">(Conmy et al. 2023)</span></div>
-    </div>
-    <div class="proof-item reveal reveal-delay-1">
-      <div class="proof-num" data-target="9" data-suffix="">—</div>
-      <div class="proof-lbl">Annex IV sections<br>automated</div>
-    </div>
-    <div class="proof-item reveal reveal-delay-2">
-      <div class="proof-num" data-target="100" data-suffix="%">—</div>
-      <div class="proof-lbl">Annex IV<br>sufficiency</div>
-    </div>
-    <div class="proof-item reveal reveal-delay-3">
-      <div class="proof-num" data-target="61" data-suffix=".4%">—</div>
-      <div class="proof-lbl">Circuit<br>coverage</div>
-    </div>
-    <div class="proof-item reveal reveal-delay-4">
-      <div class="proof-num">arXiv</div>
-      <div class="proof-lbl">Peer-reviewed<br>methodology</div>
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="wrap">
+    <div class="stats-in">
+      <div class="stat-item reveal">
+        <div class="stat-val">37×</div>
+        <div class="stat-lbl">Faster than ACDC<br>1.2s vs 43.2s, GPT-2 Small</div>
+      </div>
+      <div class="stat-item reveal r1">
+        <div class="stat-val">0.89</div>
+        <div class="stat-lbl">Faithfulness F1 — Grade A<br>arXiv:2603.09988</div>
+      </div>
+      <div class="stat-item reveal r2">
+        <div class="stat-val">8/8</div>
+        <div class="stat-lbl">Annex IV sections automated<br>in under 2 seconds</div>
+      </div>
+      <div class="stat-item reveal r3">
+        <div class="stat-val">11</div>
+        <div class="stat-lbl">Architecture families<br>GPT-2 to Llama-3-70B</div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- PROBLEM -->
-<section class="sec" id="problem">
-  <div class="wrap">
-    <span class="sec-tag reveal">The Problem</span>
-    <h2 class="sec-h reveal reveal-delay-1">The compliance gap is costing<br>AI teams months they don't have.</h2>
-    <p class="sec-sub reveal reveal-delay-2">Manual audits are slow, expensive, and still fail regulators. August 2026 is not a soft deadline.</p>
-    <div class="problem-grid">
-      <div class="problem-card reveal reveal-delay-1">
-        <div class="problem-icon">
-          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <h3>Manual audits take 3–6 months</h3>
-        <p>Compliance consultants charge €50k–€200k per audit cycle, and the documentation is outdated the moment your model changes.</p>
-        <span class="problem-stat">avg €120k per audit cycle</span>
-      </div>
-      <div class="problem-card reveal reveal-delay-2">
-        <div class="problem-icon">
-          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        </div>
-        <h3>Black-box models can't prove their reasoning</h3>
-        <p>Annex IV §2(d) demands circuit-level documentation. Existing tools produce opaque summaries regulators reject.</p>
-        <span class="problem-stat">0 existing tools address §2(d)</span>
-      </div>
-      <div class="problem-card reveal reveal-delay-3">
-        <div class="problem-icon">
-          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <h3>August 2026 deadline is non-negotiable</h3>
-        <p>EU AI Act Art. 113 mandates compliance for all high-risk AI systems. Penalties reach €30M or 6% of annual global turnover.</p>
-        <span class="problem-stat">up to €30M penalty</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="sec" id="how-it-works" style="background:linear-gradient(180deg,rgba(0,200,232,.03) 0%,transparent 100%);border-top:1px solid var(--bd)">
-  <div class="wrap">
-    <span class="sec-tag reveal">How it works</span>
-    <h2 class="sec-h reveal reveal-delay-1">Three lines of code.<br>Complete Annex IV evidence.</h2>
-    <p class="sec-sub reveal reveal-delay-2">No infrastructure. No consultants. No months of waiting.</p>
-    <div class="steps">
-      <div class="step reveal reveal-delay-1">
-        <div class="step-num">01</div>
-        <h3>Install</h3>
-        <code class="step-code">pip install glassbox-mech-interp</code>
-        <p>One command. Works with any transformer-based LLM. No API keys, no infrastructure changes required.</p>
-      </div>
-      <div class="step reveal reveal-delay-2">
-        <div class="step-num">02</div>
-        <h3>Analyze</h3>
-        <code class="step-code">audit = glassbox.audit(model)</code>
-        <p>SAE-based sparse feature decomposition traces attention circuits to their functional components. Runs on your hardware.</p>
-      </div>
-      <div class="step reveal reveal-delay-3">
-        <div class="step-num">03</div>
-        <h3>Report</h3>
-        <code class="step-code">audit.annex_iv_report()</code>
-        <p>Complete PDF evidence package covering all 8 mandatory Annex IV requirements. Accepted by EU notified bodies.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
+<!-- PILLARS -->
 <section class="sec" id="features">
   <div class="wrap">
-    <span class="sec-tag reveal">Features</span>
-    <h2 class="sec-h reveal reveal-delay-1">Built for compliance engineers,<br>not consultants.</h2>
-    <p class="sec-sub reveal reveal-delay-2">Every feature maps to a specific EU AI Act requirement. Nothing decorative.</p>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <div class="pillars-hd">
+      <span class="label reveal">What Glassbox does</span>
+      <h2 class="headline reveal r1" style="margin-top:12px;max-width:560px">Discover, measure, and certify your model's behavior</h2>
+    </div>
+    <div class="pillars-grid reveal">
+      <div class="pillar">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2L12.5 7.5L18 8.5L14 12.5L15 18L10 15.5L5 18L6 12.5L2 8.5L7.5 7.5L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
         </div>
-        <h3>Annex IV Automation</h3>
-        <p>All 8 Annex IV mandatory requirements mapped and documented automatically. No manual gap analysis needed.</p>
-        <span class="feat-tag">Annex IV §2</span>
+        <h3 class="pillar-title">Discover</h3>
+        <p class="pillar-body">Attribution patching maps which attention heads causally drive your model's decisions. 37× faster than ACDC. Works on any text domain.</p>
+        <ul class="pillar-proof">
+          <li>Circuit discovery in &lt;2s on GPT-2 Small</li>
+          <li>Auto-selects corruption strategy for any prompt</li>
+          <li>21 mathematical frameworks, all peer-reviewed</li>
+        </ul>
       </div>
-      <div class="feature-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      <div class="pillar">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M2 10h16M10 2v16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
         </div>
-        <h3>Circuit Tracing</h3>
-        <p>SAE-based mechanistic interpretability decomposes attention heads into interpretable features at production scale.</p>
-        <span class="feat-tag">Annex IV §2(d)</span>
+        <h3 class="pillar-title">Measure</h3>
+        <p class="pillar-body">Faithfulness F1, sufficiency, comprehensiveness — quantified with error bounds. Confidence and faithfulness are statistically orthogonal (r=0.009).</p>
+        <ul class="pillar-proof">
+          <li>Faithfulness F1 = 0.89 (Grade A)</li>
+          <li>Hessian second-order error bounds</li>
+          <li>Benjamini-Hochberg FDR correction</li>
+        </ul>
       </div>
-      <div class="feature-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <div class="pillar">
+        <div class="pillar-icon">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="2" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/></svg>
         </div>
-        <h3>PDF Evidence Package</h3>
-        <p>Court-ready Annex IV report generated in one call. Structured for EU notified bodies and internal audit teams.</p>
-        <span class="feat-tag">Art. 11 · Art. 17</span>
-      </div>
-      <div class="feature-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <h3>Real-time Monitoring</h3>
-        <p>Continuous compliance drift detection. Get alerted when model updates break your Annex IV coverage threshold.</p>
-        <span class="feat-tag">Art. 17 §1(f)</span>
-      </div>
-      <div class="feature-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        </div>
-        <h3>Auto-updates</h3>
-        <p>As the EU AI Act evolves and guidance documents are released, Glassbox updates coverage mappings automatically.</p>
-        <span class="feat-tag">Always current</span>
-      </div>
-      <div class="feature-card">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        </div>
-        <h3>Open Source Core</h3>
-        <p>MIT licensed core library. Inspect the circuit tracing logic, contribute improvements, or self-host the full stack.</p>
-        <span class="feat-tag">MIT · BSL 1.1</span>
+        <h3 class="pillar-title">Certify</h3>
+        <p class="pillar-body">One function call generates all 8 mandatory Annex IV sections as a PDF + JSON vault. Structured for notified bodies. August 2026 ready.</p>
+        <ul class="pillar-proof">
+          <li>All 8 Annex IV sections, auto-populated</li>
+          <li>Article 72 monitoring via CircuitDiff</li>
+          <li>Machine-readable JSON for regulator systems</li>
+        </ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- EU AI ACT COVERAGE -->
-<section class="sec" id="coverage" style="border-top:1px solid var(--bd)">
+<hr class="div">
+
+<!-- ANY PROMPT -->
+<section class="sec">
   <div class="wrap">
-    <span class="sec-tag reveal">EU AI Act Coverage</span>
-    <h2 class="sec-h reveal reveal-delay-1">Complete Annex IV documentation.<br>Zero manual effort.</h2>
-    <p class="sec-sub reveal reveal-delay-2">The only tool that addresses §2(d) circuit-level analysis — the requirement every other solution skips.</p>
-    <table class="coverage-table reveal reveal-delay-2">
-      <thead>
-        <tr>
-          <th>Requirement</th>
-          <th>Article / Annex</th>
-          <th>Coverage</th>
-          <th>Method</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><span class="cov-req">Technical documentation</span></td><td><span class="cov-article">Art. 11</span></td><td><span class="cov-check">✓ Automated</span></td><td>PDF generation</td></tr>
-        <tr><td><span class="cov-req">Transparency obligations</span></td><td><span class="cov-article">Art. 13</span></td><td><span class="cov-check">✓ Automated</span></td><td>Structured disclosure</td></tr>
-        <tr><td><span class="cov-req">Quality management</span></td><td><span class="cov-article">Art. 17</span></td><td><span class="cov-check">✓ Automated</span></td><td>Continuous monitoring</td></tr>
-        <tr><td><span class="cov-req">Conformity assessment</span></td><td><span class="cov-article">Art. 72</span></td><td><span class="cov-check">✓ Automated</span></td><td>Notified body format</td></tr>
-        <tr><td><span class="cov-req">Training data description</span></td><td><span class="cov-article">Annex IV §2(a)</span></td><td><span class="cov-check">✓ Automated</span></td><td>Data lineage tracing</td></tr>
-        <tr><td><span class="cov-req">Design specification</span></td><td><span class="cov-article">Annex IV §2(b)</span></td><td><span class="cov-check">✓ Automated</span></td><td>Architecture extraction</td></tr>
-        <tr><td><span class="cov-req">Testing procedures</span></td><td><span class="cov-article">Annex IV §2(c)</span></td><td><span class="cov-check">✓ Automated</span></td><td>Test suite integration</td></tr>
-        <tr><td><span class="cov-req">Circuit-level analysis</span></td><td><span class="cov-article">Annex IV §2(d)</span></td><td><span class="cov-edge">★ Only Glassbox</span></td><td>SAE mechanistic interp.</td></tr>
-      </tbody>
-    </table>
+    <div class="feat-grid">
+      <div>
+        <div class="feat-eye reveal">Any-prompt engine — v4.3.0</div>
+        <h2 class="feat-title reveal r1">Works on every prompt in the world</h2>
+        <p class="feat-body reveal r2">Previous interpretability tools only worked on IOI-style name-swap tasks. Glassbox 4.3 auto-selects the right corruption strategy for any text domain — maximising causal signal regardless of prompt type.</p>
+        <ul class="feat-list reveal r3">
+          <li>Entity swap for named-entity prompts (Wang et al. 2022)</li>
+          <li>Semantic antonym for binary decisions (Gurnee &amp; Tegmark 2023)</li>
+          <li>Modal negation for instruction-following (Geiger et al. 2023)</li>
+          <li>Random token masking as universal fallback (Meng et al. 2022)</li>
+        </ul>
+      </div>
+      <div class="pcards reveal r2">
+        <div class="pcard">
+          <div class="pcard-dom">Credit risk</div>
+          <div class="pcard-txt">"Loan application. Annual income: €42,000. Decision:"</div>
+          <div class="pcard-st">Strategy: <strong>antonym</strong> — approved ↔ denied</div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-dom">Medical triage</div>
+          <div class="pcard-txt">"Patient presents with chest pain, diaphoresis. Priority:"</div>
+          <div class="pcard-st">Strategy: <strong>antonym</strong> — urgent ↔ routine</div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-dom">HR screening</div>
+          <div class="pcard-txt">"Candidate: 8 years Python. The system should assess as:"</div>
+          <div class="pcard-st">Strategy: <strong>semantic_negation</strong> — should → should not</div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-dom">Factual recall</div>
+          <div class="pcard-txt">"The capital of France is"</div>
+          <div class="pcard-st">Strategy: <strong>random_token</strong> — 25% token replacement</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- LIVE DEMO -->
-<section class="sec" id="demo" style="border-top:1px solid var(--bd)">
+<hr class="div">
+
+<!-- LARGE MODELS -->
+<section class="sec">
   <div class="wrap">
-    <span class="sec-tag reveal">Live Demo</span>
-    <h2 class="sec-h reveal reveal-delay-1">Try it now.</h2>
-    <p class="sec-sub reveal reveal-delay-2">Run Glassbox on a real model in your browser. No sign-up, no credit card.</p>
-    <!-- Click-to-load iframe — avoids showing HF "sleeping" state on page load -->
-    <div class="demo-frame reveal reveal-delay-3" id="demo-container">
-      <div class="demo-poster" id="demo-poster" onclick="loadHfDemo()">
-        <!-- Animated pulse bg -->
-        <div class="demo-poster-bg"></div>
-        <!-- Glass box icon -->
-        <svg width="72" height="72" viewBox="0 0 100 100" style="position:relative;z-index:1;margin-bottom:20px;filter:drop-shadow(0 0 24px rgba(0,200,232,.45))">
-          <polygon points="50,19.69 85,34.85 50,50 15,34.85" fill="#00C8E8" fill-opacity="0.08"/>
-          <polygon points="85,34.85 85,65.15 50,80.31 50,50" fill="#00C8E8" fill-opacity="0.14"/>
-          <polygon points="15,34.85 50,50 50,80.31 15,65.15" fill="#00C8E8" fill-opacity="0.05"/>
-          <polygon points="50,19.69 85,34.85 85,65.15 50,80.31 15,65.15 15,34.85" fill="none" stroke="#00C8E8" stroke-width="2.4"/>
-          <line x1="50" y1="50" x2="50" y2="19.69" stroke="#00C8E8" stroke-width="1.6" stroke-opacity="0.82"/>
-          <line x1="50" y1="50" x2="85" y2="65.15" stroke="#00C8E8" stroke-width="1.6" stroke-opacity="0.82"/>
-          <line x1="50" y1="50" x2="15" y2="65.15" stroke="#00C8E8" stroke-width="1.6" stroke-opacity="0.82"/>
-          <circle cx="79.75" cy="45.60" r="1.5" fill="#00C8E8"/>
-          <circle cx="79.75" cy="58.94" r="1.5" fill="#00C8E8"/>
-          <circle cx="67.5" cy="47.88" r="1.9" fill="#00C8E8"/>
-          <circle cx="67.5" cy="57.58" r="1.5" fill="#00C8E8"/>
-          <circle cx="67.5" cy="67.27" r="1.5" fill="#00C8E8"/>
-          <circle cx="56.3" cy="55.75" r="1.5" fill="#00C8E8"/>
-          <circle cx="56.3" cy="69.10" r="1.5" fill="#00C8E8"/>
-        </svg>
-        <p class="demo-poster-title" style="position:relative;z-index:1">Glassbox AI — Interactive Demo</p>
-        <p class="demo-poster-sub" style="position:relative;z-index:1">GPT-2 circuit analysis · SAE tracing · Annex IV generation</p>
-        <button class="btn-primary demo-launch-btn" style="position:relative;z-index:1;margin-top:8px">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><polygon points="6,5 12,8 6,11" fill="currentColor" stroke="none"/></svg>
-          Launch demo
-        </button>
-        <p style="position:relative;z-index:1;margin-top:12px;font-size:12px;color:var(--t4)">Hosted on HuggingFace Spaces · may take ~30s to wake up</p>
+    <div class="feat-grid rev">
+      <div>
+        <div class="feat-eye reveal">Billion-parameter support — v4.3.0</div>
+        <h2 class="feat-title reveal r1">Llama-3-70B. Mistral. Gemma. Any size.</h2>
+        <p class="feat-body reveal r2">Gradient checkpointing (Chen et al. 2016) reduces peak activation memory by √n_layers — 11× for 80-layer models. CPU offloading handles 70B+ on a single GPU. Estimate VRAM before loading.</p>
+        <ul class="feat-list reveal r3">
+          <li>Gradient checkpointing: O(√n) memory, +33% compute</li>
+          <li>CPU offloading for 70B+ (ZeRO-Offload, Rajbhandari 2020)</li>
+          <li>estimate_memory() predicts VRAM requirement upfront</li>
+          <li>bfloat16 support halves VRAM with negligible precision loss</li>
+        </ul>
+      </div>
+      <div class="reveal r2">
+        <div class="codebox" style="margin-top:0">
+          <div class="code-tb">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">Large model usage</span>
+          </div>
+          <div class="code-body"><pre><span class="ck">from</span> <span class="cp">glassbox.large_model</span> <span class="ck">import</span> <span class="cf">analyze_large</span>, <span class="cf">estimate_memory</span>
+
+<span class="cc"># Check VRAM before loading (Kaplan 2020: n_params ≈ 12Ld²)</span>
+<span class="cp">mem</span> = <span class="cf">estimate_memory</span>(<span class="cp">n_layers</span>=<span class="cn">80</span>, <span class="cp">d_model</span>=<span class="cn">8192</span>)
+<span class="cc"># → "106 GB attribution pass → use checkpoint+offload"</span>
+
+<span class="cc"># Drop-in replacement for gb.analyze()</span>
+<span class="cp">result</span> = <span class="cf">analyze_large</span>(
+    <span class="cp">gb</span>,
+    <span class="cs">"Loan decision:"</span>, <span class="cs">" Approved"</span>, <span class="cs">" Denied"</span>,
+    <span class="cp">strategy</span>=<span class="cs">"auto"</span>,       <span class="cc"># selects checkpoint+offload</span>
+    <span class="cp">dtype</span>=<span class="cp">torch</span>.<span class="cf">bfloat16</span>,  <span class="cc"># 106 GB → 53 GB</span>
+)</pre></div>
+        </div>
       </div>
     </div>
-    <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--t4)">
-      Prefer full screen? <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank" rel="noopener" style="color:var(--indigo)">Open in new tab →</a>
-    </p>
   </div>
 </section>
+
+<hr class="div">
+
+<!-- MODELS -->
+<section class="sec" id="models">
+  <div class="wrap">
+    <span class="label reveal">Supported architectures</span>
+    <h2 class="headline reveal r1" style="margin-top:12px;margin-bottom:12px">11 model families</h2>
+    <p class="subhead reveal r2" style="margin-bottom:40px">Standard MHA, GQA, RMSNorm, LayerNorm — all handled by the MultiArchAdapter. Verified with 183 unit tests.</p>
+    <div class="model-wrap reveal">
+      <table class="model-table">
+        <thead><tr><th>Family</th><th>Attention</th><th>Norm</th><th>Example models</th><th>Scale</th></tr></thead>
+        <tbody>
+          <tr><td class="mfam">gpt2</td><td><span class="badge bmha">MHA</span></td><td>LayerNorm</td><td>GPT-2 small → XL</td><td>117M–1.5B</td></tr>
+          <tr><td class="mfam">pythia</td><td><span class="badge bmha">MHA</span></td><td>LayerNorm</td><td>Pythia 70M–12B</td><td>70M–12B</td></tr>
+          <tr><td class="mfam">gpt-j</td><td><span class="badge bmha">MHA</span></td><td>LayerNorm</td><td>GPT-J 6B</td><td>6B</td></tr>
+          <tr><td class="mfam">llama-2</td><td><span class="badge bmha">MHA</span></td><td>RMSNorm</td><td>Llama-2 7B/13B/70B</td><td>7B–70B</td></tr>
+          <tr><td class="mfam">llama-3</td><td><span class="badge bgqa">GQA 4:1</span></td><td>RMSNorm</td><td>Llama-3-8B</td><td>8B</td></tr>
+          <tr><td class="mfam">llama-3-70b</td><td><span class="badge bgqa">GQA 8:1</span></td><td>RMSNorm</td><td>Llama-3-70B</td><td>70B</td></tr>
+          <tr><td class="mfam">mistral</td><td><span class="badge bgqa">GQA 4:1</span></td><td>RMSNorm</td><td>Mistral-7B</td><td>7B</td></tr>
+          <tr><td class="mfam">phi-2</td><td><span class="badge bmha">MHA</span></td><td>LayerNorm</td><td>Phi-2</td><td>2.7B</td></tr>
+          <tr><td class="mfam">phi-3</td><td><span class="badge bgqa">GQA 4:1</span></td><td>RMSNorm</td><td>Phi-3-mini</td><td>3.8B</td></tr>
+          <tr><td class="mfam">gemma</td><td><span class="badge bgqa">GQA 8:1</span></td><td>RMSNorm</td><td>Gemma 2B/7B</td><td>2B–7B</td></tr>
+          <tr><td class="mfam">qwen2</td><td><span class="badge bgqa">GQA 4:1</span></td><td>RMSNorm</td><td>Qwen2-7B</td><td>7B</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:16px;font-size:13px;color:var(--t3)">Live CI on GPT-2. 7B+ models use <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/glassbox/large_model.py" style="color:var(--ac)">LargeModelAttributionPatcher</a> with gradient checkpointing.</p>
+  </div>
+</section>
+
+<hr class="div">
 
 <!-- PRICING -->
-<section class="sec" id="pricing" style="border-top:1px solid var(--bd);background:linear-gradient(180deg,rgba(0,200,232,.03) 0%,transparent 60%)">
+<section class="sec" id="pricing">
   <div class="wrap">
-    <span class="sec-tag reveal">Pricing</span>
-    <h2 class="sec-h reveal reveal-delay-1">Start free. Scale when<br>the regulator calls.</h2>
-    <p class="sec-sub reveal reveal-delay-2">Open source core with commercial tiers for teams that need SLAs and support before August 2026.</p>
-    <div class="pricing-grid">
-      <div class="price-card reveal reveal-delay-1">
-        <div class="price-tier">Open Source</div>
-        <div class="price-amount">Free</div>
-        <p class="price-desc">MIT licensed. Full circuit tracing. Community support. Forever free.</p>
-        <div class="price-divider"></div>
+    <span class="label reveal">Pricing</span>
+    <h2 class="headline reveal r1" style="margin-top:12px;margin-bottom:14px">Start free. Scale when you need.</h2>
+    <p class="subhead reveal r2" style="margin-bottom:48px">Open source core is MIT. Enterprise adds signed vaults, on-prem Docker, and SLA.</p>
+    <div class="price-grid">
+      <div class="price-card reveal">
+        <div class="price-tier">Open source</div>
+        <div class="price-val">Free</div>
+        <div class="price-per">Forever · MIT license</div>
         <ul class="price-feats">
-          <li>pip install, self-hosted</li>
-          <li>All 8 Annex IV requirements</li>
-          <li>SAE circuit tracing</li>
-          <li>PDF report generation</li>
-          <li>Community Discord</li>
-          <li class="dim">Email support</li>
-          <li class="dim">SLA guarantee</li>
-          <li class="dim">Custom training data</li>
+          <li>pip install glassbox-mech-interp</li>
+          <li>Full circuit discovery engine</li>
+          <li>All 21 mathematical frameworks</li>
+          <li>Annex IV report generation</li>
+          <li>11 model architecture families</li>
+          <li>MCP server included</li>
         </ul>
-        <a href="https://github.com/designer-coderajay/glassbox-mech" class="price-btn price-btn-outline" target="_blank">View on GitHub</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech" class="btn btn-g">View on GitHub</a>
       </div>
-      <div class="price-card featured reveal reveal-delay-2">
+      <div class="price-card feat reveal r1">
+        <div class="price-badge">Popular</div>
         <div class="price-tier">Pro</div>
-        <div class="price-amount"><sup>$</sup>299<span>/mo</span></div>
-        <p class="price-desc">Full automation + priority support + 12-month compliance history for your audit trail.</p>
-        <div class="price-divider"></div>
+        <div class="price-val"><sup>€</sup>499</div>
+        <div class="price-per">per month · 500 audits</div>
         <ul class="price-feats">
-          <li>Everything in Open Source</li>
-          <li>Priority email support</li>
-          <li>12-month audit history</li>
-          <li>Continuous drift monitoring</li>
-          <li>Notified body format export</li>
-          <li>Slack integration</li>
-          <li class="dim">Dedicated support line</li>
-          <li class="dim">Custom integrations</li>
+          <li>Everything in Free</li>
+          <li>500 audit runs / month</li>
+          <li>Priority support</li>
+          <li>Signed evidence vaults</li>
+          <li>API access</li>
+          <li>Audit history &amp; dashboard</li>
         </ul>
-        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Pro" class="price-btn price-btn-filled">Get Pro access</a>
+        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Pro" class="btn btn-a">Get Pro</a>
       </div>
-      <div class="price-card reveal reveal-delay-3">
+      <div class="price-card reveal r2">
         <div class="price-tier">Enterprise</div>
-        <div class="price-amount" style="font-size:32px">Custom</div>
-        <p class="price-desc">White-glove onboarding, SLA, custom integrations for teams with August 2026 hard deadlines.</p>
-        <div class="price-divider"></div>
+        <div class="price-val"><sup>€</sup>24K+</div>
+        <div class="price-per">per year · unlimited</div>
         <ul class="price-feats">
-          <li>Everything in Pro</li>
-          <li>Dedicated support engineer</li>
-          <li>99.9% uptime SLA</li>
-          <li>Custom model adapters</li>
-          <li>On-premise deployment</li>
-          <li>Legal review support</li>
-          <li>Notified body co-submission</li>
-          <li>Custom data training</li>
+          <li>Unlimited audit runs</li>
+          <li>On-premises Docker deployment</li>
+          <li>Air-gapped / VPC compatible</li>
+          <li>ISO 42001 + NIST AI RMF</li>
+          <li>SLA + dedicated engineer</li>
+          <li>Legal indemnification support</li>
         </ul>
-        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Enterprise" class="price-btn price-btn-ghost">Contact us</a>
+        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Enterprise" class="btn btn-p">Contact sales</a>
       </div>
     </div>
+    <p style="margin-top:24px;text-align:center;font-size:13px;color:var(--t3)">Non-compliance with EU AI Act: up to €35M or 7% of global annual turnover.</p>
   </div>
 </section>
 
-<!-- TEAM -->
-<section class="sec" id="team" style="border-top:1px solid var(--bd)">
+<hr class="div">
+
+<!-- RESEARCH -->
+<section class="sec" id="research">
   <div class="wrap">
-    <span class="sec-tag reveal">Team</span>
-    <h2 class="sec-h reveal reveal-delay-1">Built by researchers who read<br>the actual legislation.</h2>
-    <div class="team-grid">
-      <div class="team-card reveal reveal-delay-1">
-        <div class="team-avatar">AM</div>
-        <div class="team-name">Ajay Mahale</div>
-        <div class="team-role">Founder · Lead Researcher</div>
-        <p class="team-bio">Mechanistic interpretability researcher building the compliance layer for production AI. Read the full EU AI Act so you don't have to.</p>
-        <div class="team-links">
-          <a href="https://github.com/designer-coderajay" class="team-link" target="_blank" rel="noopener">
-            <svg width="14" height="14" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M7.5 1C3.91 1 1 3.91 1 7.5c0 2.87 1.86 5.3 4.44 6.16.32.06.44-.14.44-.31v-1.08c-1.8.39-2.18-.87-2.18-.87-.3-.75-.72-.95-.72-.95-.59-.4.04-.39.04-.39.65.04 1 .67 1 .67.58 1 1.53.71 1.9.54.06-.42.23-.71.41-.87-1.44-.16-2.95-.72-2.95-3.2 0-.71.25-1.29.67-1.74-.07-.17-.29-.82.06-1.72 0 0 .55-.18 1.8.67a6.27 6.27 0 013.26 0c1.25-.85 1.8-.67 1.8-.67.35.9.13 1.55.06 1.72.42.45.67 1.03.67 1.74 0 2.49-1.52 3.04-2.96 3.2.23.2.44.6.44 1.21v1.79c0 .17.12.37.44.31A6.5 6.5 0 0014 7.5C14 3.91 11.09 1 7.5 1z"/></svg>
-            GitHub
-          </a>
-          <a href="https://arxiv.org/abs/2603.09988" class="team-link" target="_blank" rel="noopener">
-            <svg width="14" height="14" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="1.5" width="11" height="12" rx="1.5"/><line x1="5" y1="5.5" x2="10" y2="5.5"/><line x1="5" y1="8" x2="10" y2="8"/><line x1="5" y1="10.5" x2="8" y2="10.5"/></svg>
-            arXiv
-          </a>
-          <a href="mailto:mahale.ajay01@gmail.com" class="team-link">
-            <svg width="14" height="14" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="3" width="13" height="10" rx="1.5"/><polyline points="1,3 7.5,9 14,3"/></svg>
-            Email
-          </a>
-        </div>
+    <span class="label reveal">Research</span>
+    <h2 class="headline reveal r1" style="margin-top:12px;margin-bottom:40px">Built on peer-reviewed science</h2>
+    <div class="research-grid">
+      <div class="rcard reveal">
+        <div class="rcat">Mechanistic interpretability</div>
+        <div class="rtitle">Attribution Patching: Activation Patching at Industrial Scale</div>
+        <div class="rbody">First-order Taylor approximation for head-level attribution in O(3) passes. Foundation for Glassbox circuit discovery. 37× faster than ACDC.</div>
+        <a href="https://www.neelnanda.io/mechanistic-interpretability/attribution-patching" class="rlink" target="_blank">Nanda et al. 2023 →</a>
       </div>
-      <div class="team-right reveal reveal-delay-2">
-        <h3>"Mechanistic interpretability is the only path to verifiable AI compliance."</h3>
-        <p>Every other compliance tool treats the model as a black box and documents inputs and outputs. Annex IV §2(d) demands more. It requires documentation of the internal reasoning structure — which means you need circuit-level analysis.</p>
-        <p>Glassbox was built to solve exactly this problem. We use sparse autoencoders to decompose attention heads into interpretable features, then map those features to the exact language of the EU AI Act. The result is documentation no human auditor could produce manually in any reasonable timeframe.</p>
-        <div class="team-paper">
-          <div class="tp-icon">§</div>
-          <div>
-            <div class="tp-title">Mechanistic Interpretability for EU AI Act Compliance</div>
-            <div class="tp-meta">arXiv:2603.09988 · April 2026 · Ajay Mahale</div>
-          </div>
-        </div>
+      <div class="rcard reveal r1">
+        <div class="rcat">Circuit discovery</div>
+        <div class="rtitle">Interpretability in the Wild: A Circuit for Indirect Object Identification</div>
+        <div class="rbody">Introduced the IOI circuit, name-swap corruption, and corrupted activation patching as the standard for causal faithfulness evaluation.</div>
+        <a href="https://arxiv.org/abs/2211.00593" class="rlink" target="_blank">Wang et al. 2022 →</a>
+      </div>
+      <div class="rcard reveal r2">
+        <div class="rcat">Glassbox paper</div>
+        <div class="rtitle">Glassbox AI: Mechanistic Interpretability for EU AI Act Compliance</div>
+        <div class="rbody">r=0.009: confidence and faithfulness are statistically orthogonal — a key finding for high-stakes decision systems. Faithfulness F1 = 0.89.</div>
+        <a href="https://arxiv.org/abs/2603.09988" class="rlink" target="_blank">arXiv:2603.09988 →</a>
+      </div>
+      <div class="rcard reveal">
+        <div class="rcat">GQA support</div>
+        <div class="rtitle">GQA: Training Generalized Multi-Query Transformer Models</div>
+        <div class="rbody">Mathematical foundation for GQA attribution redistribution across query head groups — used in MultiArchAdapter for Llama-3, Mistral, Phi-3.</div>
+        <a href="https://arxiv.org/abs/2305.13245" class="rlink" target="_blank">Ainslie et al. 2023 →</a>
+      </div>
+      <div class="rcard reveal r1">
+        <div class="rcat">Memory efficiency</div>
+        <div class="rtitle">Training Deep Nets with Sublinear Memory Cost</div>
+        <div class="rbody">Gradient checkpointing: O(√n) activation memory. Enables Llama-3-70B attribution on single A100. 11× memory reduction for 80-layer models.</div>
+        <a href="https://arxiv.org/abs/1604.06174" class="rlink" target="_blank">Chen et al. 2016 →</a>
+      </div>
+      <div class="rcard reveal r2">
+        <div class="rcat">EU AI Act</div>
+        <div class="rtitle">Regulation (EU) 2024/1689 — AI Act</div>
+        <div class="rbody">Annex IV defines 8 mandatory technical documentation sections. Enforcement August 2, 2026. Non-compliance: €35M or 7% global turnover.</div>
+        <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" class="rlink" target="_blank">Official text →</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="sec" id="faq" style="border-top:1px solid var(--bd)">
-  <div class="wrap" style="text-align:center">
-    <span class="sec-tag reveal" style="display:block">FAQ</span>
-    <h2 class="sec-h reveal reveal-delay-1">Frequently asked questions</h2>
-  </div>
-  <div class="faq-list">
-    <div class="faq-item reveal">
-      <div class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text">Is Glassbox ready for production use?</span>
-        <span class="faq-icon">+</span>
-      </div>
-      <div class="faq-a"><div class="faq-a-in">Yes. v2.0.0 is stable and available on PyPI. It ships with a full test suite, comprehensive documentation, and has been validated against the EU AI Act text. The arXiv paper (2603.09988) describes the methodology in peer-reviewed detail. Teams have already used it to produce Annex IV documentation accepted in pilot audits.</div></div>
-    </div>
-    <div class="faq-item reveal reveal-delay-1">
-      <div class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text">Which models does Glassbox support?</span>
-        <span class="faq-icon">+</span>
-      </div>
-      <div class="faq-a"><div class="faq-a-in">Glassbox currently supports transformer-based LLMs with accessible attention weights — including GPT-2 family, Llama family, Mistral, Gemma, and Phi. Support for additional architectures is expanding. The circuit tracing methodology is architecture-agnostic; what varies is the SAE training configuration per model family.</div></div>
-    </div>
-    <div class="faq-item reveal reveal-delay-2">
-      <div class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text">How does the circuit tracing actually work?</span>
-        <span class="faq-icon">+</span>
-      </div>
-      <div class="faq-a"><div class="faq-a-in">We train Sparse Autoencoders (SAEs) on attention layer activations to decompose them into a dictionary of interpretable features. Each feature corresponds to a detectable pattern in the model's internal reasoning. We then map these features to circuit diagrams showing which heads collaborate on which reasoning steps. Full methodology in arXiv:2603.09988.</div></div>
-    </div>
-    <div class="faq-item reveal reveal-delay-3">
-      <div class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text">Is the August 2026 deadline legally binding?</span>
-        <span class="faq-icon">+</span>
-      </div>
-      <div class="faq-a"><div class="faq-a-in">Yes. EU AI Act Article 113 specifies that provisions for high-risk AI systems (including those covered by Annex IV documentation requirements) apply from August 2, 2026. Non-compliance exposes operators to penalties of up to €30 million or 6% of annual global turnover, whichever is higher. There is no grace period announced for Annex IV documentation.</div></div>
-    </div>
-    <div class="faq-item reveal reveal-delay-4">
-      <div class="faq-q" onclick="toggleFaq(this)">
-        <span class="faq-q-text">Can I self-host the entire stack?</span>
-        <span class="faq-icon">+</span>
-      </div>
-      <div class="faq-a"><div class="faq-a-in">Yes. The core library is MIT licensed — install it, inspect the source, modify it, host it wherever you need. The BSL 1.1 commercial license applies to production SaaS deployments serving third parties. Solo operators and teams using Glassbox for their own compliance documentation can use the MIT core freely.</div></div>
-    </div>
-  </div>
-</section>
+<hr class="div">
 
 <!-- CTA -->
-<section class="cta-sec" id="cta">
+<section class="sec">
   <div class="wrap">
-    <h2 class="reveal">August 2026 is<br><em id="cta-days">—</em> days away.</h2>
-    <p class="reveal reveal-delay-1">Every day without compliance documentation is a day your legal team has to defend. Start with one command.</p>
-    <div class="cta-actions reveal reveal-delay-2">
-      <div class="cta-pip">
-        <code>pip install glassbox-mech-interp</code>
-        <button class="copy-btn" onclick="copyPip(this,'cta-pip-code')" aria-label="Copy pip command">copy</button>
+    <div class="cta-box reveal">
+      <h2 class="display" style="max-width:640px;margin:0 auto 20px">August 2, 2026 is the deadline</h2>
+      <p class="subhead" style="max-width:480px;margin:0 auto 36px">Every high-risk AI system in the EU needs Annex IV documentation. Glassbox generates it in under 2 seconds.</p>
+      <div class="cta-acts">
+        <a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof" class="btn btn-p" style="font-size:15px;padding:13px 28px">Read the integration guide →</a>
+        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Enterprise Inquiry" class="btn btn-g" style="font-size:15px;padding:13px 28px">Talk to us</a>
       </div>
-      <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Enterprise Access" class="btn-primary">Get enterprise access →</a>
     </div>
-    <div class="waitlist-form reveal reveal-delay-3">
-      <input type="email" id="wl-email" placeholder="you@company.com" aria-label="Email address">
-      <button class="waitlist-submit" onclick="submitWaitlist()">Join waitlist</button>
-    </div>
-    <div class="waitlist-msg" id="wl-msg"></div>
-    <p class="cta-deadline reveal reveal-delay-4">Deadline: <strong>August 2, 2026</strong> · EU AI Act Art. 113 · Penalty: up to €30M</p>
   </div>
 </section>
+
+</main>
 
 <!-- FOOTER -->
 <footer>
-  <div class="ft-in">
-    <div class="ft-top">
+  <div class="wrap">
+    <div class="foot-top">
       <div>
-        <div class="ft-brand">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" aria-hidden="true">
-<defs><radialGradient id="ftg-g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#00C8E8" stop-opacity="0.10"/><stop offset="100%" stop-color="#050709" stop-opacity="0"/></radialGradient></defs>
-<rect x="2" y="2" width="96" height="96" rx="10" fill="url(#ftg-g)"/>
-<polygon points="50,19.69 85,34.85 50,50 15,34.85" fill="#00C8E8" fill-opacity="0.055"/>
-<polygon points="85,34.85 85,65.15 50,80.31 50,50" fill="#00C8E8" fill-opacity="0.105"/>
-<polygon points="15,34.85 50,50 50,80.31 15,65.15" fill="#00C8E8" fill-opacity="0.030"/>
-<polygon points="50,19.69 85,34.85 85,65.15 50,80.31 15,65.15 15,34.85" fill="none" stroke="#00C8E8" stroke-width="2.4"/>
-<line x1="50" y1="50" x2="50" y2="19.69" stroke="#00C8E8" stroke-width="2" stroke-opacity="0.82" stroke-linecap="round"/>
-<line x1="50" y1="50" x2="85" y2="65.15" stroke="#00C8E8" stroke-width="2" stroke-opacity="0.82" stroke-linecap="round"/>
-<line x1="50" y1="50" x2="15" y2="65.15" stroke="#00C8E8" stroke-width="2" stroke-opacity="0.82" stroke-linecap="round"/>
-<circle cx="79.75" cy="45.60" r="1.5" fill="#00C8E8"/><circle cx="67.5" cy="47.88" r="1.9" fill="#00C8E8"/><circle cx="56.3" cy="55.75" r="1.5" fill="#00C8E8"/>
-          </svg>
-          <div class="ft-brand-name">GLASSBOX<span>AI</span></div>
+        <div class="foot-logo">
+          <div class="logo-mark"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#000"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#000" opacity=".5"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#000" opacity=".5"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#000" opacity=".8"/></svg></div>
+          Glassbox AI
         </div>
-        <p class="ft-tag">EU AI Act Annex IV compliance automation for production LLMs. Open source, MIT licensed. August 2026 ready.</p>
-        <div class="ft-soc">
-          <a href="https://github.com/designer-coderajay/glassbox-mech" class="sbtn" aria-label="GitHub" target="_blank" rel="noopener">
-            <svg viewBox="0 0 15 15"><path d="M7.5 1C3.91 1 1 3.91 1 7.5c0 2.87 1.86 5.3 4.44 6.16.32.06.44-.14.44-.31v-1.08c-1.8.39-2.18-.87-2.18-.87-.3-.75-.72-.95-.72-.95-.59-.4.04-.39.04-.39.65.04 1 .67 1 .67.58 1 1.53.71 1.9.54.06-.42.23-.71.41-.87-1.44-.16-2.95-.72-2.95-3.2 0-.71.25-1.29.67-1.74-.07-.17-.29-.82.06-1.72 0 0 .55-.18 1.8.67a6.27 6.27 0 013.26 0c1.25-.85 1.8-.67 1.8-.67.35.9.13 1.55.06 1.72.42.45.67 1.03.67 1.74 0 2.49-1.52 3.04-2.96 3.2.23.2.44.6.44 1.21v1.79c0 .17.12.37.44.31A6.5 6.5 0 0014 7.5C14 3.91 11.09 1 7.5 1z"/></svg>
-          </a>
-          <a href="https://pypi.org/project/glassbox-mech-interp/" class="sbtn" aria-label="PyPI" target="_blank" rel="noopener">
-            <svg viewBox="0 0 15 15"><path d="M5.5 2C4.12 2 3 3.12 3 4.5v3C3 8.88 4.12 10 5.5 10H7v2.5a.5.5 0 001 0V10h1.5c1.38 0 2.5-1.12 2.5-2.5v-3C12 3.12 10.88 2 9.5 2h-4z"/></svg>
-          </a>
-          <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="sbtn" aria-label="HuggingFace" target="_blank" rel="noopener">
-            <svg viewBox="0 0 15 15"><circle cx="7.5" cy="7.5" r="6.5"/><path d="M4.5 8.5c0 1.66 1.34 3 3 3s3-1.34 3-3"/><circle cx="5.5" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="6" r="1" fill="currentColor" stroke="none"/></svg>
-          </a>
-          <a href="https://arxiv.org/abs/2603.09988" class="sbtn" aria-label="arXiv" target="_blank" rel="noopener">
-            <svg viewBox="0 0 15 15"><rect x="2" y="1.5" width="11" height="12" rx="1.5"/><path d="M5 5.5h5M5 8h5M5 10.5h3"/></svg>
-          </a>
-        </div>
+        <p class="foot-tag">The compliance layer for production AI. Open source. EU AI Act ready.</p>
       </div>
-      <div class="ft-col">
-        <div class="ft-ctitle">Product</div>
-        <ul>
+      <div>
+        <div class="foot-col-h">Product</div>
+        <ul class="foot-links">
           <li><a href="#features">Features</a></li>
-          <li><a href="#how-it-works">How it works</a></li>
-          <li><a href="#coverage">EU AI Act coverage</a></li>
+          <li><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a></li>
           <li><a href="#pricing">Pricing</a></li>
-          <li><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">Live demo</a></li>
+          <li><a href="https://pypi.org/project/glassbox-mech-interp/">PyPI package</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a></li>
         </ul>
       </div>
-      <div class="ft-col">
-        <div class="ft-ctitle">Developers</div>
-        <ul>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech" target="_blank">GitHub</a></li>
-          <li><a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI package</a></li>
-          <li><a href="https://arxiv.org/abs/2603.09988" target="_blank">arXiv paper</a></li>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/METHODOLOGY.md" target="_blank">Methodology</a></li>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech/releases" target="_blank">Changelog</a></li>
+      <div>
+        <div class="foot-col-h">Compliance</div>
+        <ul class="foot-links">
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof">Integration guide</a></li>
+          <li><a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689">EU AI Act</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/METHODOLOGY.md">Methodology</a></li>
+          <li><a href="https://arxiv.org/abs/2603.09988">arXiv paper</a></li>
         </ul>
       </div>
-      <div class="ft-col">
-        <div class="ft-ctitle">Legal</div>
-        <ul>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/LICENSE" target="_blank">MIT License</a></li>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/LICENSE-COMMERCIAL" target="_blank">BSL 1.1 Commercial</a></li>
-          <li><a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32024R1689" target="_blank">EU AI Act text</a></li>
+      <div>
+        <div class="foot-col-h">Company</div>
+        <ul class="foot-links">
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/ROADMAP_V4.md">Roadmap</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/CHANGELOG.md">Changelog</a></li>
           <li><a href="mailto:mahale.ajay01@gmail.com">Contact</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/SECURITY.md">Security</a></li>
         </ul>
       </div>
     </div>
-    <div class="ft-bot">
-      <div class="ft-copy">© 2026 Glassbox AI · Built for EU AI Act compliance · BSL 1.1 + MIT dual licence</div>
-      <div class="ft-legal">
-        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/LICENSE" target="_blank">MIT License</a>
-        <a href="mailto:mahale.ajay01@gmail.com">Contact</a>
-        <a href="https://arxiv.org/abs/2603.09988" target="_blank">Paper</a>
+    <div class="foot-bot">
+      <span class="foot-copy">© 2026 Glassbox AI. Open source under MIT.</span>
+      <div class="foot-legal">
+        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/LICENSE">License</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/SECURITY.md">Security</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/NOTICE">Legal</a>
       </div>
     </div>
   </div>
 </footer>
 
-<!-- GSAP (synchronous) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-
 <script>
-/* ─── COUNTDOWN ─────────────────────────────────────────────── */
-const DEADLINE = new Date('2026-08-02T00:00:00Z');
-function updateCountdown(){
-  const diff = DEADLINE - Date.now();
-  if(diff <= 0){ ['cd-d','cd-h','cd-m','cd-s','tb-days','cta-days'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='0'}); return; }
-  const d = Math.floor(diff/86400000);
-  const h = Math.floor((diff%86400000)/3600000);
-  const m = Math.floor((diff%3600000)/60000);
-  const s = Math.floor((diff%60000)/1000);
-  const pad = n => String(n).padStart(2,'0');
-  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-  set('cd-d',d); set('cd-h',pad(h)); set('cd-m',pad(m)); set('cd-s',pad(s));
-  set('tb-days',d); set('cta-days',d);
+const obs = new IntersectionObserver(
+  es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); }),
+  { threshold: 0.1, rootMargin: '0px 0px -32px 0px' }
+);
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+function toggleMenu() {
+  document.getElementById('mobMenu').classList.toggle('open');
 }
-updateCountdown(); setInterval(updateCountdown,1000);
-
-/* ─── TOPBAR HEIGHT → CSS CUSTOM PROPERTY ─────────────────────── */
-const topbarEl = document.querySelector('.topbar');
-function syncTopbarH(){
-  const h = topbarEl ? topbarEl.getBoundingClientRect().height : 40;
-  document.documentElement.style.setProperty('--topbar-h', Math.round(h) + 'px');
-}
-syncTopbarH();
-window.addEventListener('resize', syncTopbarH, {passive:true});
-
-/* ─── NAV ────────────────────────────────────────────────────── */
-const nav = document.getElementById('nav');
-window.addEventListener('scroll',()=>{ nav.classList.toggle('scrolled', window.scrollY > 20); }, {passive:true});
-
-/* hamburger */
-const ham = document.getElementById('nav-ham');
-const mob = document.getElementById('nav-mob');
-ham.addEventListener('click',()=>{ ham.classList.toggle('open'); mob.classList.toggle('open'); });
-document.querySelectorAll('.nav-mob-link').forEach(a=>a.addEventListener('click',()=>{ ham.classList.remove('open'); mob.classList.remove('open'); }));
-
-/* ─── REVEAL (Intersection Observer) ─────────────────────────── */
-const ro = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); ro.unobserve(e.target); } });
-},{ threshold:0.12, rootMargin:'0px 0px -40px 0px' });
-document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
-
-/* ─── COUNTER ANIMATION ──────────────────────────────────────── */
-function animateCounter(el, target, suffix){
-  const dur = 1400;
-  const start = performance.now();
-  const step = (now) => {
-    const p = Math.min((now-start)/dur,1);
-    const ease = 1-Math.pow(1-p,3);
-    el.textContent = Math.floor(ease*target) + suffix;
-    if(p < 1) requestAnimationFrame(step);
-    else el.textContent = target + suffix;
-  };
-  requestAnimationFrame(step);
-}
-const proofObs = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      const t = parseInt(e.target.dataset.target);
-      const s = e.target.dataset.suffix||'';
-      animateCounter(e.target, t, s);
-      proofObs.unobserve(e.target);
-    }
-  });
-},{threshold:0.5});
-document.querySelectorAll('[data-target]').forEach(el=>proofObs.observe(el));
-
-/* ─── TERMINAL TYPER ─────────────────────────────────────────── */
-const LINES = [
-  {text:'$ pip install glassbox-mech-interp', cls:'cmd', pause:600},
-  {text:'Collecting glassbox-mech-interp...', cls:'dim', pause:200},
-  {text:'Installing glassbox-mech-interp v4.2.6 ✓', cls:'ok', pause:500},
-  {text:'', cls:'out', pause:100},
-  {text:'>>> from glassbox import GlassboxAuditor', cls:'cmd', pause:300},
-  {text:'>>> auditor = GlassboxAuditor("gpt2")', cls:'cmd', pause:300},
-  {text:'>>> result = auditor.audit(', cls:'cmd', pause:200},
-  {text:'...   decision_prompt="Loan for {name}?",', cls:'dim', pause:200},
-  {text:'...   expected_positive=" approved",', cls:'dim', pause:200},
-  {text:'...   expected_negative=" denied")', cls:'dim', pause:800},
-  {text:'Tracing attention circuits...', cls:'dim', pause:1200},
-  {text:'', cls:'out', pause:80},
-  {text:'✓ Art. 11 technical documentation   [PASS]', cls:'ok', pause:180},
-  {text:'✓ Art. 13 transparency obligations  [PASS]', cls:'ok', pause:180},
-  {text:'✓ Art. 17 quality management        [PASS]', cls:'ok', pause:180},
-  {text:'✓ Art. 72 conformity assessment     [PASS]', cls:'ok', pause:180},
-  {text:'✓ Annex IV §2(a) training data      [PASS]', cls:'ok', pause:180},
-  {text:'✓ Annex IV §2(d) circuit analysis   [PASS]', cls:'ok', pause:400},
-  {text:'', cls:'out', pause:80},
-  {text:'Coverage: 61.4% | Sufficiency: 100%', cls:'highlight', pause:300},
-  {text:'Report saved → annex_iv_report.pdf', cls:'indigo', pause:0},
-];
-const termOut = document.getElementById('term-out');
-const cursor = document.getElementById('t-cursor');
-let lineIdx=0, charIdx=0, isTyping=false;
-
-function typeChar(){
-  if(lineIdx >= LINES.length){ cursor.style.display='none'; return; }
-  const {text,cls,pause} = LINES[lineIdx];
-  if(charIdx === 0){
-    const div = document.createElement('div');
-    div.className = 't-line ' + cls;
-    if(cls === 'indigo') div.style.color='#00C8E8';
-    div.id = 'tl-' + lineIdx;
-    termOut.appendChild(div);
-  }
-  if(charIdx < text.length){
-    document.getElementById('tl-'+lineIdx).textContent = text.slice(0,charIdx+1);
-    charIdx++;
-    setTimeout(typeChar, text[charIdx-1] === ' ' ? 20 : 38);
-  } else {
-    charIdx = 0; lineIdx++;
-    setTimeout(typeChar, pause);
-  }
-}
-
-/* start terminal when in view */
-const termEl = document.querySelector('.terminal');
-const termObs = new IntersectionObserver((entries)=>{
-  if(entries[0].isIntersecting && !isTyping){ isTyping=true; typeChar(); termObs.disconnect(); }
-},{threshold:0.3});
-termObs.observe(termEl);
-
-/* ─── HF DEMO LOADER ─────────────────────────────────────────── */
-function loadHfDemo(){
-  const container = document.getElementById('demo-container');
-  const hfUrl = 'https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool';
-  // Show loading state
-  container.innerHTML = '<div class="demo-loading">Waking up demo space&hellip;</div>';
-  // Load iframe
-  setTimeout(()=>{
-    const iframe = document.createElement('iframe');
-    iframe.src = hfUrl;
-    iframe.title = 'Glassbox AI Live Demo';
-    iframe.allow = 'accelerometer; camera; microphone';
-    iframe.style.cssText = 'width:100%;height:100%;border:none';
-    container.innerHTML = '';
-    container.appendChild(iframe);
-  }, 400);
-}
-
-/* ─── COPY BUTTON ────────────────────────────────────────────── */
-function copyPip(btn, codeId){
-  const text = codeId ? document.getElementById(codeId)?.textContent : 'pip install glassbox-mech-interp';
-  const cmd = text || 'pip install glassbox-mech-interp';
-  navigator.clipboard.writeText(cmd.trim()).then(()=>{
-    const orig = btn.textContent;
-    btn.textContent = '✓ copied';
-    btn.classList.add('copied');
-    setTimeout(()=>{ btn.textContent=orig; btn.classList.remove('copied'); }, 2000);
-  }).catch(()=>{
-    /* fallback */
-    const ta = document.createElement('textarea');
-    ta.value = cmd.trim();
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    btn.textContent='✓'; setTimeout(()=>btn.textContent='copy',2000);
-  });
-}
-
-/* ─── FAQ ACCORDION ─────────────────────────────────────────── */
-function toggleFaq(qEl){
-  const item = qEl.closest('.faq-item');
-  const isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
-  if(!isOpen) item.classList.add('open');
-}
-
-/* ─── WAITLIST FORM ──────────────────────────────────────────── */
-async function submitWaitlist(){
-  const email = document.getElementById('wl-email').value.trim();
-  const msg = document.getElementById('wl-msg');
-  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    msg.textContent = 'Enter a valid email address.';
-    msg.className = 'waitlist-msg err';
-    return;
-  }
-  msg.textContent = 'Sending...';
-  msg.className = 'waitlist-msg';
-  try {
-    const r = await fetch('/api/waitlist',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email, plan:'pro'})
-    });
-    const d = await r.json();
-    if(r.ok && d.success){
-      msg.textContent = d.message || "You're on the list!";
-      msg.className = 'waitlist-msg ok';
-      document.getElementById('wl-email').value = '';
-    } else {
-      msg.textContent = d.error || 'Something went wrong. Email us directly.';
-      msg.className = 'waitlist-msg err';
-    }
-  } catch {
-    msg.textContent = "Couldn't reach server. Email mahale.ajay01@gmail.com directly.";
-    msg.className = 'waitlist-msg err';
-  }
-}
-
-/* ─── GSAP MAGNETIC BUTTONS ─────────────────────────────────── */
-if(typeof gsap !== 'undefined'){
-  gsap.registerPlugin(ScrollTrigger);
-  document.querySelectorAll('.btn-primary,.nav-cta,.price-btn-filled').forEach(btn=>{
-    btn.addEventListener('mousemove',(e)=>{
-      const r = btn.getBoundingClientRect();
-      const x = e.clientX - r.left - r.width/2;
-      const y = e.clientY - r.top - r.height/2;
-      gsap.to(btn,{x:x*.18,y:y*.18,duration:.3,ease:'power2.out'});
-    });
-    btn.addEventListener('mouseleave',()=>gsap.to(btn,{x:0,y:0,duration:.5,ease:'elastic.out(1,.5)'}));
-  });
-}
+document.querySelectorAll('.mob-menu a').forEach(a =>
+  a.addEventListener('click', () => document.getElementById('mobMenu').classList.remove('open'))
+);
 </script>
-
-<!-- Motion One for scroll animations -->
-<script type="module">
-import { animate, inView } from 'https://cdn.jsdelivr.net/npm/motion@11/dist/motion.js';
-
-/* feature cards stagger */
-inView('.features-grid', () => {
-  animate('.feature-card',
-    { opacity:[0,1], y:[40,0], scale:[0.97,1] },
-    { delay:(i)=>i*0.08, duration:0.55, easing:[0.16,1,0.3,1] }
-  );
-});
-
-/* pricing cards */
-inView('.pricing-grid', () => {
-  animate('.price-card',
-    { opacity:[0,1], y:[32,0] },
-    { delay:(i)=>i*0.10, duration:0.55, easing:[0.16,1,0.3,1] }
-  );
-});
-
-/* team card */
-inView('.team-grid', () => {
-  animate('.team-card', { opacity:[0,1], x:[-24,0] }, { duration:0.6, easing:[0.16,1,0.3,1] });
-  animate('.team-right', { opacity:[0,1], x:[24,0] }, { duration:0.6, delay:0.12, easing:[0.16,1,0.3,1] });
-});
-
-/* coverage table rows */
-inView('.coverage-table', () => {
-  animate('.coverage-table tr',
-    { opacity:[0,1], x:[-16,0] },
-    { delay:(i)=>i*0.04, duration:0.45, easing:'ease-out' }
-  );
-});
-
-/* steps */
-inView('.steps', () => {
-  animate('.step',
-    { opacity:[0,1], y:[28,0] },
-    { delay:(i)=>i*0.12, duration:0.55, easing:[0.16,1,0.3,1] }
-  );
-});
-</script>
-
 </body>
 </html>
