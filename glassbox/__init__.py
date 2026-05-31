@@ -139,7 +139,7 @@ glassbox/
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "4.2.6"
+__version__ = "4.3.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
@@ -471,6 +471,24 @@ from glassbox.multi_arch import (
     SUPPORTED_ARCHITECTURES,
     RMSNORM_ARCHITECTURES,
     GQA_ARCHITECTURES,
+)
+
+from glassbox.prompt_corruption import (
+    CorruptionStrategy,
+    auto_corrupt,
+    CorruptionSelector,
+    get_antonym,
+    name_swap_corruption,
+    random_token_corruption,
+    antonym_corruption,
+)
+
+from glassbox.large_model import (
+    LargeModelAttributionPatcher,
+    analyze_large,
+    estimate_memory,
+    MemoryEstimate,
+    classify_model_size,
 )
 
 # ---------------------------------------------------------------------------

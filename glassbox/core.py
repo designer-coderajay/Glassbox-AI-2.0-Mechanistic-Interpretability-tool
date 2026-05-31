@@ -2072,20 +2072,39 @@ class GlassboxV2:
         method:             str  = "taylor",
         n_steps:            int  = 10,
         include_logit_lens: bool = False,
+        corruption_strategy: str = "auto",
     ) -> Dict:
         """
         One-call circuit discovery + faithfulness metrics.
 
         Parameters
         ----------
-        prompt    : Input text (e.g. "When Mary and John went to the store, John gave a drink to")
-        correct   : Correct next token (e.g. " Mary")
-        incorrect : Distractor token    (e.g. " John")
+        prompt    : Input text — any prompt, any task, any domain.
+                    Examples:
+                      "When Mary and John went to the store, John gave a drink to"  (IOI)
+                      "Loan application. Annual income: €42,000. Decision:"         (credit)
+                      "Patient presents with chest pain. Priority:"                 (medical)
+                      "Candidate has 8 years Python experience. Assessment:"        (HR)
+        correct   : Correct next token (e.g. " Mary", " Approved", " Urgent")
+        incorrect : Distractor token    (e.g. " John", " Denied",  " Routine")
         method             : Attribution method — "taylor" (fast, default) or
                              "integrated_gradients" (accurate, 2+n_steps passes)
         n_steps            : Interpolation steps for integrated_gradients (default 10)
         include_logit_lens : If True, also run logit_lens() and include result
                              in output under key 'logit_lens' (adds 1 forward pass)
+        corruption_strategy: How to generate the corrupted counterfactual prompt.
+                             "auto"             — auto-select best strategy (default)
+                             "name_swap"        — IOI-style bidirectional swap (Wang 2022)
+                             "random_token"     — replace 25% of tokens (Meng 2022)
+                             "antonym"          — semantic antonym replacement
+                             "semantic_negation"— negate modal verb in prompt
+                             Auto-selection logic (in priority order):
+                               1. name_swap if both tokens appear as words in prompt
+                               2. antonym if correct/incorrect are a known antonym pair
+                               3. semantic_negation if prompt has negatable modal verb
+                               4. random_token as universal fallback
+                             Each strategy is backed by a published paper and
+                             documented in glassbox/prompt_corruption.py.
 
         Returns
         -------
@@ -2129,8 +2148,18 @@ class GlassboxV2:
 
         tokens_c    = self.model.to_tokens(prompt)
 
-        # Proper bidirectional name-swap corruption (Wang et al. 2022)
-        corr_prompt = self._name_swap(prompt, correct.strip(), incorrect.strip())
+        # ── Any-prompt corruption strategy auto-selection ─────────────────
+        # Previously hardcoded to IOI name-swap (Wang et al. 2022), which only
+        # works when both tokens appear as named entities in the prompt.
+        # Now: auto_corrupt() selects the best strategy for any text domain.
+        # Mathematical requirement: corrupted prompt must produce LD_corr < LD_clean
+        # (ideally negative) so that Δz = z_clean - z_corr ≠ 0 for attribution.
+        # See glassbox/prompt_corruption.py for full mathematical derivation.
+        from glassbox.prompt_corruption import auto_corrupt
+        corr_prompt, _corruption_strategy, _corruption_rationale = auto_corrupt(
+            prompt, correct, incorrect,
+            strategy=None if corruption_strategy == "auto" else corruption_strategy,
+        )
         tokens_corr = self.model.to_tokens(corr_prompt)
 
         # Circuit discovery — pass method through for attribution
@@ -2181,6 +2210,10 @@ class GlassboxV2:
             "n_heads":          len(circuit),
             "clean_ld":         clean_ld,
             "corr_prompt":      corr_prompt,
+            "corruption_metadata": {
+                "strategy":  _corruption_strategy,
+                "rationale": _corruption_rationale,
+            },
             "attributions":     {str(k): v for k, v in attrs.items()},
             "mlp_attributions": {str(l): v for l, v in mlp_attrs.items()},
             "top_heads":        top_heads,

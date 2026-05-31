@@ -2,7 +2,7 @@
 
 <img src="docs/glassbox-brand.png" alt="Glassbox AI — Brand Identity" width="720" style="max-width:100%;margin-bottom:8px"/>
 
-# Glassbox 4.2.6
+# Glassbox 4.3.0
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 **21 mathematical frameworks. ACDC + GQA/RMSNorm multi-arch + cross-model comparison. Production-ready.**
@@ -35,6 +35,7 @@
 
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
+- [**How to Get Your EU AI Act Annex IV Compliance Proof**](#how-to-get-your-eu-ai-act-annex-iv-compliance-proof)
 - [What's New in v4.2.0](#whats-new-in-v420)
 - [What's New in v4.1.0](#whats-new-in-v410)
 - [What's New in v4.0.0](#whats-new-in-v400)
@@ -114,6 +115,240 @@ print(result["faithfulness"])
 ```
 
 No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) — no install required.
+
+---
+
+## How to Get Your EU AI Act Annex IV Compliance Proof
+
+This is the most common question we receive. Here is the complete answer, step by step.
+
+### Who this applies to
+
+EU AI Act Article 6 + Annex III defines **high-risk AI systems** that require Annex IV technical documentation before August 2, 2026. You are almost certainly in scope if your LLM is used in:
+
+- **Finance** — credit scoring, loan decisions, fraud detection, insurance underwriting
+- **Healthcare** — medical triage, clinical decision support, diagnosis assistance
+- **Employment** — CV screening, hiring decisions, performance assessment
+- **Education** — exam marking, admissions, student assessment
+- **Law enforcement / border control** — risk profiling, identity verification
+- **Critical infrastructure** — energy grid, water, transport management
+
+Non-compliance: up to **€35 million or 7% of global annual turnover** (Article 99).
+
+> **Legal disclaimer.** Glassbox generates structured technical documentation intended to support — not replace — the legal and regulatory review required under EU AI Act Article 11. Whether your system is high-risk under Article 6/Annex III, and whether this documentation satisfies all applicable obligations, must be confirmed by qualified legal counsel and/or a notified body (Article 43). See [Legal Notices](#legal-notices--regulatory-disclaimer).
+
+---
+
+### Step 1 — Install
+
+```bash
+# Core library + compliance module
+pip install "glassbox-mech-interp[compliance]"
+
+# If running your own model (not GPT-2):
+pip install transformer-lens torch
+```
+
+---
+
+### Step 2 — Load your model
+
+Glassbox wraps any HuggingFace-compatible transformer via TransformerLens. One line:
+
+```python
+from transformer_lens import HookedTransformer
+from glassbox import GlassboxV2
+
+# GPT-2 (quickstart — no API key needed, downloads ~500 MB once)
+model = HookedTransformer.from_pretrained("gpt2")
+
+# Your own model from HuggingFace Hub
+model = HookedTransformer.from_pretrained("meta-llama/Llama-2-7b-hf")
+model = HookedTransformer.from_pretrained("mistralai/Mistral-7B-v0.1")
+model = HookedTransformer.from_pretrained("microsoft/phi-2")
+# See supported-models table for all 11 architecture families
+
+gb = GlassboxV2(model)
+```
+
+---
+
+### Step 3 — Run the compliance audit on your real prompt
+
+Replace the example with **your actual use-case prompt**. The `correct` token should be the output your model should produce; `incorrect` is what it should not produce.
+
+```python
+# Example: credit risk model
+result = gb.analyze(
+    prompt    = "Loan application. Annual income: €42,000. Credit history: 3 missed payments. Decision:",
+    correct   = " Denied",    # token the model should produce if functioning correctly
+    incorrect = " Approved",  # token it should NOT produce in this case
+)
+
+# Example: medical triage
+result = gb.analyze(
+    prompt    = "Patient presents with chest pain, diaphoresis, and left arm radiation. Priority:",
+    correct   = " Urgent",
+    incorrect = " Routine",
+)
+
+# Example: hiring screening
+result = gb.analyze(
+    prompt    = "Candidate has 8 years of Python experience and a relevant degree. Assessment:",
+    correct   = " Qualified",
+    incorrect = " Rejected",
+)
+
+# What you get back:
+print(result["faithfulness"]["f1"])          # 0.0–1.0 — how faithful the circuit explanation is
+print(result["faithfulness"]["category"])    # 'faithful' / 'partial' / 'backup_mechanisms'
+print(result["circuit"])                     # [(layer, head), ...] — which heads drive the decision
+print(result["explainability_grade"])        # 'A' through 'F' per Annex IV Article 13
+```
+
+---
+
+### Step 4 — Generate the Annex IV evidence package
+
+One call generates a regulator-ready PDF + machine-readable JSON covering all 8 mandatory Annex IV sections:
+
+```python
+from glassbox.compliance import AnnexIVReport, DeploymentContext
+from glassbox.evidence_vault import AnnexIVEvidenceVault
+
+# 1. Build the report object — fill in your organisation details
+report = AnnexIVReport(
+    model_name         = "LoanScorerV2",            # your model identifier
+    system_purpose     = "Automated credit risk scoring for retail loan decisions",
+    provider_name      = "Acme Bank NV",             # your legal entity name
+    provider_address   = "1 Fintech Street, Amsterdam 1011AB, Netherlands",
+    deployment_context = DeploymentContext.FINANCIAL_SERVICES,
+    # Optional: Article 9 risk register
+    risk_register_path = "risk_register.json",       # from gb.risk_register.export()
+)
+
+# 2. Attach your audit result (can add multiple prompts for robustness)
+report.add_analysis(result)
+
+# 3. Export
+report.to_pdf("annex_iv_acme_bank_v2.pdf")    # human-readable, structured per Annex IV
+report.to_json("annex_iv_acme_bank_v2.json")  # machine-readable, for regulator submission systems
+```
+
+The PDF covers:
+
+| Annex IV Section | Article Reference | What Glassbox fills in |
+|---|---|---|
+| 1. General description | Art. 13(3)(a) | Model name, version, intended purpose, deployment context |
+| 2. Design & development process | Art. 10, 11(1)(d) | Architecture, training description, data governance statement |
+| 3. Monitoring & human oversight | Art. 9(6), 14 | CircuitDiff change detection, oversight measures |
+| 4. Explainability assessment | Art. 13 | Circuit heads, faithfulness F1, grade A–F, plain-English summary |
+| 5. Data requirements | Art. 10 | Data quality statement, bias probe results |
+| 6. Risk assessment | Art. 9 | Risk register entries, failure modes, mitigation measures |
+| 7. Accuracy & robustness metrics | Art. 15 | Task accuracy, confidence calibration (r=0.009 orthogonality) |
+| 8. Post-market monitoring plan | Art. 72 | CircuitDiff threshold, alert configuration |
+
+---
+
+### Step 5 — Set up continuous monitoring (Article 72)
+
+Article 72 requires **post-market monitoring** — detecting when model behaviour changes after deployment. This is what regulators mean by "ongoing oversight."
+
+```python
+from glassbox import CircuitDiff
+
+# Run once on your baseline (before deployment)
+baseline_result = gb.analyze(your_prompt, correct_token, incorrect_token)
+diff = CircuitDiff(baseline=baseline_result)
+diff.save("baseline_circuit.json")   # commit this to your repo
+
+# Run on every model update (in CI/CD)
+new_result = gb.analyze(your_prompt, correct_token, incorrect_token)
+change_report = diff.compare(new_result)
+
+if change_report["drift_detected"]:
+    print(f"Circuit changed: {change_report['changed_heads']} heads drifted")
+    print(f"Faithfulness delta: {change_report['faithfulness_delta']:.3f}")
+    # Alert your compliance team — mandatory under Article 72
+```
+
+**GitHub Actions integration** — add to your CI pipeline:
+
+```yaml
+# .github/workflows/compliance.yml
+name: AI Act Compliance Gate
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: designer-coderajay/glassbox-mech@v4   # Glassbox GitHub Action
+        with:
+          model:     gpt2                             # your model name
+          prompt:    "Your production prompt here"
+          correct:   " expected_output"
+          incorrect: " wrong_output"
+          fail_below_f1: 0.40                         # fail CI if faithfulness drops
+```
+
+The Action uploads a full Annex IV report as a build artifact on every commit.
+
+---
+
+### Step 6 — Run the audit report as a standalone scan (no Python required)
+
+If you don't want to integrate into existing code, just run the Docker container against any HuggingFace model:
+
+```bash
+# Pull and run — scans GPT-2 and generates annex_iv_report.pdf in ./output
+docker run --rm -v $(pwd)/output:/output \
+  ghcr.io/designer-coderajay/glassbox-mech:latest \
+  --model gpt2 \
+  --prompt "Your production prompt" \
+  --correct " correct_token" \
+  --incorrect " wrong_token" \
+  --output /output/annex_iv_report.pdf
+
+# For private/local models:
+docker run --rm \
+  -v $(pwd)/model:/model \
+  -v $(pwd)/output:/output \
+  ghcr.io/designer-coderajay/glassbox-mech:latest \
+  --model-path /model \
+  --prompt "Your production prompt" \
+  --correct " correct_token" \
+  --incorrect " wrong_token"
+```
+
+---
+
+### Step 7 — Present to your regulator or notified body
+
+The PDF output from Step 4 is structured to match the section headings regulators expect. What you hand to a notified body (Article 43 conformity assessment):
+
+1. `annex_iv_report.pdf` — primary documentation
+2. `annex_iv_report.json` — machine-readable evidence vault
+3. `baseline_circuit.json` — Article 72 monitoring baseline
+4. CI/CD logs showing the compliance gate passing on each deployment
+
+> **What Glassbox does not replace.** The Annex IV documentation package supports your technical file. It does not constitute: a conformity declaration (Article 47), a notified body certificate (Article 43), or a legal opinion on risk classification. These require qualified legal counsel. Glassbox dramatically reduces the time and cost to prepare the technical file — it does not eliminate the need for human review.
+
+---
+
+### Enterprise support
+
+For organisations that need:
+- Air-gapped / on-premises deployment
+- Signed evidence vaults with audit log
+- Custom risk classification frameworks (ISO 42001, NIST AI RMF)
+- SLA and legal indemnification
+- Dedicated compliance engineering support
+
+Contact: **mahale.ajay01@gmail.com** | Enterprise pricing from **€24,000/year**
 
 ---
 
