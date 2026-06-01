@@ -5,211 +5,424 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="description" content="Glassbox AI generates EU AI Act Annex IV compliance documentation from your model's internal circuits. One function call. Any prompt. Any model.">
 <meta property="og:title" content="Glassbox AI — The compliance layer for production AI">
-<meta property="og:description" content="One function call generates a regulator-ready Annex IV evidence package from your model's internal circuits. August 2026 deadline.">
+<meta property="og:description" content="One function call generates a regulator-ready Annex IV evidence package from your model's internal circuits.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://repo-ashen-psi.vercel.app">
 <meta property="og:image" content="https://repo-ashen-psi.vercel.app/glassbox-brand.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://repo-ashen-psi.vercel.app/glassbox-brand.png">
 <meta name="twitter:title" content="Glassbox AI — The compliance layer for production AI">
-<meta name="twitter:description" content="One function call generates Annex IV documentation. Open source. 1,500+ monthly installs.">
+<meta name="twitter:description" content="One function call generates Annex IV documentation. Open source.">
 <title>Glassbox AI — The compliance layer for production AI</title>
 <link rel="canonical" href="https://repo-ashen-psi.vercel.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/*
+  DESIGN SYSTEM — Anthropic + Goodfire
+  ─────────────────────────────────────
+  Rule 1: near-monochrome. Colour lives only in the logo mark.
+  Rule 2: Goodfire darkness (bg #0a0a0c) + Anthropic warmth (text #f0ede6).
+  Rule 3: Instrument Serif for display — editorial, confident. Inter for body.
+  Rule 4: generous whitespace. sections breathe.
+  Rule 5: subtle motion only — opacity + translateY, 550ms, ease.
+*/
+
 :root{
-  --bg:#0a0a0c;--bg1:#111114;--bg2:#16161a;
-  --bd:#1e1e26;--bd2:rgba(255,255,255,.05);
-  --t1:#f0ede6;--t2:#9a9a9f;--t3:#5a5a62;--tinv:#0a0a0c;
-  --ac:#00C8E8;--acd:#0099b2;--acbg:rgba(0,200,232,.08);
-  --serif:'Instrument Serif',Georgia,serif;
-  --sans:'Inter',-apple-system,sans-serif;
-  --mono:'JetBrains Mono','Fira Code',monospace;
-  --sec:clamp(80px,10vw,140px);
+  /* backgrounds */
+  --bg:    #0a0a0c;
+  --bg-1:  #111114;
+  --bg-2:  #18181c;
+
+  /* borders — barely-there white */
+  --bd:    rgba(255,255,255,.08);
+  --bd-2:  rgba(255,255,255,.05);
+
+  /* text — Anthropic warm white scale */
+  --t1:    #f0ede6;   /* primary */
+  --t2:    #8e8e96;   /* secondary */
+  --t3:    #54545c;   /* muted */
+  --t-inv: #0a0a0c;   /* text on light */
+
+  /* accent: ONLY the logo mark. nowhere else. */
+  --ac:    #00C8E8;
+
+  /* type */
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans:  'Inter', -apple-system, sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  --section: clamp(80px, 10vw, 140px);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
-body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:16px;line-height:1.6;overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-img,svg{display:block}
-button{font-family:inherit;cursor:pointer;border:none;background:none}
 
-.wrap{max-width:1160px;margin:0 auto;padding:0 clamp(20px,5vw,60px)}
-.sec{padding:var(--sec) 0}
-hr.div{border:none;border-top:1px solid var(--bd)}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { background: var(--bg); color: var(--t1); font-family: var(--sans);
+       font-size: 16px; line-height: 1.65; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+img, svg { display: block; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
 
-/* typography */
-.display{font-family:var(--serif);font-size:clamp(40px,6vw,76px);line-height:1.08;letter-spacing:-.02em}
-.headline{font-family:var(--serif);font-size:clamp(26px,3.5vw,44px);line-height:1.12;letter-spacing:-.015em}
-.subhead{font-size:clamp(15px,1.5vw,17px);color:var(--t2);line-height:1.7;max-width:540px}
-.label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
-.mono{font-family:var(--mono)}
+/* ── layout ── */
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 clamp(20px,5vw,60px); }
+.sec  { padding: var(--section) 0; }
+hr.div { border: none; border-top: 1px solid var(--bd); }
 
-/* buttons */
-.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:6px;font-size:14px;font-weight:500;transition:all .15s ease;white-space:nowrap}
-.btn-p{background:var(--t1);color:var(--tinv)}.btn-p:hover{background:#fff}
-.btn-g{border:1px solid var(--bd);color:var(--t2)}.btn-g:hover{border-color:rgba(255,255,255,.2);color:var(--t1)}
-.btn-a{background:var(--ac);color:#000;font-weight:600}.btn-a:hover{background:#22d9f5}
+/* ── type scale ── */
+.display  { font-family: var(--serif); font-size: clamp(40px,6vw,80px);
+            line-height: 1.05; letter-spacing: -.025em; }
+.headline { font-family: var(--serif); font-size: clamp(26px,3.5vw,44px);
+            line-height: 1.1; letter-spacing: -.015em; }
+.label    { font-size: 11px; font-weight: 500; letter-spacing: .09em;
+            text-transform: uppercase; color: var(--t3); }
+.subhead  { font-size: clamp(15px,1.5vw,17px); color: var(--t2);
+            line-height: 1.75; max-width: 540px; }
 
-/* reveal */
-.reveal{opacity:0;transform:translateY(20px);transition:opacity .55s cubic-bezier(.16,1,.3,1),transform .55s cubic-bezier(.16,1,.3,1)}
-.reveal.in{opacity:1;transform:translateY(0)}
-.r1{transition-delay:.06s}.r2{transition-delay:.12s}.r3{transition-delay:.18s}
-.r4{transition-delay:.24s}.r5{transition-delay:.30s}
+/* ── buttons — monochrome only ── */
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px;
+       border-radius: 6px; font-size: 14px; font-weight: 500;
+       transition: all .15s ease; white-space: nowrap; }
+/* white fill — primary action */
+.btn-p { background: var(--t1); color: var(--t-inv); }
+.btn-p:hover { background: #fff; }
+/* outline — secondary */
+.btn-g { border: 1px solid var(--bd); color: var(--t2); }
+.btn-g:hover { border-color: rgba(255,255,255,.2); color: var(--t1); }
 
-/* announce */
-.announce{background:var(--acbg);border-bottom:1px solid rgba(0,200,232,.12);padding:10px 0;text-align:center}
-.ann-inner{display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--t2)}
-.ann-inner strong{color:var(--t1);font-weight:500}
-.ann-badge{background:var(--ac);color:#000;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:3px}
+/* ── reveal animation — Goodfire/Anthropic subtlety ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .55s cubic-bezier(.16,1,.3,1),
+              transform .55s cubic-bezier(.16,1,.3,1);
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+.r1{transition-delay:.06s} .r2{transition-delay:.12s} .r3{transition-delay:.18s}
+.r4{transition-delay:.24s} .r5{transition-delay:.30s}
 
-/* nav */
-.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,12,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd)}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:60px}
-.nav-logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:-.01em}
-.logo-mark{width:28px;height:28px;background:var(--ac);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo-mark svg{width:16px;height:16px}
-.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
-.nav-links a{font-size:14px;color:var(--t2);transition:color .15s}.nav-links a:hover{color:var(--t1)}
-.nav-cta{display:flex;align-items:center;gap:12px}
-.nav-tog{display:none;flex-direction:column;gap:5px;padding:8px;cursor:pointer}
-.nav-tog span{display:block;width:22px;height:1.5px;background:var(--t2)}
-.mob-menu{display:none;flex-direction:column;padding:20px 0;border-top:1px solid var(--bd)}
-.mob-menu a{font-size:15px;color:var(--t2);padding:12px 0;border-bottom:1px solid var(--bd)}
-.mob-menu a:last-child{border-bottom:none}
-@media(max-width:768px){.nav-links,.nav-cta .btn-g{display:none}.nav-tog{display:flex}.mob-menu.open{display:flex}}
+/* ═══════════════════════════════ ANNOUNCE ═══════════════════════════════ */
+.announce {
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--bd);
+  padding: 10px 0;
+  text-align: center;
+}
+.ann-inner {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--t3);
+}
+.ann-inner strong { color: var(--t2); font-weight: 500; }
+.ann-pill {
+  background: var(--bg-2);
+  border: 1px solid var(--bd);
+  color: var(--t2);
+  font-size: 10px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 3px;
+}
+.ann-arrow { color: var(--t2); }
 
-/* hero */
-.hero{padding:clamp(80px,12vw,160px) 0 clamp(60px,8vw,100px)}
-.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--bg1);border:1px solid var(--bd);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--t2);margin-bottom:36px}
-.hero-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--ac);flex-shrink:0}
-.hero-title{font-family:var(--serif);font-size:clamp(44px,7vw,88px);line-height:1.0;letter-spacing:-.03em;color:var(--t1);margin-bottom:28px;max-width:820px}
-.hero-title em{font-style:italic;color:var(--t2)}
-.hero-sub{font-size:clamp(16px,1.8vw,19px);color:var(--t2);line-height:1.65;max-width:520px;margin-bottom:44px}
-.hero-acts{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.hero-acts .btn{font-size:15px;padding:12px 26px}
-.hero-meta{display:flex;align-items:center;gap:24px;margin-top:56px;flex-wrap:wrap}
-.hero-meta-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t3)}
-
-/* code block */
-.codebox{background:var(--bg1);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-top:60px}
-.code-tb{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--bd)}
-.code-dots{display:flex;gap:6px}
-.code-dots span{width:11px;height:11px;border-radius:50%;background:var(--bg2)}
-.code-lang{font-size:11px;color:var(--t3);font-family:var(--mono)}
-.code-body{padding:24px;font-family:var(--mono);font-size:13.5px;line-height:1.75;overflow-x:auto}
-.code-body pre{white-space:pre}
-.cc{color:#5a5a6a}.ck{color:#af87ff}.cf{color:#00C8E8}.cs{color:#8abf7a}.cn{color:#e8a87a}.cp{color:#d0ccc5}
-
-/* stats */
-.stats-bar{border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:32px 0}
-.stats-in{display:grid;grid-template-columns:repeat(4,1fr)}
-.stat-item{padding:0 clamp(16px,3vw,40px);border-right:1px solid var(--bd)}
-.stat-item:first-child{padding-left:0}.stat-item:last-child{border-right:none}
-.stat-val{font-family:var(--serif);font-size:clamp(28px,4vw,44px);color:var(--t1);line-height:1;margin-bottom:6px}
-.stat-lbl{font-size:13px;color:var(--t3);line-height:1.4}
-@media(max-width:600px){.stats-in{grid-template-columns:1fr 1fr}.stat-item{padding:20px 0;border-right:none;border-bottom:1px solid var(--bd)}.stat-item:nth-child(3),.stat-item:nth-child(4){border-bottom:none}}
-
-/* pillars */
-.pillars-hd{margin-bottom:64px}
-.pillars-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
-.pillar{background:var(--bg);padding:clamp(28px,4vw,48px);transition:background .2s}.pillar:hover{background:var(--bg1)}
-.pillar-icon{width:40px;height:40px;border-radius:8px;background:var(--acbg);border:1px solid rgba(0,200,232,.15);display:flex;align-items:center;justify-content:center;margin-bottom:24px}
-.pillar-icon svg{width:20px;height:20px;color:var(--ac)}
-.pillar-title{font-family:var(--serif);font-size:clamp(20px,2.5vw,26px);margin-bottom:14px;line-height:1.15}
-.pillar-body{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:28px}
-.pillar-proof{list-style:none;display:flex;flex-direction:column;gap:12px}
-.pillar-proof li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--t3);line-height:1.5}
-.pillar-proof li::before{content:'→';color:var(--ac);font-size:12px;flex-shrink:0;margin-top:1px}
-@media(max-width:900px){.pillars-grid{grid-template-columns:1fr}}
-
-/* feature */
-.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,6vw,80px);align-items:start}
-.feat-grid.rev{direction:rtl}.feat-grid.rev>*{direction:ltr}
-.feat-eye{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:16px}
-.feat-title{font-family:var(--serif);font-size:clamp(24px,3.5vw,38px);line-height:1.12;letter-spacing:-.015em;margin-bottom:18px}
-.feat-body{font-size:15px;color:var(--t2);line-height:1.75;margin-bottom:28px}
-.feat-list{list-style:none;display:flex;flex-direction:column;gap:14px}
-.feat-list li{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:var(--t2);line-height:1.55}
-.feat-list li::before{content:'✓';color:var(--ac);font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px}
-@media(max-width:840px){.feat-grid,.feat-grid.rev{grid-template-columns:1fr;direction:ltr}}
-
-/* prompt cards */
-.pcards{display:flex;flex-direction:column;gap:12px}
-.pcard{background:var(--bg1);border:1px solid var(--bd);border-radius:8px;padding:20px;transition:border-color .2s}.pcard:hover{border-color:rgba(0,200,232,.3)}
-.pcard-dom{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:10px}
-.pcard-txt{font-size:13px;color:var(--t2);line-height:1.6;font-family:var(--mono);margin-bottom:10px}
-.pcard-st{font-size:11px;color:var(--t3)}.pcard-st strong{color:var(--t2);font-weight:500}
-
-/* model table */
-.model-wrap{background:var(--bg1);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
-.model-table{width:100%;border-collapse:collapse}
-.model-table th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:12px 16px;border-bottom:1px solid var(--bd)}
-.model-table td{padding:14px 16px;font-size:13.5px;color:var(--t2);border-bottom:1px solid var(--bd2);vertical-align:middle}
-.model-table tr:last-child td{border-bottom:none}
-.model-table tr:hover td{background:var(--bg2)}
-.mfam{color:var(--t1);font-weight:500;font-family:var(--mono)}
-.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px}
-.bgqa{background:rgba(0,200,232,.1);color:var(--ac)}
-.bmha{background:rgba(255,255,255,.06);color:var(--t2)}
-
-/* pricing */
-.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
-.price-card{background:var(--bg1);border:1px solid var(--bd);border-radius:10px;padding:32px 28px;position:relative;transition:border-color .2s}.price-card:hover{border-color:rgba(255,255,255,.1)}
-.price-card.feat{border-color:rgba(0,200,232,.3);background:rgba(0,200,232,.03)}
-.price-badge{position:absolute;top:-11px;left:28px;background:var(--ac);color:#000;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:4px}
-.price-tier{font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
-.price-val{font-family:var(--serif);font-size:clamp(32px,4vw,44px);color:var(--t1);line-height:1;margin-bottom:6px}
-.price-val sup{font-size:.5em;vertical-align:super}
-.price-per{font-size:13px;color:var(--t3);margin-bottom:28px}
-.price-feats{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
-.price-feats li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--t2);line-height:1.5}
-.price-feats li::before{content:'✓';color:var(--ac);font-weight:700;flex-shrink:0;font-size:12px;margin-top:2px}
-.price-card .btn{width:100%;justify-content:center}
-@media(max-width:840px){.price-grid{grid-template-columns:1fr}}
-
-/* research */
-.research-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.rcard{background:var(--bg1);border:1px solid var(--bd);border-radius:8px;padding:24px;transition:border-color .2s}.rcard:hover{border-color:rgba(255,255,255,.12)}
-.rcat{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:12px}
-.rtitle{font-size:15px;font-weight:500;color:var(--t1);line-height:1.4;margin-bottom:12px}
-.rbody{font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:20px}
-.rlink{font-size:13px;color:var(--ac);display:inline-flex;align-items:center;gap:4px;transition:gap .15s}.rlink:hover{gap:7px}
-@media(max-width:768px){.research-grid{grid-template-columns:1fr}}
-
+/* ═══════════════════════════════ NAV ═══════════════════════════════════ */
+/* Anthropic: logo left · links center · cta right — sticky with blur */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,12,.90);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--bd);
+}
+.nav-in {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+/* logo */
+.nav-logo { display: flex; align-items: center; gap: 10px;
+            font-size: 15px; font-weight: 500; color: var(--t1);
+            letter-spacing: -.01em; }
+.logo-mark {
+  width: 28px; height: 28px; background: var(--ac);
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-mark svg { width: 16px; height: 16px; }
+/* links */
+.nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+.nav-links a { font-size: 14px; color: var(--t2); transition: color .15s; }
+.nav-links a:hover { color: var(--t1); }
 /* cta */
-.cta-box{background:var(--bg1);border:1px solid var(--bd);border-radius:12px;padding:clamp(48px,6vw,80px) clamp(32px,6vw,80px);text-align:center}
-.cta-box .display{max-width:640px;margin:0 auto 20px}
-.cta-box .subhead{margin:0 auto 36px}
-.cta-acts{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.nav-cta { display: flex; align-items: center; gap: 10px; }
+/* mobile */
+.nav-tog { display: none; flex-direction: column; gap: 5px;
+           padding: 8px; cursor: pointer; }
+.nav-tog span { display: block; width: 22px; height: 1.5px; background: var(--t2); }
+.mob-menu { display: none; flex-direction: column;
+            padding: 20px 0; border-top: 1px solid var(--bd); }
+.mob-menu a { font-size: 15px; color: var(--t2); padding: 12px 0;
+              border-bottom: 1px solid var(--bd); }
+.mob-menu a:last-child { border-bottom: none; }
+@media(max-width:768px){
+  .nav-links, .nav-cta .btn-g { display: none; }
+  .nav-tog { display: flex; }
+  .mob-menu.open { display: flex; }
+}
 
-/* footer */
-footer{border-top:1px solid var(--bd);padding:60px 0 40px}
-.foot-top{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:40px;margin-bottom:48px}
-.foot-logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;margin-bottom:14px}
-.foot-tag{font-size:13px;color:var(--t3);line-height:1.6}
-.foot-col-h{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:18px}
-.foot-links{list-style:none;display:flex;flex-direction:column;gap:11px}
-.foot-links a{font-size:14px;color:var(--t3);transition:color .15s}.foot-links a:hover{color:var(--t1)}
-.foot-bot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding-top:32px;border-top:1px solid var(--bd)}
-.foot-copy{font-size:13px;color:var(--t3)}
-.foot-legal{display:flex;gap:24px}
-.foot-legal a{font-size:13px;color:var(--t3);transition:color .15s}.foot-legal a:hover{color:var(--t1)}
-@media(max-width:900px){.foot-top{grid-template-columns:1fr 1fr}}
-@media(max-width:500px){.foot-top{grid-template-columns:1fr}}
+/* ═══════════════════════════════ HERO ══════════════════════════════════ */
+/* Goodfire: direct statement + sub + 2 cta + meta */
+.hero { padding: clamp(80px,12vw,160px) 0 clamp(60px,8vw,100px); }
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--bd); border-radius: 100px;
+  padding: 5px 14px; font-size: 12px; color: var(--t3); margin-bottom: 36px;
+}
+.hero-tag-dot { width: 5px; height: 5px; border-radius: 50%;
+                background: var(--t3); flex-shrink: 0; }
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(44px,7.5vw,92px);
+  line-height: 1.0; letter-spacing: -.03em;
+  color: var(--t1); margin-bottom: 28px; max-width: 860px;
+}
+.hero-title em { font-style: italic; color: var(--t2); }
+.hero-sub {
+  font-size: clamp(16px,1.8vw,18px); color: var(--t2);
+  line-height: 1.7; max-width: 520px; margin-bottom: 44px;
+}
+.hero-acts { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.hero-acts .btn { font-size: 15px; padding: 12px 26px; }
+.hero-meta {
+  display: flex; align-items: center; gap: 24px;
+  margin-top: 56px; flex-wrap: wrap;
+}
+.hero-meta-item { font-size: 13px; color: var(--t3); }
+.hero-meta-sep { color: var(--t3); opacity: .3; }
+
+/* ═══════════════════════════════ CODE BLOCK ═════════════════════════════ */
+.codebox {
+  background: var(--bg-1); border: 1px solid var(--bd);
+  border-radius: 10px; overflow: hidden; margin-top: 64px;
+}
+.code-tb {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; border-bottom: 1px solid var(--bd);
+}
+.code-dots { display: flex; gap: 6px; }
+.code-dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--bg-2); }
+.code-lang { font-size: 11px; color: var(--t3); font-family: var(--mono); }
+.code-body { padding: 24px 26px; font-family: var(--mono);
+             font-size: 13px; line-height: 1.8; overflow-x: auto; }
+.code-body pre { white-space: pre; }
+/* syntax — only purple/green/warm, no blue/cyan */
+.cc { color: #4d4d58; }         /* comment */
+.ck { color: #b07aea; }         /* keyword */
+.cf { color: #d4d0c8; }         /* function — warm white */
+.cs { color: #7aaf6e; }         /* string */
+.cn { color: #c99a6f; }         /* number */
+.cp { color: #c4c0b7; }         /* plain */
+
+/* ═══════════════════════════════ STATS BAR ══════════════════════════════ */
+.stats-bar { border-top: 1px solid var(--bd); border-bottom: 1px solid var(--bd); padding: 36px 0; }
+.stats-in { display: grid; grid-template-columns: repeat(4,1fr); }
+.stat-item { padding: 0 clamp(16px,3vw,44px); border-right: 1px solid var(--bd); }
+.stat-item:first-child { padding-left: 0; }
+.stat-item:last-child  { border-right: none; }
+.stat-val {
+  font-family: var(--serif); font-size: clamp(30px,4vw,48px);
+  color: var(--t1); line-height: 1; margin-bottom: 8px;
+}
+.stat-lbl { font-size: 13px; color: var(--t3); line-height: 1.45; }
+@media(max-width:600px){
+  .stats-in { grid-template-columns: 1fr 1fr; }
+  .stat-item { padding: 20px 0; border-right: none; border-bottom: 1px solid var(--bd); }
+  .stat-item:nth-child(3), .stat-item:nth-child(4) { border-bottom: none; }
+}
+
+/* ═══════════════════════════════ THREE PILLARS ══════════════════════════ */
+/* Goodfire: Understand / Debug / Design — same structure */
+.pillars-hd { margin-bottom: 64px; }
+.pillars-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: var(--bd);
+  border: 1px solid var(--bd); border-radius: 10px; overflow: hidden;
+}
+.pillar { background: var(--bg); padding: clamp(28px,4vw,48px); transition: background .2s; }
+.pillar:hover { background: var(--bg-1); }
+/* icon — monochrome */
+.pillar-icon {
+  width: 40px; height: 40px; border-radius: 8px;
+  border: 1px solid var(--bd);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
+}
+.pillar-icon svg { width: 20px; height: 20px; stroke: var(--t2); }
+.pillar-title {
+  font-family: var(--serif); font-size: clamp(20px,2.5vw,26px);
+  margin-bottom: 14px; line-height: 1.15;
+}
+.pillar-body { font-size: 14px; color: var(--t2); line-height: 1.7; margin-bottom: 28px; }
+.pillar-proof { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.pillar-proof li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: var(--t3); line-height: 1.55;
+}
+.pillar-proof li::before { content: '—'; color: var(--t3); flex-shrink: 0; }
+@media(max-width:900px){ .pillars-grid { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════ FEATURE SECTIONS ═══════════════════════ */
+.feat-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: clamp(40px,6vw,80px); align-items: start;
+}
+.feat-grid.rev { direction: rtl; }
+.feat-grid.rev > * { direction: ltr; }
+.feat-eye { font-size: 11px; font-weight: 500; letter-spacing: .09em;
+            text-transform: uppercase; color: var(--t3); margin-bottom: 16px; }
+.feat-title {
+  font-family: var(--serif); font-size: clamp(24px,3.5vw,38px);
+  line-height: 1.1; letter-spacing: -.015em; margin-bottom: 18px;
+}
+.feat-body { font-size: 15px; color: var(--t2); line-height: 1.8; margin-bottom: 28px; }
+.feat-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.feat-list li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 14px; color: var(--t2); line-height: 1.6;
+}
+.feat-list li::before { content: '—'; color: var(--t3); flex-shrink: 0; margin-top: 1px; }
+@media(max-width:840px){ .feat-grid, .feat-grid.rev { grid-template-columns: 1fr; direction: ltr; } }
+
+/* ═══════════════════════════════ PROMPT CARDS ═══════════════════════════ */
+.pcards { display: flex; flex-direction: column; gap: 10px; }
+.pcard {
+  background: var(--bg-1); border: 1px solid var(--bd);
+  border-radius: 8px; padding: 18px 20px; transition: border-color .2s;
+}
+.pcard:hover { border-color: rgba(255,255,255,.14); }
+.pcard-dom { font-size: 10px; font-weight: 600; letter-spacing: .09em;
+             text-transform: uppercase; color: var(--t3); margin-bottom: 8px; }
+.pcard-txt { font-size: 13px; color: var(--t2); font-family: var(--mono);
+             line-height: 1.6; margin-bottom: 8px; }
+.pcard-st { font-size: 11px; color: var(--t3); }
+.pcard-st strong { color: var(--t2); font-weight: 500; }
+
+/* ═══════════════════════════════ MODEL TABLE ════════════════════════════ */
+.model-wrap { background: var(--bg-1); border: 1px solid var(--bd);
+              border-radius: 10px; overflow: hidden; }
+.model-table { width: 100%; border-collapse: collapse; }
+.model-table th {
+  text-align: left; font-size: 11px; font-weight: 500; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--t3);
+  padding: 12px 16px; border-bottom: 1px solid var(--bd);
+}
+.model-table td {
+  padding: 14px 16px; font-size: 13.5px; color: var(--t2);
+  border-bottom: 1px solid var(--bd-2); vertical-align: middle;
+}
+.model-table tr:last-child td { border-bottom: none; }
+.model-table tr:hover td { background: var(--bg-2); }
+.mfam { color: var(--t1); font-weight: 500; font-family: var(--mono); font-size: 13px; }
+/* monochrome badges — no cyan/colour */
+.badge {
+  display: inline-flex; align-items: center; font-size: 11px;
+  font-weight: 500; padding: 2px 8px; border-radius: 4px;
+  background: var(--bg-2); border: 1px solid var(--bd); color: var(--t2);
+}
+
+/* ═══════════════════════════════ PRICING ════════════════════════════════ */
+.price-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; align-items: start; }
+.price-card {
+  background: var(--bg-1); border: 1px solid var(--bd);
+  border-radius: 10px; padding: 32px 28px; position: relative;
+  transition: border-color .2s;
+}
+.price-card:hover { border-color: rgba(255,255,255,.14); }
+/* featured: slightly brighter border — still monochrome */
+.price-card.feat { border-color: rgba(255,255,255,.16); }
+.price-badge {
+  position: absolute; top: -11px; left: 28px;
+  background: var(--t1); color: var(--t-inv);
+  font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; padding: 3px 10px; border-radius: 4px;
+}
+.price-tier {
+  font-size: 12px; font-weight: 500; color: var(--t3);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px;
+}
+.price-val {
+  font-family: var(--serif); font-size: clamp(32px,4vw,46px);
+  color: var(--t1); line-height: 1; margin-bottom: 6px;
+}
+.price-val sup { font-size: .5em; vertical-align: super; }
+.price-per { font-size: 13px; color: var(--t3); margin-bottom: 28px; }
+.price-feats { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.price-feats li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 14px; color: var(--t2); line-height: 1.5;
+}
+.price-feats li::before { content: '—'; color: var(--t3); flex-shrink: 0; margin-top: 2px; }
+.price-card .btn { width: 100%; justify-content: center; }
+@media(max-width:840px){ .price-grid { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════ RESEARCH / METHODS ═════════════════════ */
+.research-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.rcard {
+  background: var(--bg-1); border: 1px solid var(--bd);
+  border-radius: 8px; padding: 24px; transition: border-color .2s;
+}
+.rcard:hover { border-color: rgba(255,255,255,.12); }
+.rcat { font-size: 11px; font-weight: 500; letter-spacing: .08em;
+        text-transform: uppercase; color: var(--t3); margin-bottom: 12px; }
+.rtitle { font-size: 15px; font-weight: 500; color: var(--t1);
+          line-height: 1.4; margin-bottom: 12px; }
+.rbody { font-size: 13px; color: var(--t3); line-height: 1.65; margin-bottom: 20px; }
+.rlink {
+  font-size: 13px; color: var(--t2); display: inline-flex;
+  align-items: center; gap: 4px; transition: color .15s, gap .15s;
+}
+.rlink:hover { color: var(--t1); gap: 7px; }
+@media(max-width:768px){ .research-grid { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════ CTA BOX ════════════════════════════════ */
+.cta-box {
+  background: var(--bg-1); border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: clamp(48px,6vw,80px) clamp(32px,6vw,80px); text-align: center;
+}
+.cta-acts { display: flex; align-items: center; justify-content: center;
+            gap: 12px; flex-wrap: wrap; }
+
+/* ═══════════════════════════════ FOOTER ════════════════════════════════ */
+/* Anthropic: 4-column clean links */
+footer { border-top: 1px solid var(--bd); padding: 64px 0 40px; }
+.foot-top {
+  display: grid; grid-template-columns: 200px 1fr 1fr 1fr;
+  gap: 40px; margin-bottom: 48px;
+}
+.foot-logo { display: flex; align-items: center; gap: 10px;
+             font-size: 15px; font-weight: 500; color: var(--t1); margin-bottom: 14px; }
+.foot-tag { font-size: 13px; color: var(--t3); line-height: 1.65; }
+.foot-col-h { font-size: 11px; font-weight: 500; letter-spacing: .08em;
+              text-transform: uppercase; color: var(--t3); margin-bottom: 18px; }
+.foot-links { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+.foot-links a { font-size: 14px; color: var(--t3); transition: color .15s; }
+.foot-links a:hover { color: var(--t1); }
+.foot-bot {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px; padding-top: 32px; border-top: 1px solid var(--bd);
+}
+.foot-copy { font-size: 13px; color: var(--t3); }
+.foot-legal { display: flex; gap: 24px; }
+.foot-legal a { font-size: 13px; color: var(--t3); transition: color .15s; }
+.foot-legal a:hover { color: var(--t1); }
+@media(max-width:900px){ .foot-top { grid-template-columns: 1fr 1fr; } }
+@media(max-width:500px){ .foot-top { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
-<!-- ANNOUNCE -->
+<!-- ANNOUNCE — subtle strip, no colour -->
 <div class="announce">
   <div class="ann-inner">
-    <span class="ann-badge">v4.3.0</span>
-    <strong>Any-prompt engine + billion-parameter support —</strong>
-    works on credit, medical, HR, legal, any domain
-    <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/CHANGELOG.md" style="color:var(--ac)">See what's new →</a>
+    <span class="ann-pill">v4.3.0</span>
+    <strong>Any-prompt engine + billion-parameter support</strong>
+    — works on credit scoring, medical triage, HR, legal
+    <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/CHANGELOG.md" class="ann-arrow">See what's new →</a>
   </div>
 </div>
 
@@ -217,23 +430,32 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 <header>
   <nav class="nav">
     <div class="wrap nav-in">
+
       <a href="/" class="nav-logo">
         <div class="logo-mark">
-          <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#000"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#000" opacity=".5"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#000" opacity=".5"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#000" opacity=".8"/></svg>
+          <svg viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="2" width="5" height="5" rx="1" fill="#000"/>
+            <rect x="9" y="2" width="5" height="5" rx="1" fill="#000" opacity=".55"/>
+            <rect x="2" y="9" width="5" height="5" rx="1" fill="#000" opacity=".55"/>
+            <rect x="9" y="9" width="5" height="5" rx="1" fill="#000" opacity=".8"/>
+          </svg>
         </div>
         Glassbox AI
       </a>
+
       <ul class="nav-links">
         <li><a href="#features">Features</a></li>
         <li><a href="#models">Models</a></li>
         <li><a href="#pricing">Pricing</a></li>
-        <li><a href="#research">Research</a></li>
-        <li><a href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a></li>
+        <li><a href="#methods">Methods</a></li>
+        <li><a href="https://github.com/designer-coderajay/glassbox-mech" target="_blank">GitHub</a></li>
       </ul>
+
       <div class="nav-cta">
-        <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn btn-g">Live demo</a>
-        <a href="https://github.com/designer-coderajay/glassbox-mech" class="btn btn-p">Get started</a>
+        <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn btn-g" target="_blank">Live demo</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech" class="btn btn-p" target="_blank">Get started</a>
       </div>
+
       <div class="nav-tog" id="navTog" onclick="toggleMenu()">
         <span></span><span></span><span></span>
       </div>
@@ -242,9 +464,9 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
       <a href="#features">Features</a>
       <a href="#models">Models</a>
       <a href="#pricing">Pricing</a>
-      <a href="#research">Research</a>
-      <a href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a>
-      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a>
+      <a href="#methods">Methods</a>
+      <a href="https://github.com/designer-coderajay/glassbox-mech" target="_blank">GitHub</a>
+      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">Live demo</a>
     </div>
   </nav>
 </header>
@@ -254,31 +476,45 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 <!-- HERO -->
 <section class="hero">
   <div class="wrap">
+
     <div class="hero-tag reveal">
       <span class="hero-tag-dot"></span>
       EU AI Act enforcement — August 2, 2026
     </div>
+
     <h1 class="hero-title reveal r1">
       The compliance layer<br>
       for <em>production</em> AI
     </h1>
+
     <p class="hero-sub reveal r2">
-      One function call generates a regulator-ready Annex IV evidence package from your model's internal circuits. Open source. Any model. Any prompt.
+      One function call generates a regulator-ready Annex IV evidence package
+      from your model's internal circuits. Any model. Any prompt.
     </p>
+
     <div class="hero-acts reveal r3">
-      <a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof" class="btn btn-p">Get compliance proof →</a>
-      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn btn-g">Try live demo</a>
+      <a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof" class="btn btn-p" target="_blank">
+        Get compliance proof →
+      </a>
+      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" class="btn btn-g" target="_blank">
+        Try live demo
+      </a>
     </div>
+
     <div class="hero-meta reveal r4">
       <span class="hero-meta-item">1,500+ monthly installs</span>
+      <span class="hero-meta-sep">·</span>
       <span class="hero-meta-item">37× faster than ACDC</span>
-      <span class="hero-meta-item">arXiv:2603.09988</span>
+      <span class="hero-meta-sep">·</span>
       <span class="hero-meta-item">MIT open source</span>
+      <span class="hero-meta-sep">·</span>
+      <span class="hero-meta-item">August 2026 ready</span>
     </div>
+
     <div class="codebox reveal r5">
       <div class="code-tb">
         <div class="code-dots"><span></span><span></span><span></span></div>
-        <span class="code-lang">Python · 5 lines → Annex IV</span>
+        <span class="code-lang">Python — 5 lines → Annex IV</span>
       </div>
       <div class="code-body"><pre><span class="cc"># Works on any prompt — credit, medical, HR, legal, dialogue</span>
 <span class="ck">from</span> <span class="cp">glassbox</span> <span class="ck">import</span> <span class="cf">GlassboxV2</span>
@@ -288,9 +524,10 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 <span class="cp">result</span> = <span class="cp">gb</span>.<span class="cf">analyze</span>(<span class="cs">"Loan application. Annual income: €42,000. Decision:"</span>,
                    <span class="cs">" Approved"</span>, <span class="cs">" Denied"</span>)
 
-<span class="cc"># → regulator-ready PDF + JSON (all 8 Annex IV sections, &lt;2 seconds)</span>
+<span class="cc"># Regulator-ready PDF + JSON — all 8 Annex IV sections</span>
 <span class="cf">AnnexIVReport</span>(<span class="cp">...</span>).<span class="cf">add_analysis</span>(<span class="cp">result</span>).<span class="cf">to_pdf</span>(<span class="cs">"annex_iv.pdf"</span>)</pre></div>
     </div>
+
   </div>
 </section>
 
@@ -304,11 +541,11 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
       </div>
       <div class="stat-item reveal r1">
         <div class="stat-val">0.89</div>
-        <div class="stat-lbl">Faithfulness F1 — Grade A<br>arXiv:2603.09988</div>
+        <div class="stat-lbl">Faithfulness F1<br>Grade A explainability</div>
       </div>
       <div class="stat-item reveal r2">
         <div class="stat-val">8/8</div>
-        <div class="stat-lbl">Annex IV sections automated<br>in under 2 seconds</div>
+        <div class="stat-lbl">Annex IV sections<br>automated in &lt;2 seconds</div>
       </div>
       <div class="stat-item reveal r3">
         <div class="stat-val">11</div>
@@ -318,48 +555,60 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
   </div>
 </div>
 
-<!-- PILLARS -->
+<!-- PILLARS — Goodfire: Discover / Measure / Certify -->
 <section class="sec" id="features">
   <div class="wrap">
     <div class="pillars-hd">
       <span class="label reveal">What Glassbox does</span>
-      <h2 class="headline reveal r1" style="margin-top:12px;max-width:560px">Discover, measure, and certify your model's behavior</h2>
+      <h2 class="headline reveal r1" style="margin-top:12px;max-width:540px">
+        Discover, measure, and certify your model's behavior
+      </h2>
     </div>
+
     <div class="pillars-grid reveal">
       <div class="pillar">
         <div class="pillar-icon">
-          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2L12.5 7.5L18 8.5L14 12.5L15 18L10 15.5L5 18L6 12.5L2 8.5L7.5 7.5L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 20 20" fill="none" stroke-width="1.4">
+            <circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/>
+          </svg>
         </div>
         <h3 class="pillar-title">Discover</h3>
-        <p class="pillar-body">Attribution patching maps which attention heads causally drive your model's decisions. 37× faster than ACDC. Works on any text domain.</p>
+        <p class="pillar-body">Attribution patching maps which attention heads causally drive your model's decisions. 37× faster than ACDC. Works on any text — credit scoring, medical triage, legal decisions.</p>
         <ul class="pillar-proof">
-          <li>Circuit discovery in &lt;2s on GPT-2 Small</li>
-          <li>Auto-selects corruption strategy for any prompt</li>
+          <li>Circuit discovery in under 2 seconds</li>
+          <li>Auto-selects corruption strategy for any prompt type</li>
           <li>21 mathematical frameworks, all peer-reviewed</li>
         </ul>
       </div>
+
       <div class="pillar">
         <div class="pillar-icon">
-          <svg viewBox="0 0 20 20" fill="none"><path d="M2 10h16M10 2v16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+          <svg viewBox="0 0 20 20" fill="none" stroke-width="1.4">
+            <path d="M2 14l4-4 4 4 8-8"/><circle cx="10" cy="10" r="8"/>
+          </svg>
         </div>
         <h3 class="pillar-title">Measure</h3>
-        <p class="pillar-body">Faithfulness F1, sufficiency, comprehensiveness — quantified with error bounds. Confidence and faithfulness are statistically orthogonal (r=0.009).</p>
+        <p class="pillar-body">Faithfulness F1, sufficiency, comprehensiveness — quantified with second-order error bounds. Confidence and faithfulness are statistically orthogonal (r=0.009).</p>
         <ul class="pillar-proof">
-          <li>Faithfulness F1 = 0.89 (Grade A)</li>
-          <li>Hessian second-order error bounds</li>
-          <li>Benjamini-Hochberg FDR correction</li>
+          <li>Faithfulness F1 = 0.89 — Grade A</li>
+          <li>Hessian-derived error bounds on every score</li>
+          <li>Benjamini-Hochberg FDR multiple testing correction</li>
         </ul>
       </div>
+
       <div class="pillar">
         <div class="pillar-icon">
-          <svg viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="2" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/></svg>
+          <svg viewBox="0 0 20 20" fill="none" stroke-width="1.4">
+            <rect x="3" y="3" width="14" height="14" rx="2"/>
+            <path d="M7 10l2.5 2.5 3.5-4"/>
+          </svg>
         </div>
         <h3 class="pillar-title">Certify</h3>
-        <p class="pillar-body">One function call generates all 8 mandatory Annex IV sections as a PDF + JSON vault. Structured for notified bodies. August 2026 ready.</p>
+        <p class="pillar-body">One function call generates all 8 mandatory Annex IV sections as a structured PDF + machine-readable JSON. Formatted for notified bodies and regulators.</p>
         <ul class="pillar-proof">
           <li>All 8 Annex IV sections, auto-populated</li>
-          <li>Article 72 monitoring via CircuitDiff</li>
-          <li>Machine-readable JSON for regulator systems</li>
+          <li>Article 72 continuous monitoring via CircuitDiff</li>
+          <li>Machine-readable JSON for regulator submission systems</li>
         </ul>
       </div>
     </div>
@@ -368,7 +617,7 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 
 <hr class="div">
 
-<!-- ANY PROMPT -->
+<!-- ANY-PROMPT FEATURE -->
 <section class="sec">
   <div class="wrap">
     <div class="feat-grid">
@@ -377,26 +626,26 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
         <h2 class="feat-title reveal r1">Works on every prompt in the world</h2>
         <p class="feat-body reveal r2">Previous interpretability tools only worked on IOI-style name-swap tasks. Glassbox 4.3 auto-selects the right corruption strategy for any text domain — maximising causal signal regardless of prompt type.</p>
         <ul class="feat-list reveal r3">
-          <li>Entity swap for named-entity prompts (Wang et al. 2022)</li>
-          <li>Semantic antonym for binary decisions (Gurnee &amp; Tegmark 2023)</li>
-          <li>Modal negation for instruction-following (Geiger et al. 2023)</li>
-          <li>Random token masking as universal fallback (Meng et al. 2022)</li>
+          <li>Entity swap for named-entity prompts</li>
+          <li>Semantic antonym for binary decisions</li>
+          <li>Modal negation for instruction-following models</li>
+          <li>Random token masking as universal fallback</li>
         </ul>
       </div>
       <div class="pcards reveal r2">
         <div class="pcard">
           <div class="pcard-dom">Credit risk</div>
-          <div class="pcard-txt">"Loan application. Annual income: €42,000. Decision:"</div>
+          <div class="pcard-txt">"Loan application. Annual income: €42,000.<br>Credit history: 3 missed payments. Decision:"</div>
           <div class="pcard-st">Strategy: <strong>antonym</strong> — approved ↔ denied</div>
         </div>
         <div class="pcard">
           <div class="pcard-dom">Medical triage</div>
-          <div class="pcard-txt">"Patient presents with chest pain, diaphoresis. Priority:"</div>
+          <div class="pcard-txt">"Patient presents with chest pain,<br>diaphoresis. Priority:"</div>
           <div class="pcard-st">Strategy: <strong>antonym</strong> — urgent ↔ routine</div>
         </div>
         <div class="pcard">
           <div class="pcard-dom">HR screening</div>
-          <div class="pcard-txt">"Candidate: 8 years Python. The system should assess as:"</div>
+          <div class="pcard-txt">"Candidate: 8 years Python. The system<br>should assess this as:"</div>
           <div class="pcard-st">Strategy: <strong>semantic_negation</strong> — should → should not</div>
         </div>
         <div class="pcard">
@@ -411,18 +660,18 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 
 <hr class="div">
 
-<!-- LARGE MODELS -->
+<!-- LARGE MODELS FEATURE -->
 <section class="sec">
   <div class="wrap">
     <div class="feat-grid rev">
       <div>
         <div class="feat-eye reveal">Billion-parameter support — v4.3.0</div>
-        <h2 class="feat-title reveal r1">Llama-3-70B. Mistral. Gemma. Any size.</h2>
-        <p class="feat-body reveal r2">Gradient checkpointing (Chen et al. 2016) reduces peak activation memory by √n_layers — 11× for 80-layer models. CPU offloading handles 70B+ on a single GPU. Estimate VRAM before loading.</p>
+        <h2 class="feat-title reveal r1">Llama-3-70B.<br>Mistral. Gemma.<br>Any size.</h2>
+        <p class="feat-body reveal r2">Gradient checkpointing reduces peak activation memory by √n_layers — an 11× reduction for 80-layer models. CPU offloading handles 70B+ on a single GPU. Estimate VRAM before loading any model.</p>
         <ul class="feat-list reveal r3">
           <li>Gradient checkpointing: O(√n) memory, +33% compute</li>
-          <li>CPU offloading for 70B+ (ZeRO-Offload, Rajbhandari 2020)</li>
-          <li>estimate_memory() predicts VRAM requirement upfront</li>
+          <li>CPU activation offloading for 70B+ models</li>
+          <li>estimate_memory() predicts VRAM before loading</li>
           <li>bfloat16 support halves VRAM with negligible precision loss</li>
         </ul>
       </div>
@@ -434,9 +683,9 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
           </div>
           <div class="code-body"><pre><span class="ck">from</span> <span class="cp">glassbox.large_model</span> <span class="ck">import</span> <span class="cf">analyze_large</span>, <span class="cf">estimate_memory</span>
 
-<span class="cc"># Check VRAM before loading (Kaplan 2020: n_params ≈ 12Ld²)</span>
+<span class="cc"># Predict VRAM before loading any model</span>
 <span class="cp">mem</span> = <span class="cf">estimate_memory</span>(<span class="cp">n_layers</span>=<span class="cn">80</span>, <span class="cp">d_model</span>=<span class="cn">8192</span>)
-<span class="cc"># → "106 GB attribution pass → use checkpoint+offload"</span>
+<span class="cc"># → "106 GB attribution pass — use checkpoint+offload"</span>
 
 <span class="cc"># Drop-in replacement for gb.analyze()</span>
 <span class="cp">result</span> = <span class="cf">analyze_large</span>(
@@ -453,31 +702,38 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 
 <hr class="div">
 
-<!-- MODELS -->
+<!-- MODELS TABLE -->
 <section class="sec" id="models">
   <div class="wrap">
     <span class="label reveal">Supported architectures</span>
     <h2 class="headline reveal r1" style="margin-top:12px;margin-bottom:12px">11 model families</h2>
-    <p class="subhead reveal r2" style="margin-bottom:40px">Standard MHA, GQA, RMSNorm, LayerNorm — all handled by the MultiArchAdapter. Verified with 183 unit tests.</p>
+    <p class="subhead reveal r2" style="margin-bottom:40px">
+      Standard MHA, GQA, RMSNorm, LayerNorm — all handled by the MultiArchAdapter.
+    </p>
+
     <div class="model-wrap reveal">
       <table class="model-table">
-        <thead><tr><th>Family</th><th>Attention</th><th>Norm</th><th>Example models</th><th>Scale</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Family</th><th>Attention</th><th>Norm</th>
+            <th>Example models</th><th>Scale</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td class="mfam">gpt2</td><td><span class="badge bmha">MHA</span></td><td>LayerNorm</td><td>GPT-2 small → XL</td><td>117M–1.5B</td></tr>
-          <tr><td class="mfam">pythia</td><td><span class="badge bmha">MHA</span></td><td>LayerNorm</td><td>Pythia 70M–12B</td><td>70M–12B</td></tr>
-          <tr><td class="mfam">gpt-j</td><td><span class="badge bmha">MHA</span></td><td>LayerNorm</td><td>GPT-J 6B</td><td>6B</td></tr>
-          <tr><td class="mfam">llama-2</td><td><span class="badge bmha">MHA</span></td><td>RMSNorm</td><td>Llama-2 7B/13B/70B</td><td>7B–70B</td></tr>
-          <tr><td class="mfam">llama-3</td><td><span class="badge bgqa">GQA 4:1</span></td><td>RMSNorm</td><td>Llama-3-8B</td><td>8B</td></tr>
-          <tr><td class="mfam">llama-3-70b</td><td><span class="badge bgqa">GQA 8:1</span></td><td>RMSNorm</td><td>Llama-3-70B</td><td>70B</td></tr>
-          <tr><td class="mfam">mistral</td><td><span class="badge bgqa">GQA 4:1</span></td><td>RMSNorm</td><td>Mistral-7B</td><td>7B</td></tr>
-          <tr><td class="mfam">phi-2</td><td><span class="badge bmha">MHA</span></td><td>LayerNorm</td><td>Phi-2</td><td>2.7B</td></tr>
-          <tr><td class="mfam">phi-3</td><td><span class="badge bgqa">GQA 4:1</span></td><td>RMSNorm</td><td>Phi-3-mini</td><td>3.8B</td></tr>
-          <tr><td class="mfam">gemma</td><td><span class="badge bgqa">GQA 8:1</span></td><td>RMSNorm</td><td>Gemma 2B/7B</td><td>2B–7B</td></tr>
-          <tr><td class="mfam">qwen2</td><td><span class="badge bgqa">GQA 4:1</span></td><td>RMSNorm</td><td>Qwen2-7B</td><td>7B</td></tr>
+          <tr><td class="mfam">gpt2</td><td><span class="badge">MHA</span></td><td>LayerNorm</td><td>GPT-2 small → XL</td><td>117M–1.5B</td></tr>
+          <tr><td class="mfam">pythia</td><td><span class="badge">MHA</span></td><td>LayerNorm</td><td>Pythia 70M–12B</td><td>70M–12B</td></tr>
+          <tr><td class="mfam">gpt-j</td><td><span class="badge">MHA</span></td><td>LayerNorm</td><td>GPT-J 6B</td><td>6B</td></tr>
+          <tr><td class="mfam">llama-2</td><td><span class="badge">MHA</span></td><td>RMSNorm</td><td>Llama-2 7B / 13B / 70B</td><td>7B–70B</td></tr>
+          <tr><td class="mfam">llama-3</td><td><span class="badge">GQA 4:1</span></td><td>RMSNorm</td><td>Llama-3-8B</td><td>8B</td></tr>
+          <tr><td class="mfam">llama-3-70b</td><td><span class="badge">GQA 8:1</span></td><td>RMSNorm</td><td>Llama-3-70B</td><td>70B</td></tr>
+          <tr><td class="mfam">mistral</td><td><span class="badge">GQA 4:1</span></td><td>RMSNorm</td><td>Mistral-7B</td><td>7B</td></tr>
+          <tr><td class="mfam">phi-2</td><td><span class="badge">MHA</span></td><td>LayerNorm</td><td>Phi-2</td><td>2.7B</td></tr>
+          <tr><td class="mfam">phi-3</td><td><span class="badge">GQA 4:1</span></td><td>RMSNorm</td><td>Phi-3-mini</td><td>3.8B</td></tr>
+          <tr><td class="mfam">gemma</td><td><span class="badge">GQA 8:1</span></td><td>RMSNorm</td><td>Gemma 2B / 7B</td><td>2B–7B</td></tr>
+          <tr><td class="mfam">qwen2</td><td><span class="badge">GQA 4:1</span></td><td>RMSNorm</td><td>Qwen2-7B</td><td>7B</td></tr>
         </tbody>
       </table>
     </div>
-    <p style="margin-top:16px;font-size:13px;color:var(--t3)">Live CI on GPT-2. 7B+ models use <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/glassbox/large_model.py" style="color:var(--ac)">LargeModelAttributionPatcher</a> with gradient checkpointing.</p>
   </div>
 </section>
 
@@ -488,7 +744,10 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
   <div class="wrap">
     <span class="label reveal">Pricing</span>
     <h2 class="headline reveal r1" style="margin-top:12px;margin-bottom:14px">Start free. Scale when you need.</h2>
-    <p class="subhead reveal r2" style="margin-bottom:48px">Open source core is MIT. Enterprise adds signed vaults, on-prem Docker, and SLA.</p>
+    <p class="subhead reveal r2" style="margin-bottom:48px">
+      Open source core is MIT. Enterprise adds signed vaults, on-prem Docker, and SLA.
+    </p>
+
     <div class="price-grid">
       <div class="price-card reveal">
         <div class="price-tier">Open source</div>
@@ -502,8 +761,9 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
           <li>11 model architecture families</li>
           <li>MCP server included</li>
         </ul>
-        <a href="https://github.com/designer-coderajay/glassbox-mech" class="btn btn-g">View on GitHub</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech" class="btn btn-g" target="_blank">View on GitHub</a>
       </div>
+
       <div class="price-card feat reveal r1">
         <div class="price-badge">Popular</div>
         <div class="price-tier">Pro</div>
@@ -515,10 +775,11 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
           <li>Priority support</li>
           <li>Signed evidence vaults</li>
           <li>API access</li>
-          <li>Audit history &amp; dashboard</li>
+          <li>Audit history and dashboard</li>
         </ul>
-        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Pro" class="btn btn-a">Get Pro</a>
+        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Pro" class="btn btn-p">Get Pro</a>
       </div>
+
       <div class="price-card reveal r2">
         <div class="price-tier">Enterprise</div>
         <div class="price-val"><sup>€</sup>24K+</div>
@@ -534,53 +795,64 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
         <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Enterprise" class="btn btn-p">Contact sales</a>
       </div>
     </div>
-    <p style="margin-top:24px;text-align:center;font-size:13px;color:var(--t3)">Non-compliance with EU AI Act: up to €35M or 7% of global annual turnover.</p>
+
+    <p style="margin-top:24px;text-align:center;font-size:13px;color:var(--t3)">
+      EU AI Act non-compliance: up to €35M or 7% of global annual turnover.
+    </p>
   </div>
 </section>
 
 <hr class="div">
 
-<!-- RESEARCH -->
-<section class="sec" id="research">
+<!-- METHODS — replaces "research" section, no arXiv details -->
+<section class="sec" id="methods">
   <div class="wrap">
-    <span class="label reveal">Research</span>
-    <h2 class="headline reveal r1" style="margin-top:12px;margin-bottom:40px">Built on peer-reviewed science</h2>
+    <span class="label reveal">Mathematical foundations</span>
+    <h2 class="headline reveal r1" style="margin-top:12px;margin-bottom:40px">
+      Built on peer-reviewed science
+    </h2>
+
     <div class="research-grid">
       <div class="rcard reveal">
-        <div class="rcat">Mechanistic interpretability</div>
-        <div class="rtitle">Attribution Patching: Activation Patching at Industrial Scale</div>
-        <div class="rbody">First-order Taylor approximation for head-level attribution in O(3) passes. Foundation for Glassbox circuit discovery. 37× faster than ACDC.</div>
-        <a href="https://www.neelnanda.io/mechanistic-interpretability/attribution-patching" class="rlink" target="_blank">Nanda et al. 2023 →</a>
-      </div>
-      <div class="rcard reveal r1">
         <div class="rcat">Circuit discovery</div>
-        <div class="rtitle">Interpretability in the Wild: A Circuit for Indirect Object Identification</div>
-        <div class="rbody">Introduced the IOI circuit, name-swap corruption, and corrupted activation patching as the standard for causal faithfulness evaluation.</div>
+        <div class="rtitle">Attribution Patching at Industrial Scale</div>
+        <div class="rbody">First-order Taylor approximation for head-level attribution in O(3) forward passes. The mathematical foundation of Glassbox circuit discovery — 37× faster than prior automated circuit discovery methods.</div>
+        <a href="https://www.neelnanda.io/mechanistic-interpretability/attribution-patching" class="rlink" target="_blank">Read the method →</a>
+      </div>
+
+      <div class="rcard reveal r1">
+        <div class="rcat">Causal faithfulness</div>
+        <div class="rtitle">Interpretability in the Wild — IOI Circuit</div>
+        <div class="rbody">Introduced corrupted activation patching as the standard for causal faithfulness evaluation. Established the mathematical connection between circuit completeness and faithfulness metrics.</div>
         <a href="https://arxiv.org/abs/2211.00593" class="rlink" target="_blank">Wang et al. 2022 →</a>
       </div>
+
       <div class="rcard reveal r2">
-        <div class="rcat">Glassbox paper</div>
-        <div class="rtitle">Glassbox AI: Mechanistic Interpretability for EU AI Act Compliance</div>
-        <div class="rbody">r=0.009: confidence and faithfulness are statistically orthogonal — a key finding for high-stakes decision systems. Faithfulness F1 = 0.89.</div>
-        <a href="https://arxiv.org/abs/2603.09988" class="rlink" target="_blank">arXiv:2603.09988 →</a>
-      </div>
-      <div class="rcard reveal">
-        <div class="rcat">GQA support</div>
-        <div class="rtitle">GQA: Training Generalized Multi-Query Transformer Models</div>
-        <div class="rbody">Mathematical foundation for GQA attribution redistribution across query head groups — used in MultiArchAdapter for Llama-3, Mistral, Phi-3.</div>
+        <div class="rcat">GQA architecture support</div>
+        <div class="rtitle">Grouped Query Attention — Attribution Redistribution</div>
+        <div class="rbody">Mathematical basis for redistributing KV attribution scores across query head groups. Enables correct circuit analysis on Llama-3, Mistral, Phi-3, Gemma, and Qwen2 architectures.</div>
         <a href="https://arxiv.org/abs/2305.13245" class="rlink" target="_blank">Ainslie et al. 2023 →</a>
       </div>
-      <div class="rcard reveal r1">
+
+      <div class="rcard reveal">
         <div class="rcat">Memory efficiency</div>
-        <div class="rtitle">Training Deep Nets with Sublinear Memory Cost</div>
-        <div class="rbody">Gradient checkpointing: O(√n) activation memory. Enables Llama-3-70B attribution on single A100. 11× memory reduction for 80-layer models.</div>
+        <div class="rtitle">Gradient Checkpointing — Sublinear Memory Cost</div>
+        <div class="rbody">O(√n) activation memory for attribution patching on billion-parameter models. 11× memory reduction for 80-layer models. Enables Llama-3-70B compliance auditing on a single GPU.</div>
         <a href="https://arxiv.org/abs/1604.06174" class="rlink" target="_blank">Chen et al. 2016 →</a>
       </div>
+
+      <div class="rcard reveal r1">
+        <div class="rcat">Error quantification</div>
+        <div class="rtitle">Second-Order Taylor Bounds via Hessian Analysis</div>
+        <div class="rbody">Rigorous error bounds on attribution scores using Hessian diagonal estimation. Quantifies when first-order Taylor approximation is reliable — essential for regulatory documentation.</div>
+        <a href="https://arxiv.org/abs/2403.06925" class="rlink" target="_blank">Read →</a>
+      </div>
+
       <div class="rcard reveal r2">
         <div class="rcat">EU AI Act</div>
-        <div class="rtitle">Regulation (EU) 2024/1689 — AI Act</div>
-        <div class="rbody">Annex IV defines 8 mandatory technical documentation sections. Enforcement August 2, 2026. Non-compliance: €35M or 7% global turnover.</div>
-        <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" class="rlink" target="_blank">Official text →</a>
+        <div class="rtitle">Regulation (EU) 2024/1689 — Annex IV</div>
+        <div class="rbody">Annex IV defines 8 mandatory technical documentation sections for high-risk AI systems. Enforcement August 2, 2026. Non-compliance: up to €35M or 7% of global annual turnover.</div>
+        <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" class="rlink" target="_blank">Official regulation →</a>
       </div>
     </div>
   </div>
@@ -592,11 +864,22 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 <section class="sec">
   <div class="wrap">
     <div class="cta-box reveal">
-      <h2 class="display" style="max-width:640px;margin:0 auto 20px">August 2, 2026 is the deadline</h2>
-      <p class="subhead" style="max-width:480px;margin:0 auto 36px">Every high-risk AI system in the EU needs Annex IV documentation. Glassbox generates it in under 2 seconds.</p>
+      <h2 class="display" style="margin:0 auto 20px;max-width:640px">
+        August 2, 2026 is the deadline
+      </h2>
+      <p class="subhead" style="margin:0 auto 36px">
+        Every high-risk AI system in the EU needs Annex IV documentation.
+        Glassbox generates it in under 2 seconds.
+      </p>
       <div class="cta-acts">
-        <a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof" class="btn btn-p" style="font-size:15px;padding:13px 28px">Read the integration guide →</a>
-        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Enterprise Inquiry" class="btn btn-g" style="font-size:15px;padding:13px 28px">Talk to us</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof"
+           class="btn btn-p" style="font-size:15px;padding:13px 28px" target="_blank">
+          Read the integration guide →
+        </a>
+        <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox Enterprise Inquiry"
+           class="btn btn-g" style="font-size:15px;padding:13px 28px">
+          Talk to us
+        </a>
       </div>
     </div>
   </div>
@@ -604,52 +887,64 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 
 </main>
 
-<!-- FOOTER -->
+<!-- FOOTER — Anthropic clean columns -->
 <footer>
   <div class="wrap">
     <div class="foot-top">
       <div>
         <div class="foot-logo">
-          <div class="logo-mark"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#000"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#000" opacity=".5"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#000" opacity=".5"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#000" opacity=".8"/></svg></div>
+          <div class="logo-mark" style="width:24px;height:24px">
+            <svg viewBox="0 0 16 16" fill="none" style="width:13px;height:13px">
+              <rect x="2" y="2" width="5" height="5" rx="1" fill="#000"/>
+              <rect x="9" y="2" width="5" height="5" rx="1" fill="#000" opacity=".55"/>
+              <rect x="2" y="9" width="5" height="5" rx="1" fill="#000" opacity=".55"/>
+              <rect x="9" y="9" width="5" height="5" rx="1" fill="#000" opacity=".8"/>
+            </svg>
+          </div>
           Glassbox AI
         </div>
-        <p class="foot-tag">The compliance layer for production AI. Open source. EU AI Act ready.</p>
+        <p class="foot-tag">
+          The compliance layer for production AI.<br>Open source. EU AI Act ready.
+        </p>
       </div>
+
       <div>
         <div class="foot-col-h">Product</div>
         <ul class="foot-links">
           <li><a href="#features">Features</a></li>
-          <li><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a></li>
+          <li><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool" target="_blank">Live demo</a></li>
           <li><a href="#pricing">Pricing</a></li>
-          <li><a href="https://pypi.org/project/glassbox-mech-interp/">PyPI package</a></li>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a></li>
+          <li><a href="https://pypi.org/project/glassbox-mech-interp/" target="_blank">PyPI package</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech" target="_blank">GitHub</a></li>
         </ul>
       </div>
+
       <div>
         <div class="foot-col-h">Compliance</div>
         <ul class="foot-links">
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof">Integration guide</a></li>
-          <li><a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689">EU AI Act</a></li>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/METHODOLOGY.md">Methodology</a></li>
-          <li><a href="https://arxiv.org/abs/2603.09988">arXiv paper</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech#how-to-get-your-eu-ai-act-annex-iv-compliance-proof" target="_blank">Integration guide</a></li>
+          <li><a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank">EU AI Act</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/METHODOLOGY.md" target="_blank">Methodology</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/CHANGELOG.md" target="_blank">Changelog</a></li>
         </ul>
       </div>
+
       <div>
         <div class="foot-col-h">Company</div>
         <ul class="foot-links">
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/ROADMAP_V4.md">Roadmap</a></li>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/CHANGELOG.md">Changelog</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/ROADMAP_V4.md" target="_blank">Roadmap</a></li>
           <li><a href="mailto:mahale.ajay01@gmail.com">Contact</a></li>
-          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/SECURITY.md">Security</a></li>
+          <li><a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/SECURITY.md" target="_blank">Security</a></li>
         </ul>
       </div>
     </div>
+
     <div class="foot-bot">
       <span class="foot-copy">© 2026 Glassbox AI. Open source under MIT.</span>
       <div class="foot-legal">
-        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/LICENSE">License</a>
-        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/SECURITY.md">Security</a>
-        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/NOTICE">Legal</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/LICENSE" target="_blank">License</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/SECURITY.md" target="_blank">Security</a>
+        <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/NOTICE" target="_blank">Legal</a>
       </div>
     </div>
   </div>
@@ -658,11 +953,11 @@ footer{border-top:1px solid var(--bd);padding:60px 0 40px}
 <script>
 const obs = new IntersectionObserver(
   es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); }),
-  { threshold: 0.1, rootMargin: '0px 0px -32px 0px' }
+  { threshold: 0.1, rootMargin: '0px 0px -28px 0px' }
 );
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-function toggleMenu() {
+function toggleMenu(){
   document.getElementById('mobMenu').classList.toggle('open');
 }
 document.querySelectorAll('.mob-menu a').forEach(a =>
