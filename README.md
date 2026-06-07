@@ -210,7 +210,7 @@ print(result["explainability_grade"])        # 'A' through 'F' per Annex IV Arti
 
 ### Step 4 — Generate the Annex IV evidence package
 
-One call generates a regulator-ready PDF + machine-readable JSON covering all 8 mandatory Annex IV sections:
+One call generates a regulator-ready PDF + machine-readable JSON covering all 9 Annex IV sections (Section 8, the EU Declaration of Conformity per Article 47, is a provider-signed legal reference — see `docs/EU_AI_ACT_COMPLIANCE_GUIDE.md`):
 
 ```python
 from glassbox.compliance import AnnexIVReport, DeploymentContext

@@ -51,3 +51,11 @@ flagged/
 # Private files
 department_roadmap.md
 .vercel
+
+# Internal strategy / dossiers — NEVER commit (may contain secrets/tokens)
+*.docx
+*.pdf
+*Dossier*
+*dossier*
+*MASTER*
+*master_dossier*

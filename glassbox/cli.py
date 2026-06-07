@@ -48,16 +48,60 @@ def _run_analyze(args: argparse.Namespace) -> int:
     from glassbox import GlassboxV2
 
     print(BANNER)
-    print(f"  Model  : {args.model}")
-    print(f"  Prompt : {args.prompt!r}")
-    print(f"  Correct: {args.correct!r}   Incorrect: {args.incorrect!r}\n")
+    print(f"  Model      : {args.model}")
+    print(f"  Prompt     : {args.prompt!r}")
+    print(f"  Correct    : {args.correct!r}   Incorrect: {args.incorrect!r}")
+    print(f"  Strategy   : {args.strategy or 'auto (will be selected based on prompt)'}\n")
 
-    model = HookedTransformer.from_pretrained(args.model)
+    # Dtype handling for large models
+    dtype = None
+    if args.dtype:
+        import torch
+        dtype_map = {"float32": torch.float32, "float16": torch.float16,
+                     "bfloat16": torch.bfloat16}
+        dtype = dtype_map.get(args.dtype)
+        if dtype is None:
+            print(f"  ERROR: unknown dtype {args.dtype!r}. Use float32/float16/bfloat16")
+            return 1
+
+    load_kwargs: dict = {}
+    if dtype is not None:
+        load_kwargs["dtype"] = dtype
+
+    model = HookedTransformer.from_pretrained(args.model, **load_kwargs)
     gb    = GlassboxV2(model)
 
-    result = gb.analyze(args.prompt, args.correct, args.incorrect)
+    # Memory estimate for large models
+    d = getattr(model.cfg, "d_model", 768)
+    n_layers = getattr(model.cfg, "n_layers", 12)
+    from glassbox.large_model import estimate_memory, classify_model_size
+    mem = estimate_memory(n_layers, d, dtype=dtype)
+    size_class = classify_model_size(n_layers, d)
+    if size_class in ("large", "xlarge", "xxlarge"):
+        print(f"  Memory estimate : {mem.attribution_gb:.1f} GB for attribution pass")
+        print(f"  Recommendation  : {mem.recommend_strategy}")
+        for w in mem.warnings:
+            print(f"  ⚠  {w}")
+        print()
+
+    # Use large-model adapter if strategy specified or model is large
+    strategy = args.strategy or "auto"
+    if size_class in ("large", "xlarge", "xxlarge") or strategy != "auto":
+        from glassbox.large_model import analyze_large
+        result = analyze_large(gb, args.prompt, args.correct, args.incorrect,
+                               strategy=strategy, dtype=dtype)
+    else:
+        result = gb.analyze(args.prompt, args.correct, args.incorrect,
+                            corruption_strategy=strategy)
+
     faith  = result["faithfulness"]
     meta   = result.get("model_metadata", {})
+    corruption = result.get("corruption_metadata", {})
+
+    if corruption:
+        print(f"  Corruption strategy : {corruption.get('strategy', 'unknown')}")
+        print(f"  Rationale           : {corruption.get('rationale', '')[:80]}")
+        print()
 
     print(f"  Sufficiency      : {faith['sufficiency']:.1%}")
     print(f"  Comprehensiveness: {faith['comprehensiveness']:.1%}")
@@ -79,6 +123,52 @@ def _run_analyze(args: argparse.Namespace) -> int:
               f"{meta.get('n_layers','?')}L × {meta.get('n_heads','?')}H  "
               f"d_model={meta.get('d_model','?')}  "
               f"glassbox=v{meta.get('glassbox_version','?')}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Sub-command: estimate-memory  (large-model planning)
+# ---------------------------------------------------------------------------
+
+def _run_estimate_memory(args: argparse.Namespace) -> int:
+    """Predict VRAM requirements before loading any model."""
+    import torch
+    dtype_map = {"float32": torch.float32, "float16": torch.float16,
+                 "bfloat16": torch.bfloat16}
+    dtype = dtype_map.get(args.dtype, torch.float32)
+
+    from glassbox.large_model import estimate_memory, classify_model_size
+
+    mem = estimate_memory(
+        n_layers=args.n_layers,
+        d_model=args.d_model,
+        seq_len=args.seq_len,
+        dtype=dtype,
+    )
+    size_class = classify_model_size(args.n_layers, args.d_model)
+
+    print(BANNER)
+    print(f"  n_layers : {args.n_layers}")
+    print(f"  d_model  : {args.d_model}")
+    print(f"  seq_len  : {args.seq_len}")
+    print(f"  dtype    : {args.dtype}")
+    print()
+    print(f"  Estimated parameters     : {mem.n_params / 1e9:.2f}B")
+    print(f"  Model weights (VRAM)     : {mem.param_gb:.1f} GB")
+    print(f"  Activations / fwd pass   : {mem.activation_gb:.1f} GB")
+    print(f"  Attribution (3 passes)   : {mem.attribution_gb:.1f} GB  ← peak requirement")
+    print(f"  Size class               : {size_class}")
+    print(f"  Recommended strategy     : {mem.recommend_strategy}")
+    if mem.warnings:
+        print()
+        for w in mem.warnings:
+            print(f"  ⚠  {w}")
+    print()
+    print("  Usage:")
+    print(f"    from glassbox.large_model import analyze_large")
+    print(f"    result = analyze_large(gb, prompt, correct, incorrect,")
+    print(f"                          strategy='{mem.recommend_strategy}',")
+    print(f"                          dtype=torch.{args.dtype})")
     return 0
 
 
@@ -199,11 +289,21 @@ def _run_version(_args: argparse.Namespace) -> int:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="glassbox-ai",
-        description="Glassbox 4.2.6 — Mechanistic Interpretability Toolkit",
+        description="Glassbox 4.3.0 — Mechanistic Interpretability + EU AI Act Compliance",
         epilog="""Examples:
+  # Any prompt, any domain — auto-selects corruption strategy
   glassbox-ai analyze \\
-      --prompt "When Mary and John went to the store, John gave a drink to" \\
-      --correct " Mary" --incorrect " John"
+      --prompt "Loan application. Annual income: €42,000. Decision:" \\
+      --correct " Approved" --incorrect " Denied"
+
+  # Large model with memory-efficient attribution
+  glassbox-ai analyze \\
+      --prompt "Patient presents with chest pain. Priority:" \\
+      --correct " Urgent" --incorrect " Routine" \\
+      --model meta-llama/Llama-3-8B --dtype bfloat16 --strategy auto
+
+  # Check VRAM before loading a large model
+  glassbox-ai estimate-memory --n-layers 80 --d-model 8192 --dtype bfloat16
 
   glassbox-ai doctor
   glassbox-ai version
@@ -213,24 +313,51 @@ def main() -> None:
 
     sub = parser.add_subparsers(dest="cmd")
 
-    # analyze
-    p_analyze = sub.add_parser("analyze", help="Analyze a prompt circuit")
-    p_analyze.add_argument("--prompt",    required=True, help="Input prompt")
-    p_analyze.add_argument("--correct",   required=True, help="Correct completion token")
-    p_analyze.add_argument("--incorrect", required=True, help="Incorrect/distractor token")
+    # ── analyze ──────────────────────────────────────────────────────────────
+    p_analyze = sub.add_parser("analyze", help="Run circuit discovery + faithfulness on any prompt")
+    p_analyze.add_argument("--prompt",    required=True,
+                           help="Input text (any domain — credit, medical, HR, legal, etc.)")
+    p_analyze.add_argument("--correct",   required=True,
+                           help="Correct next token (e.g. ' Approved', ' Urgent')")
+    p_analyze.add_argument("--incorrect", required=True,
+                           help="Distractor token (e.g. ' Denied', ' Routine')")
     p_analyze.add_argument("--model",     default="gpt2",
-                           help="HuggingFace model name (default: gpt2)")
+                           help="HuggingFace model name (default: gpt2). "
+                                "Supports all 11 architecture families.")
+    p_analyze.add_argument("--dtype",     default=None,
+                           choices=["float32", "float16", "bfloat16"],
+                           help="Model dtype. Use bfloat16 for 7B+ models to halve VRAM.")
+    p_analyze.add_argument("--strategy",  default=None,
+                           choices=["auto", "name_swap", "random_token",
+                                    "antonym", "semantic_negation"],
+                           help="Corruption strategy. Default: auto (recommended). "
+                                "auto selects the best strategy for your prompt type.")
 
-    # doctor
+    # ── estimate-memory ───────────────────────────────────────────────────────
+    p_mem = sub.add_parser("estimate-memory",
+                           help="Predict VRAM requirements before loading a large model")
+    p_mem.add_argument("--n-layers", type=int, required=True,
+                       help="Number of transformer layers (e.g. 32 for Llama-3-8B, 80 for 70B)")
+    p_mem.add_argument("--d-model",  type=int, required=True,
+                       help="Hidden dimension (e.g. 4096 for 8B, 8192 for 70B)")
+    p_mem.add_argument("--seq-len",  type=int, default=256,
+                       help="Input sequence length (default: 256)")
+    p_mem.add_argument("--dtype",    default="bfloat16",
+                       choices=["float32", "float16", "bfloat16"],
+                       help="Model dtype (default: bfloat16)")
+
+    # ── doctor ────────────────────────────────────────────────────────────────
     sub.add_parser("doctor",  help="Check all dependencies are correctly installed")
 
-    # version
+    # ── version ───────────────────────────────────────────────────────────────
     sub.add_parser("version", help="Print installed Glassbox version")
 
     args = parser.parse_args()
 
     if args.cmd == "analyze":
         sys.exit(_run_analyze(args))
+    elif args.cmd == "estimate-memory":
+        sys.exit(_run_estimate_memory(args))
     elif args.cmd == "doctor":
         sys.exit(_run_doctor(args))
     elif args.cmd == "version":
