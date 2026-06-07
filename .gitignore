@@ -59,3 +59,14 @@ department_roadmap.md
 *dossier*
 *MASTER*
 *master_dossier*
+
+# Internal tooling, strategy & business docs — keep local, never publish
+.claude/
+.railway/
+GTM/
+STRATEGY_TO_AUG2.md
+SESSION_CHANGES_*.md
+README_LEAN.md
+
+# Local Desktop backups of anything we delete or change (never publish)
+_local_backups/
