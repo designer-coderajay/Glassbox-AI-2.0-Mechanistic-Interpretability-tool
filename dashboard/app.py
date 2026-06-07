@@ -910,7 +910,7 @@ HEADER = """
     <div class="gb-stat-lbl">Faithfulness F1<br>Grade A</div>
   </div>
   <div class="gb-stat">
-    <div class="gb-stat-val">8/8</div>
+    <div class="gb-stat-val">9/9</div>
     <div class="gb-stat-lbl">Annex IV sections<br>automated</div>
   </div>
   <div class="gb-stat">

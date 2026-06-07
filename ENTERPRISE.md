@@ -7,7 +7,7 @@ deploying AI in finance, healthcare, employment, or critical infrastructure.
 
 ## What you get
 
-- **Annex IV automation** — all 8 mandatory sections generated in under 2 seconds
+- **Annex IV automation** — all 9 sections generated in under 2 seconds (§8, the EU Declaration of Conformity, is a provider-signed legal reference)
 - **Any-prompt support** — credit scoring, medical triage, HR screening, legal, dialogue
 - **Billion-parameter support** — Llama-3-70B, Mistral, Gemma with gradient checkpointing
 - **CI/CD gate** — CircuitDiff detects model behaviour changes on every deployment
