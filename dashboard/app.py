@@ -116,7 +116,7 @@ def _attribution_heatmap(attrs: dict, circuit: list, n_layers=12, n_heads=12) ->
         rect = mpatches.FancyBboxPatch(
             (h - 0.45, l - 0.45), 0.9, 0.9,
             boxstyle="round,pad=0.05",
-            linewidth=2, edgecolor="#00C8E8", facecolor="none"
+            linewidth=2, edgecolor="#b85c38", facecolor="none"
         )
         ax.add_patch(rect)
     ax.set_xlabel("Head Index", fontsize=12, color="white")
@@ -157,12 +157,12 @@ def _logit_lens_plot(prompt: str, target_token: str) -> Image.Image:
         ax.grid(True, alpha=0.15, color="#ffffff")
         for spine in ax.spines.values():
             spine.set_edgecolor("#1a2030")
-    ax1.plot(layers, probs, "o-", lw=2, ms=7, color="#00C8E8")
-    ax1.fill_between(layers, probs, alpha=0.15, color="#00C8E8")
+    ax1.plot(layers, probs, "o-", lw=2, ms=7, color="#b85c38")
+    ax1.fill_between(layers, probs, alpha=0.15, color="#b85c38")
     ax1.set_ylabel("Probability (%)", fontsize=11, color="white")
     ax1.set_title(f"Logit Lens — token: '{target_token}'", fontsize=13, color="white")
     ax1.set_ylim(bottom=0)
-    ax2.plot(layers, layer_ranks, "s-", lw=2, ms=7, color="#0891B2")
+    ax2.plot(layers, layer_ranks, "s-", lw=2, ms=7, color="#a04d2c")
     ax2.set_ylabel("Rank (lower = better)", fontsize=11, color="white")
     ax2.set_xlabel("Layer", fontsize=11, color="white")
     ax2.invert_yaxis()
@@ -338,9 +338,9 @@ def run_compliance_report(prompt: str, correct: str, incorrect: str,
 
     # ── Step 3: compute grade + status from raw F1 (no AnnexIVReport needed) ──
     if f1_score >= 0.80:
-        grade, grade_color, status_label = "A", "#00C8E8", "Compliant"
+        grade, grade_color, status_label = "A", "#b85c38", "Compliant"
     elif f1_score >= 0.65:
-        grade, grade_color, status_label = "B", "#00C8E8", "Conditionally Compliant"
+        grade, grade_color, status_label = "B", "#b85c38", "Conditionally Compliant"
     elif f1_score >= 0.50:
         grade, grade_color, status_label = "C", "#f59e0b", "Partially Compliant"
     else:
@@ -489,8 +489,8 @@ GB_CSS = """
   --t1:      #f0ede6;
   --t2:      #9a9a9f;
   --t3:      #5a5a62;
-  --ac:      #00C8E8;
-  --acbg:    rgba(0,200,232,.08);
+  --ac:      #b85c38;
+  --acbg:    rgba(184,92,56,.08);
   --serif:   'Instrument Serif', Georgia, serif;
   --sans:    'Inter', -apple-system, sans-serif;
   --mono:    'JetBrains Mono', monospace;
@@ -694,7 +694,7 @@ button.primary, .btn-primary {
   cursor: pointer !important;
   transition: background .15s !important;
 }
-button.primary:hover { background: #22d9f5 !important; }
+button.primary:hover { background: #cf7553 !important; }
 button.secondary, .btn-secondary {
   background: var(--bg1) !important;
   border: 1px solid var(--bd) !important;
@@ -1012,9 +1012,9 @@ with gr.Blocks(
         input_border_color_dark="rgba(255,255,255,0.13)",
         input_placeholder_color="#52525b",
         input_placeholder_color_dark="#52525b",
-        button_primary_background_fill="#00C8E8",
-        button_primary_background_fill_dark="#00C8E8",
-        button_primary_background_fill_hover="#009AB5",
+        button_primary_background_fill="#b85c38",
+        button_primary_background_fill_dark="#b85c38",
+        button_primary_background_fill_hover="#8f4326",
         button_primary_text_color="#ffffff",
         button_primary_text_color_dark="#ffffff",
         button_secondary_background_fill="rgba(255,255,255,0.05)",
@@ -1022,8 +1022,8 @@ with gr.Blocks(
         button_secondary_text_color="#a1a1aa",
         shadow_drop="0 4px 24px rgba(0,0,0,0.6)",
         shadow_drop_lg="0 8px 40px rgba(0,0,0,0.8)",
-        color_accent_soft="rgba(0,200,232,0.15)",
-        color_accent_soft_dark="rgba(0,200,232,0.15)",
+        color_accent_soft="rgba(184,92,56,0.15)",
+        color_accent_soft_dark="rgba(184,92,56,0.15)",
     ),
 ) as demo:
     if _STARTUP_ERROR:
@@ -1161,7 +1161,7 @@ with gr.Blocks(
 .gb-ft-top { display:flex; align-items:flex-start; gap:40px; flex-wrap:wrap; margin-bottom:24px; }
 .gb-ft-brand { flex:2; min-width:200px; }
 .gb-ft-logo { display:flex; align-items:center; gap:8px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700; letter-spacing:-.02em; color:#fff; margin-bottom:8px; }
-.gb-ft-logo-mark { width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,#00C8E8,#0891B2); display:flex; align-items:center; justify-content:center; }
+.gb-ft-logo-mark { width:24px; height:24px; border-radius:6px; background:linear-gradient(135deg,#b85c38,#a04d2c); display:flex; align-items:center; justify-content:center; }
 .gb-ft-logo-mark svg { width:11px; height:11px; }
 .gb-ft-tag { font-family:'DM Sans',sans-serif; font-size:13px; color:#52525b; line-height:1.6; max-width:260px; }
 .gb-ft-col { flex:1; min-width:120px; }

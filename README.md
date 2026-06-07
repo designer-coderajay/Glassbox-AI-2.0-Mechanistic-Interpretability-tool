@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/glassbox-brand.png" alt="Glassbox AI — Brand Identity" width="720" style="max-width:100%;margin-bottom:8px"/>
+<img src="docs/assets/og-image.png" alt="Glassbox AI — see inside the black box" width="820" style="max-width:100%;margin-bottom:8px;border-radius:12px"/>
 
 # Glassbox 4.3.0
 
