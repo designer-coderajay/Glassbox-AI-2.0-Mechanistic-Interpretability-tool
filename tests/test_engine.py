@@ -19,15 +19,11 @@ pytestmark = pytest.mark.slow
 # ---------------------------------------------------------------------------
 @pytest.fixture(scope="module")
 def engine():
-    # Skip when transformer_lens is a MagicMock stub rather than the real package.
-    # conftest.py injects stubs into sys.modules when the package is absent;
-    # those stubs have no __file__ attribute, which is a reliable sentinel.
-    # We cannot use importlib.util.find_spec() here because the stub's missing
-    # __spec__ causes find_spec to raise ValueError.
-    import sys
-    tl = sys.modules.get("transformer_lens")
-    if tl is None or not hasattr(tl, "__file__"):
-        pytest.skip("transformer_lens not installed — slow model tests skipped")
+    # Skip cleanly only when transformer_lens genuinely cannot be imported
+    # (e.g. a bare local environment). importorskip actually attempts the
+    # import, so when the package IS installed — as in CI — these tests run
+    # instead of being skipped on a stale sys.modules sentinel.
+    pytest.importorskip("transformer_lens")
 
     from transformer_lens import HookedTransformer
     from glassbox import GlassboxV2

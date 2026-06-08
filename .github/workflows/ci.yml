@@ -87,6 +87,13 @@ jobs:
           pip install -e ".[dev]"
           pip install pytest-cov
 
+      - name: Verify model stack imports (diagnostic)
+        # If this fails, transformer_lens/torch did NOT install cleanly and the
+        # engine tests can never run — that's the real problem to fix, not a flake.
+        run: |
+          python -c "import torch; print('torch', torch.__version__)"
+          python -c "import transformer_lens as tl; print('transformer_lens', tl.__version__)"
+
       - name: Run full suite with coverage (gate OFF — measuring real %)
         run: |
           pytest \
