@@ -100,6 +100,21 @@ from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
+
+def _get_version() -> str:
+    """Return the installed Glassbox version for report headers/footers.
+
+    Falls back to "unknown" if the package metadata cannot be read, so report
+    generation never fails on a version lookup.
+    """
+    try:
+        from glassbox import __version__
+
+        return __version__
+    except Exception:  # pragma: no cover - defensive, never block a report
+        return "unknown"
+
+
 __all__ = [
     "AnnexIVReport",
     "DeploymentContext",
