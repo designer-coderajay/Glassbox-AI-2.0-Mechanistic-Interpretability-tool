@@ -78,10 +78,15 @@ classifiers = [
 ]
 
 dependencies = [
-    "torch>=2.0",
-    "transformer_lens>=1.0",
-    "einops",
-    "numpy",
+    # Upper bounds pin to the verified-compatible stack (Mahale 2026 results).
+    # numpy<2 is critical: NumPy 2.0 changed np.bool semantics, which breaks the
+    # attribution-stability path. torch<2.11 and transformer_lens<3 keep the
+    # hook/cache API stable. Without these ceilings a fresh `pip install` pulls
+    # NumPy 2.x + torch nightly and the engine fails (see CI run #3, 2026-06-08).
+    "torch>=2.0,<2.11",
+    "transformer_lens>=1.0,<3.0",
+    "einops>=0.6",
+    "numpy>=1.24,<2.0",
     "scipy>=1.9",
 ]
 
