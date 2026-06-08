@@ -32,6 +32,7 @@ coverage.xml
 .venv/
 venv/
 env/
+.ci_repro_venv/
 
 # Editors
 .DS_Store
