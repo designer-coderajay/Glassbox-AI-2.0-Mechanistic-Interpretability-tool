@@ -160,6 +160,10 @@ glassbox = ["py.typed"]
 # pytest configuration
 # ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
+# Only collect from tests/ — never from local backups (_local_backups/) or the
+# throwaway repro venv (.ci_repro_venv/), which can contain copies of test files
+# that collide on module basename.
+testpaths = ["tests"]
 markers = [
     "slow: marks tests as slow — skip in fast CI with '-m \"not slow\"'",
 ]

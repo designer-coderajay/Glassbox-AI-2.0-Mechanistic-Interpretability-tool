@@ -106,17 +106,17 @@ jobs:
           python -c "import importlib.metadata as m; print('transformer_lens', m.version('transformer-lens'))" || echo "version lookup skipped (non-fatal)"
 
       - name: Run full suite with coverage (gate at measured floor)
-        # Measured real coverage with the engine actually exercised: 48%
-        # (CI run #5, 2026-06-08, 494 passed). Gate set to 45% — a small buffer
-        # below current so it catches regressions without flaking. Target is 80%;
-        # raise this as coverage of the under-tested modules (notify, telemetry,
-        # mlflow_integration, sae_attribution, bias, acdc, das, ...) improves.
+        # Measured real coverage (engine + pure-Python suites): 51% locally
+        # (627 passed, 2026-06-08), up from 48% after adding explain/notify/
+        # telemetry/bias tests. Gate set to 50% — a buffer below current.
+        # Target is 80%; raise as the model-dependent modules (acdc, das,
+        # cross_model, core remainder) gain coverage.
         run: |
           pytest \
             --cov=glassbox \
             --cov-report=term-missing \
             --cov-report=xml \
-            --cov-fail-under=45 \
+            --cov-fail-under=50 \
             -v
 
       - name: Upload coverage report
