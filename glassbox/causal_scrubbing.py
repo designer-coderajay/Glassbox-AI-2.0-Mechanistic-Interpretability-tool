@@ -65,10 +65,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, FrozenSet, List, Optional, Set, Tuple
+from typing import Dict, FrozenSet, List, Optional, Tuple
 
-import torch
 import numpy as np
+import torch
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ class CircuitHypothesis:
         heads:       List[Tuple[int, int]],
         description: str = "",
         roles:       Optional[Dict[Tuple[int, int], str]] = None,
-    ) -> "CircuitHypothesis":
+    ) -> CircuitHypothesis:
         """Convenience constructor from a list of (layer, head) tuples."""
         return cls(
             name           = name,
@@ -115,7 +115,7 @@ class CircuitHypothesis:
         )
 
     @classmethod
-    def from_wang2022_ioi(cls) -> "CircuitHypothesis":
+    def from_wang2022_ioi(cls) -> CircuitHypothesis:
         """
         The canonical IOI circuit from Wang et al. (2022).
 

@@ -84,7 +84,7 @@ Examples
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
@@ -864,7 +864,7 @@ class BiasReport:
 
             if isinstance(result, CounterfactualFairnessResult):
                 lines.extend([
-                    f"**Type:** Counterfactual Fairness (Article 10(2)(f))",
+                    "**Type:** Counterfactual Fairness (Article 10(2)(f))",
                     f"**Attribute Groups:** {result.attribute_groups}",
                     f"**Target Tokens:** {', '.join(result.target_tokens)}",
                     f"**Max Parity Gap:** {result.max_gap:.4f}",
@@ -876,7 +876,7 @@ class BiasReport:
 
             elif isinstance(result, DemographicParityResult):
                 lines.extend([
-                    f"**Type:** Demographic Parity (Article 10(2)(f))",
+                    "**Type:** Demographic Parity (Article 10(2)(f))",
                     f"**Groups:** {', '.join(result.groups)}",
                     f"**Target Tokens:** {', '.join(result.target_tokens)}",
                     f"**Parity Gap:** {result.parity_gap:.4f}",
@@ -888,7 +888,7 @@ class BiasReport:
 
             elif isinstance(result, TokenBiasResult):
                 lines.extend([
-                    f"**Type:** Token Bias Probe (Article 10(2)(f))",
+                    "**Type:** Token Bias Probe (Article 10(2)(f))",
                     f"**Demographic Tokens:** {', '.join(result.demographic_tokens)}",
                     f"**Overall Bias Score:** {result.overall_bias_score:.4f}",
                     f"**Flagged Pairs:** {len(result.flagged_pairs)}",
@@ -908,7 +908,7 @@ class BiasReport:
         # Summary section
         lines.extend([
             "\n## Compliance Summary",
-            f"\n**EU AI Act Articles Referenced:**",
+            "\n**EU AI Act Articles Referenced:**",
             "  - Article 10(2)(f): Bias examination and mitigation measures",
             "  - Article 13(2)(c): Transparency and information to end-users",
             "  - Article 15(2): Accuracy, robustness, cybersecurity requirements",

@@ -96,7 +96,7 @@ from __future__ import annotations
 
 import gc
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
@@ -571,8 +571,9 @@ class CrossModelComparison:
         SingleModelResult
             Circuit and attribution data for this model.
         """
-        from glassbox.core import GlassboxV2
         from transformer_lens import HookedTransformer
+
+        from glassbox.core import GlassboxV2
 
         # Load model
         model = HookedTransformer.from_pretrained(

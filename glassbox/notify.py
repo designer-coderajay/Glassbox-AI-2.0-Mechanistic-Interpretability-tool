@@ -47,13 +47,10 @@ Teams:  https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-c
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import json
 import time
 import urllib.request
 from typing import Any, Dict, List, Optional
-
 
 # ---------------------------------------------------------------------------
 # Shared helpers

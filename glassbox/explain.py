@@ -37,7 +37,6 @@ Usage
 
 from __future__ import annotations
 
-import textwrap
 from typing import Any, Dict, List, Optional
 
 # ---------------------------------------------------------------------------
@@ -355,14 +354,14 @@ class NaturalLanguageExplainer:
         if suff >= _SUFF_GOOD and n_heads > 0:
             status = "MEETS"
             detail = (
-                f"The causal circuit provides a mechanistically grounded explanation "
-                f"that satisfies the explainability standard."
+                "The causal circuit provides a mechanistically grounded explanation "
+                "that satisfies the explainability standard."
             )
         elif suff >= _SUFF_MARGINAL:
             status = "PARTIALLY MEETS"
             detail = (
-                f"The circuit partially explains the decision. "
-                f"Supplementary documentation of residual decision factors is recommended."
+                "The circuit partially explains the decision. "
+                "Supplementary documentation of residual decision factors is recommended."
             )
         else:
             status = "DOES NOT MEET"

@@ -58,11 +58,10 @@ Nanda 2023 — "Attribution Patching at Industrial Scale"
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
+from dataclasses import dataclass
+from typing import Dict, Set, Tuple
 
 import torch
-import torch.nn as nn
 
 logger = logging.getLogger(__name__)
 

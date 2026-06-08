@@ -68,7 +68,6 @@ from __future__ import annotations
 import logging
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
 import torch
 
 __all__ = ["SAEFeatureAttributor"]
@@ -119,17 +118,17 @@ class _CustomSAE:
 
     def __init__(
         self,
-        W_enc: "torch.Tensor",
-        b_enc: "torch.Tensor",
-        W_dec: "torch.Tensor",
-        b_dec: "torch.Tensor",
+        W_enc: torch.Tensor,
+        b_enc: torch.Tensor,
+        W_dec: torch.Tensor,
+        b_dec: torch.Tensor,
     ) -> None:
         self.W_enc = W_enc
         self.b_enc = b_enc
         self.W_dec = W_dec
         self.b_dec = b_dec
 
-    def encode(self, x: "torch.Tensor") -> "torch.Tensor":
+    def encode(self, x: torch.Tensor) -> torch.Tensor:
         """
         Encode residual stream → feature activations.
 
@@ -138,7 +137,7 @@ class _CustomSAE:
         """
         return torch.relu(x @ self.W_enc.T + self.b_enc)
 
-    def decode(self, f: "torch.Tensor") -> "torch.Tensor":
+    def decode(self, f: torch.Tensor) -> torch.Tensor:
         """
         Decode feature activations → reconstructed residual stream.
 
@@ -148,7 +147,7 @@ class _CustomSAE:
         return f @ self.W_dec.T + self.b_dec
 
     @property
-    def W_dec_tensor(self) -> "torch.Tensor":
+    def W_dec_tensor(self) -> torch.Tensor:
         """W_dec as (n_features, d_model) for dot-product scoring."""
         return self.W_dec.T
 
@@ -229,7 +228,6 @@ class SAEFeatureAttributor:
         sae_path = None,          # str | Path | Dict[int, str|Path] | None
         device: Optional[str] = None,
     ) -> None:
-        import os
         from pathlib import Path
 
         self.model  = model
@@ -243,7 +241,7 @@ class SAEFeatureAttributor:
                 self._custom_paths: Optional[Dict] = {
                     int(k): Path(v) for k, v in sae_path.items()
                 }
-                self._custom_path_single: Optional["Path"] = None
+                self._custom_path_single: Optional[Path] = None
             else:
                 self._custom_paths = None
                 self._custom_path_single = Path(sae_path)
@@ -309,9 +307,8 @@ class SAEFeatureAttributor:
                 self._sae_cache[layer] = sae
         return self._sae_cache[layer]
 
-    def _load_custom_sae(self, layer: int) -> "_CustomSAE":
+    def _load_custom_sae(self, layer: int) -> _CustomSAE:
         """Load a custom SAE checkpoint from disk and wrap it in _CustomSAE."""
-        from pathlib import Path
 
         if self._custom_paths is not None:
             if layer not in self._custom_paths:

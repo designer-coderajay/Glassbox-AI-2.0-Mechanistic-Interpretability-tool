@@ -68,7 +68,7 @@ def logit_diff(
 
 def normalize_token(
     model:   Any,
-    token:   "str | int",
+    token:   str | int,
     role:    str = "token",
 ) -> int:
     """

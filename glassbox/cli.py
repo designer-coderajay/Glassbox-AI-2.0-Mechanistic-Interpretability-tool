@@ -45,6 +45,7 @@ _FAIL = f"{_RED}✗{_RESET}"
 
 def _run_analyze(args: argparse.Namespace) -> int:
     from transformer_lens import HookedTransformer
+
     from glassbox import GlassboxV2
 
     print(BANNER)
@@ -74,7 +75,7 @@ def _run_analyze(args: argparse.Namespace) -> int:
     # Memory estimate for large models
     d = getattr(model.cfg, "d_model", 768)
     n_layers = getattr(model.cfg, "n_layers", 12)
-    from glassbox.large_model import estimate_memory, classify_model_size
+    from glassbox.large_model import classify_model_size, estimate_memory
     mem = estimate_memory(n_layers, d, dtype=dtype)
     size_class = classify_model_size(n_layers, d)
     if size_class in ("large", "xlarge", "xxlarge"):
@@ -137,7 +138,7 @@ def _run_estimate_memory(args: argparse.Namespace) -> int:
                  "bfloat16": torch.bfloat16}
     dtype = dtype_map.get(args.dtype, torch.float32)
 
-    from glassbox.large_model import estimate_memory, classify_model_size
+    from glassbox.large_model import classify_model_size, estimate_memory
 
     mem = estimate_memory(
         n_layers=args.n_layers,
@@ -165,8 +166,8 @@ def _run_estimate_memory(args: argparse.Namespace) -> int:
             print(f"  ⚠  {w}")
     print()
     print("  Usage:")
-    print(f"    from glassbox.large_model import analyze_large")
-    print(f"    result = analyze_large(gb, prompt, correct, incorrect,")
+    print("    from glassbox.large_model import analyze_large")
+    print("    result = analyze_large(gb, prompt, correct, incorrect,")
     print(f"                          strategy='{mem.recommend_strategy}',")
     print(f"                          dtype=torch.{args.dtype})")
     return 0
@@ -268,7 +269,7 @@ def _run_doctor(_args: argparse.Namespace) -> int:
         return 0
     else:
         print(f"  {_RED}Some required dependencies are missing.{_RESET}")
-        print(f"  Run:  pip install glassbox-mech-interp\n")
+        print("  Run:  pip install glassbox-mech-interp\n")
         return 1
 
 

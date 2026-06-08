@@ -90,13 +90,13 @@ PDF output:  reportlab >= 4.2.6  (pip install reportlab)
 from __future__ import annotations
 
 import json
-import uuid
 import logging
-from dataclasses import dataclass, field, asdict
+import uuid
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -450,7 +450,7 @@ class AnnexIVReport:
         self,
         result:       Dict[str, Any],
         use_case:     str = "General use case analysis",
-    ) -> "AnnexIVReport":
+    ) -> AnnexIVReport:
         """
         Add a single GlassboxV2.analyze() result to the report.
 
@@ -475,7 +475,7 @@ class AnnexIVReport:
         self,
         results:    List[Dict[str, Any]],
         use_cases:  Optional[List[str]] = None,
-    ) -> "AnnexIVReport":
+    ) -> AnnexIVReport:
         """
         Add multiple GlassboxV2.analyze() results.
         Aggregates metrics across all results for statistical robustness.
@@ -698,15 +698,20 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         Path — location of the saved PDF
         """
         try:
-            from reportlab.lib.pagesizes import A4
             from reportlab.lib import colors
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
+            from reportlab.lib.pagesizes import A4
+            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
             from reportlab.lib.units import mm
             from reportlab.platypus import (
-                SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-                HRFlowable, PageBreak,
+                HRFlowable,
+                PageBreak,
+                Paragraph,
+                SimpleDocTemplate,
+                Spacer,
+                Table,
+                TableStyle,
             )
-            from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
         except ImportError as e:
             raise ImportError(
                 "PDF generation requires reportlab. "
@@ -1030,8 +1035,8 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
     # ------------------------------------------------------------------
 
     def _build_pdf_styles(self, base, colors):
+        from reportlab.lib.enums import TA_CENTER
         from reportlab.lib.styles import ParagraphStyle
-        from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
         styles = {}
         styles["cover_title"] = ParagraphStyle(
             "cover_title",
@@ -1115,8 +1120,8 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         return styles
 
     def _pdf_cover(self, styles, colors):
-        from reportlab.platypus import Spacer, Table, TableStyle, HRFlowable, Paragraph
         from reportlab.lib.units import mm
+        from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
         story = []
         story.append(Spacer(1, 20*mm))
@@ -1191,7 +1196,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         return story
 
     def _pdf_legal_notice(self, styles):
-        from reportlab.platypus import Spacer, Paragraph
+        from reportlab.platypus import Paragraph, Spacer
         story = []
         story.append(Paragraph("Legal Notice", styles["section_heading"]))
         story.append(Paragraph(
@@ -1224,8 +1229,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         return story
 
     def _pdf_executive_summary(self, styles, colors):
-        from reportlab.platypus import Spacer, Paragraph, Table, TableStyle
-        from reportlab.lib.units import mm
+        from reportlab.platypus import Paragraph, Spacer
         story = []
         story.append(Paragraph("Executive Summary", styles["section_heading"]))
 
@@ -1297,7 +1301,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         return story
 
     def _pdf_field(self, label, value, styles, is_warning=False):
-        from reportlab.platypus import Paragraph, Spacer
+        from reportlab.platypus import Paragraph
         style = styles["warning"] if (is_warning and "[PROVIDER TO COMPLETE" in str(value)) else styles["body"]
         return [Paragraph(f"<b>{label}:</b> {value}", style)]
 
@@ -1359,7 +1363,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         if not s:
             return story
 
-        from reportlab.platypus import Paragraph, Spacer
+        from reportlab.platypus import Paragraph
         story.append(Paragraph("<b>3.1 Explainability Metrics (Article 13 — Transparency)</b>", styles["subsection"]))
         story += self._pdf_field("Explainability Grade",    s.explainability_grade, styles)
         story += self._pdf_field("Sufficiency Score",       f"{s.sufficiency:.4f}", styles)
@@ -1539,8 +1543,8 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         return story
 
     def _pdf_signature_block(self, styles, colors):
-        from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, HRFlowable
         from reportlab.lib.units import mm
+        from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
         story = []
         story.append(Paragraph("Certification", styles["section_heading"]))
         story.append(Paragraph(
@@ -1740,7 +1744,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         recs = []
         if risk_flag:
             recs.append(
-                f"Run gb.analyze() with method='integrated_gradients' for higher-accuracy sufficiency measurement"
+                "Run gb.analyze() with method='integrated_gradients' for higher-accuracy sufficiency measurement"
             )
             recs.append("Consider architectural changes to improve circuit interpretability before EU deployment")
         if conc_risk:
@@ -1748,5 +1752,5 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
         recs.append("Complete all [PROVIDER TO COMPLETE] fields before submitting to national competent authority")
         recs.append("Execute EU Declaration of Conformity (Article 47) before market deployment")
         recs.append("Register system in EU AI Act database (Article 71) if applicable to deployment context")
-        recs.append(f"Set Glassbox re-audit schedule: every 6 months or on any model weight/architecture update")
+        recs.append("Set Glassbox re-audit schedule: every 6 months or on any model weight/architecture update")
         return recs

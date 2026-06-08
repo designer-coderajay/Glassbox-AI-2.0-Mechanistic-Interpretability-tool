@@ -64,10 +64,9 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -815,7 +814,7 @@ def from_env(
     model_provider: ModelProvider = ModelProvider.OPENAI,
     model_name:     str           = "gpt-4",
     **kwargs,
-) -> "BlackBoxAuditor":
+) -> BlackBoxAuditor:
     """
     Create a BlackBoxAuditor using API keys from environment variables.
 
@@ -836,7 +835,7 @@ def from_env(
     env_var = key_map.get(model_provider, "API_KEY")
     api_key = os.environ.get(env_var, "")
     if not api_key:
-        raise EnvironmentError(
+        raise OSError(
             f"API key not found. Set the {env_var} environment variable."
         )
     return BlackBoxAuditor(

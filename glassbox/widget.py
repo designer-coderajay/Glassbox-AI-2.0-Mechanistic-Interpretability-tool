@@ -38,7 +38,6 @@ These are installed automatically with:
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
@@ -51,8 +50,8 @@ __all__ = ["CircuitWidget", "HeatmapWidget"]
 # ---------------------------------------------------------------------------
 
 try:
-    import ipywidgets as widgets                    # type: ignore[import]
-    from IPython.display import HTML, display       # type: ignore[import]
+    import ipywidgets as widgets  # type: ignore[import]
+    from IPython.display import HTML, display  # type: ignore[import]
     _WIDGETS_AVAILABLE = True
 except ImportError:
     _WIDGETS_AVAILABLE = False
@@ -239,7 +238,7 @@ class CircuitWidget:
 
     def __init__(
         self,
-        gb: "GlassboxV2",
+        gb: GlassboxV2,
         result: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.gb     = gb
@@ -248,12 +247,12 @@ class CircuitWidget:
     @classmethod
     def from_prompt(
         cls,
-        gb: "GlassboxV2",
+        gb: GlassboxV2,
         prompt: str,
         correct: str,
         incorrect: str,
         method: str = "taylor",
-    ) -> "CircuitWidget":
+    ) -> CircuitWidget:
         """
         Convenience constructor: run ``gb.analyze()`` and wrap the result.
 
@@ -275,7 +274,7 @@ class CircuitWidget:
         correct: str,
         incorrect: str,
         method: str = "taylor",
-    ) -> "CircuitWidget":
+    ) -> CircuitWidget:
         """Run analysis and update the widget result in-place. Returns self."""
         self.result = self.gb.analyze(prompt, correct, incorrect, method=method)
         return self

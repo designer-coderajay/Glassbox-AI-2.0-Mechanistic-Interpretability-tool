@@ -66,10 +66,9 @@ Bauer et al. 2023 — "Second-Order Sensitivity Analysis for Transformers"
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Set, Tuple
 
-import numpy as np
 import torch
 import torch.autograd
 

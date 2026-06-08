@@ -6,6 +6,24 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.3.1] — 2026-06-08
+
+### Fixed
+
+- **`pyproject.toml`** — **Broken on fresh install.** The core dependencies had no upper bounds (`torch>=2.0`, `transformer_lens>=1.0`, bare `numpy`), so a clean `pip install glassbox-mech-interp` pulled NumPy 2.x and a torch nightly. NumPy 2.0 changed `np.bool` semantics, breaking the attribution-stability path with `TypeError: 'numpy.bool_' object does not support item assignment`. Pinned the verified-compatible stack: `numpy>=1.24,<2.0`, `torch>=2.0,<2.11`, `transformer_lens>=1.0,<3.0`.
+- **`glassbox/core.py`, `glassbox/steering.py`** — **`attention_patterns()` crashed on Apple Silicon / CUDA.** `core.py:attention_patterns()` (auto-head-select path) and `steering.py:save()` called `.numpy()` directly on tensors that live on the MPS/GPU device, raising `TypeError: can't convert mps:0 device type tensor to numpy`. Added `.cpu()` before `.numpy()` in both places. Worked on plain CPU only before this fix.
+- **`tests/test_multi_arch.py`, `tests/test_engine.py`** — **CI was silently testing a mock model.** `test_multi_arch.py`'s module-level `_inject_stubs()` decided whether to stub torch/transformer_lens using `sys.modules` membership ("imported yet?") instead of `importlib.util.find_spec` ("installed?"). At collection time the installed `transformer_lens` often isn't imported yet, so it injected a `MagicMock` over the real package, poisoning `sys.modules` for the whole session — every engine test then ran against a fake `HookedTransformer` (58 errors / 30 failures in CI). Fixed `_inject_stubs()` to gate on `find_spec` (matching `conftest.py`), and made the `test_engine.py` `engine` fixture skip when `transformer_lens` is a stub rather than run against it.
+- **`glassbox/compliance.py`** — **`NameError` in Annex IV report generation.** The report template called a bare `_get_version()` that only existed as a method elsewhere. Defined a module-level `_get_version()` helper that returns the installed `glassbox.__version__`.
+- **`glassbox/prompt_corruption.py`** — **Antonym table not symmetric.** Three entries (`promoted`, `liable`, `graduating`) mapped to values that were not themselves keys, breaking `test_antonym_table_is_symmetric`. Remapped to `demoted`, `exempt`, and `failed` respectively.
+- **`scripts/sync_versions.py`** — **`glassbox/__init__.py.__version__` not synced.** The package's own `__version__` had regressed out of the sync list (last fixed in 4.2.6), so it could drift from the canonical `pyproject.toml` version. Re-added it to the patch list.
+
+### Added
+
+- **`.github/workflows/ci.yml`** — Tiered CI pipeline: a fast `ruff` lint job on every push, and a full `pytest` + coverage job (real torch + transformer_lens stack) on pushes/PRs to `main` and a weekly schedule, with a diagnostic step that verifies the model stack imports. Coverage is enforced at a measured floor of **45%** (real coverage with the engine exercised is **48%**; the previously-claimed 80% was never actually met — target remains 80% as module coverage improves).
+- **`scripts/check_engine.sh`** — One-command local reproducer of the CI engine-test environment: builds a throwaway venv with the exact pinned stack, asserts a *real* (non-mock) GPT-2 loads, and runs the full suite with coverage.
+
+---
+
 ## [4.2.6] — 2026-04-17
 
 ### Fixed

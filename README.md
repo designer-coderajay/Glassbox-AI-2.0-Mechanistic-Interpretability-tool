@@ -2,7 +2,7 @@
 
 <img src="docs/assets/og-image.png" alt="Glassbox AI — see inside the black box" width="820" style="max-width:100%;margin-bottom:8px;border-radius:12px"/>
 
-# Glassbox 4.3.0
+# Glassbox 4.3.1
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 **21 mathematical frameworks. ACDC + GQA/RMSNorm multi-arch + cross-model comparison. Production-ready.**

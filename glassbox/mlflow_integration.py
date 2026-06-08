@@ -49,7 +49,6 @@ import tempfile
 import time
 from typing import Any, Dict, List, Optional
 
-
 # ---------------------------------------------------------------------------
 # Lazy import helper
 # ---------------------------------------------------------------------------
@@ -260,7 +259,6 @@ def register_compliance_artifact(
     # Tag the registered model version if URI is provided
     if model_uri:
         try:
-            from mlflow.tracking import MlflowClient
             # Parse "models:/ModelName/version_or_stage" format
             parts = model_uri.replace("models:/", "").split("/")
             if len(parts) >= 2:

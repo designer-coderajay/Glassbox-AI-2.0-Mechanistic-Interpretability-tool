@@ -50,6 +50,19 @@ def main() -> None:
 
     changed = 0
 
+    # ── glassbox/__init__.py (the package's own __version__) ──────────────────
+    # Critical: this is what `glassbox.__version__`, the CLI --version, the MCP
+    # server info, and Annex IV report headers all read. Must stay in sync with
+    # the canonical pyproject version or the installed package misreports itself.
+    changed += patch_file(
+        ROOT / "glassbox" / "__init__.py",
+        [
+            (r'__version__\s*=\s*"\d+\.\d+\.\d+"',
+             '__version__ = "{version}"'),
+        ],
+        version, apply,
+    )
+
     # ── dashboard/app.py ──────────────────────────────────────────────────────
     changed += patch_file(
         ROOT / "dashboard" / "app.py",

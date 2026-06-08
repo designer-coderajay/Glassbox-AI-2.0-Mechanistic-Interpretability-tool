@@ -192,7 +192,7 @@ class AnnexIVEvidenceVault:
         sae_features: Optional[List[Dict]] = None,
         stability_result: Optional[Dict] = None,
         custom_entries: Optional[List[VaultEntry]] = None,
-    ) -> "AnnexIVEvidenceVault":
+    ) -> AnnexIVEvidenceVault:
         """
         Populate the vault from all available Glassbox outputs.
 

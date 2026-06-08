@@ -139,14 +139,14 @@ glassbox/
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "4.3.0"
+__version__ = "4.3.1"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 
 # ---------------------------------------------------------------------------
 # Core engine — always available
 # ---------------------------------------------------------------------------
-from glassbox.core import GlassboxV2          # primary analysis class
+from glassbox.core import GlassboxV2  # primary analysis class
 
 # ---------------------------------------------------------------------------
 # SAE Feature Attribution — requires sae-lens (optional)
@@ -175,50 +175,15 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Head Composition Analysis — always available (no extra deps)
 # ---------------------------------------------------------------------------
-from glassbox.composition import HeadCompositionAnalyzer
-
-# ---------------------------------------------------------------------------
-# Public type aliases and constants
-# ---------------------------------------------------------------------------
-from glassbox.types import (
-    HeadTuple,
-    CircuitList,
-    AttributionDict,
-    PromptTuple,
-    VALID_HEAD_TYPES,
-    FAITHFULNESS_CATEGORIES,
-    ATTRIBUTION_METHODS,
-)
-
-# ---------------------------------------------------------------------------
-# Utility helpers — exposed for power users and extension authors
-# ---------------------------------------------------------------------------
-from glassbox.utils import (
-    stable_api,
-    deprecated,
-    format_head_label,
-    parse_head_label,
-    estimate_forward_pass_memory_mb,
-)
-
-# ---------------------------------------------------------------------------
-# EU AI Act Annex IV Compliance Report Generator — core product
-# ---------------------------------------------------------------------------
-from glassbox.compliance import (
-    AnnexIVReport,             # .to_model_card() and .save_model_card() added in v2.8.0
-    DeploymentContext,
-    RiskClassification,
-    ExplainabilityGrade,
-    ComplianceStatus,
-)
-
 # ---------------------------------------------------------------------------
 # Black-Box Audit Mode — any model via API (no TransformerLens needed)
 # ---------------------------------------------------------------------------
 from glassbox.audit import (
     BlackBoxAuditor,
-    ModelProvider,
     BlackBoxResult,
+    ModelProvider,
+)
+from glassbox.audit import (
     from_env as black_box_from_env,
 )
 
@@ -239,14 +204,21 @@ from glassbox.bias import (
 )
 
 # ---------------------------------------------------------------------------
-# Risk Register — persistent cross-audit risk tracking (v3.0.0)
-# ---------------------------------------------------------------------------
-from glassbox.risk_register import RiskEntry, RiskRegister
-
-# ---------------------------------------------------------------------------
 # Circuit Diff — mechanistic diff between model versions (v3.1.0)
 # ---------------------------------------------------------------------------
 from glassbox.circuit_diff import CircuitDiff, CircuitDiffResult
+
+# ---------------------------------------------------------------------------
+# EU AI Act Annex IV Compliance Report Generator — core product
+# ---------------------------------------------------------------------------
+from glassbox.compliance import (
+    AnnexIVReport,  # .to_model_card() and .save_model_card() added in v2.8.0
+    ComplianceStatus,
+    DeploymentContext,
+    ExplainabilityGrade,
+    RiskClassification,
+)
+from glassbox.composition import HeadCompositionAnalyzer
 
 # ---------------------------------------------------------------------------
 # Cross-Model Circuit Comparison — robustness across architectures (v4.2.0)
@@ -255,21 +227,50 @@ from glassbox.cross_model import (
     CrossModelComparison,
     CrossModelReport,
     CrossModelSimilarity,
-    SingleModelResult,
     ModelAnalysisConfig,
+    SingleModelResult,
     compare_models,
 )
+
+# ---------------------------------------------------------------------------
+# Risk Register — persistent cross-audit risk tracking (v3.0.0)
+# ---------------------------------------------------------------------------
+from glassbox.risk_register import RiskEntry, RiskRegister
 
 # ---------------------------------------------------------------------------
 # OpenTelemetry Tracing — self-hosted deployments (v3.1.0)
 # ---------------------------------------------------------------------------
 from glassbox.telemetry import (
+    TelemetryConfig,
+    instrument_glassbox,
+    is_telemetry_enabled,
     setup_telemetry,
     teardown_telemetry,
     trace_span,
-    is_telemetry_enabled,
-    instrument_glassbox,
-    TelemetryConfig,
+)
+
+# ---------------------------------------------------------------------------
+# Public type aliases and constants
+# ---------------------------------------------------------------------------
+from glassbox.types import (
+    ATTRIBUTION_METHODS,
+    FAITHFULNESS_CATEGORIES,
+    VALID_HEAD_TYPES,
+    AttributionDict,
+    CircuitList,
+    HeadTuple,
+    PromptTuple,
+)
+
+# ---------------------------------------------------------------------------
+# Utility helpers — exposed for power users and extension authors
+# ---------------------------------------------------------------------------
+from glassbox.utils import (
+    deprecated,
+    estimate_forward_pass_memory_mb,
+    format_head_label,
+    parse_head_label,
+    stable_api,
 )
 
 # ---------------------------------------------------------------------------
@@ -311,46 +312,47 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Natural Language Explainer — plain English for compliance officers (v3.3.0)
 # ---------------------------------------------------------------------------
-from glassbox.explain import NaturalLanguageExplainer, explain as explain_result
-
 # ---------------------------------------------------------------------------
-# HuggingFace Hub Integration — load_from_hub, HuggingFaceModelCard (v3.3.0)
+# Automated Circuit Discovery (ACDC) — edge-level KL pruning (v4.2.0)
 # ---------------------------------------------------------------------------
-from glassbox.hf_integration import load_from_hub, HuggingFaceModelCard
-
-# ---------------------------------------------------------------------------
-# MLflow Integration — log_glassbox_run, GlassboxMLflowCallback (v3.3.0)
-# ---------------------------------------------------------------------------
-from glassbox.mlflow_integration import (
-    log_glassbox_run,
-    register_compliance_artifact,
-    GlassboxMLflowCallback,
+from glassbox.acdc import (
+    ACDC_FAITHFULNESS_THRESHOLD,
+    ACDC_KL_THRESHOLD,
+    ACDCCircuit,
+    ACDCEdge,
+    ACDCResult,
+    AutomatedCircuitDiscovery,
 )
 
 # ---------------------------------------------------------------------------
-# Slack / Teams Alerting — SlackNotifier, TeamsNotifier, AlertConfig (v3.3.0)
+# Causal Scrubbing — CircuitHypothesis + CS score (v4.1.0)
 # ---------------------------------------------------------------------------
-from glassbox.notify import SlackNotifier, TeamsNotifier, AlertConfig
-
-# ---------------------------------------------------------------------------
-# Multi-Agent Causal Handoff Tracing (v3.4.0 — Article 9 system-level risk)
-# ---------------------------------------------------------------------------
-from glassbox.multiagent import (
-    MultiAgentAudit,
-    AgentCall,
-    LiabilityReport,
-    AgentLiabilityScore,
-    HandoffAnalysis,
-    BiasSignals,
+from glassbox.causal_scrubbing import (
+    CS_PARTIAL_THRESHOLD,
+    CS_STRONG_THRESHOLD,
+    CausalScrubbing,
+    CausalScrubbingResult,
+    CircuitHypothesis,
 )
 
 # ---------------------------------------------------------------------------
-# Steering Vector Export (v3.4.0 — Article 9(2)(b) risk mitigation)
+# Multi-Corruption Pipeline — 4 corruption strategies + robustness (v3.7.0)
 # ---------------------------------------------------------------------------
-from glassbox.steering import (
-    SteeringVector,
-    SteeringVectorExporter,
-    extract_steering_vector,
+from glassbox.corruption import (
+    ROBUSTNESS_DELTA,
+    CorruptionResult,
+    CorruptionStrategy,
+    MultiCorruptionPipeline,
+    RobustnessReport,
+)
+
+# ---------------------------------------------------------------------------
+# Distributed Alignment Search — linear concept subspace (v4.1.0)
+# ---------------------------------------------------------------------------
+from glassbox.das import (
+    DAS_SCORE_THRESHOLD,
+    DASResult,
+    DistributedAlignmentSearch,
 )
 
 # ---------------------------------------------------------------------------
@@ -361,40 +363,8 @@ from glassbox.evidence_vault import (
     VaultEntry,
     build_annex_iv_vault,
 )
-
-# ---------------------------------------------------------------------------
-# Multi-Corruption Pipeline — 4 corruption strategies + robustness (v3.7.0)
-# ---------------------------------------------------------------------------
-from glassbox.corruption import (
-    CorruptionStrategy,
-    CorruptionResult,
-    RobustnessReport,
-    MultiCorruptionPipeline,
-    ROBUSTNESS_DELTA,
-)
-
-# ---------------------------------------------------------------------------
-# Statistical Validation Gates — SampleSizeGate + HeldOutValidator (v3.7.0)
-# ---------------------------------------------------------------------------
-from glassbox.validation import (
-    SampleSizeGate,
-    SampleSizeError,
-    SampleSizeWarning,
-    HeldOutValidator,
-    HeldOutValidationResult,
-    N_HARD_MINIMUM,
-    N_SOFT_MINIMUM,
-    GENERALIZATION_GAP_THRESHOLD,
-)
-
-# ---------------------------------------------------------------------------
-# Folded LayerNorm Correction — unbiased attribution patching (v4.0.0)
-# ---------------------------------------------------------------------------
-from glassbox.layernorm_correction import (
-    FoldedLayerNorm,
-    LayerNormBiasReport,
-    LAYERNORM_BIAS_THRESHOLD,
-)
+from glassbox.explain import NaturalLanguageExplainer
+from glassbox.explain import explain as explain_result
 
 # ---------------------------------------------------------------------------
 # Benjamini-Hochberg FDR Control — multiple testing correction (v4.0.0)
@@ -409,86 +379,115 @@ from glassbox.fdr import (
 )
 
 # ---------------------------------------------------------------------------
-# SAE Polysemanticity Score — entropy-based head analysis (v4.0.0)
-# ---------------------------------------------------------------------------
-from glassbox.polysemanticity import (
-    PolysemanticityScorerSAE,
-    PolysemanticitySummary,
-    HeadPolysemanticity,
-)
-
-# ---------------------------------------------------------------------------
 # Hessian Error Bounds — second-order Taylor bounds via Pearlmutter HVP (v4.1.0)
 # ---------------------------------------------------------------------------
 from glassbox.hessian import (
-    HessianErrorBounds,
-    HessianBoundsReport,
-    HeadHessianBound,
     HESSIAN_ERROR_THRESHOLD,
+    HeadHessianBound,
+    HessianBoundsReport,
+    HessianErrorBounds,
 )
 
 # ---------------------------------------------------------------------------
-# Causal Scrubbing — CircuitHypothesis + CS score (v4.1.0)
+# HuggingFace Hub Integration — load_from_hub, HuggingFaceModelCard (v3.3.0)
 # ---------------------------------------------------------------------------
-from glassbox.causal_scrubbing import (
-    CausalScrubbing,
-    CircuitHypothesis,
-    CausalScrubbingResult,
-    CS_STRONG_THRESHOLD,
-    CS_PARTIAL_THRESHOLD,
+from glassbox.hf_integration import HuggingFaceModelCard, load_from_hub
+from glassbox.large_model import (
+    LargeModelAttributionPatcher,
+    MemoryEstimate,
+    analyze_large,
+    classify_model_size,
+    estimate_memory,
 )
 
 # ---------------------------------------------------------------------------
-# Distributed Alignment Search — linear concept subspace (v4.1.0)
+# Folded LayerNorm Correction — unbiased attribution patching (v4.0.0)
 # ---------------------------------------------------------------------------
-from glassbox.das import (
-    DistributedAlignmentSearch,
-    DASResult,
-    DAS_SCORE_THRESHOLD,
+from glassbox.layernorm_correction import (
+    LAYERNORM_BIAS_THRESHOLD,
+    FoldedLayerNorm,
+    LayerNormBiasReport,
 )
 
 # ---------------------------------------------------------------------------
-# Automated Circuit Discovery (ACDC) — edge-level KL pruning (v4.2.0)
+# MLflow Integration — log_glassbox_run, GlassboxMLflowCallback (v3.3.0)
 # ---------------------------------------------------------------------------
-from glassbox.acdc import (
-    AutomatedCircuitDiscovery,
-    ACDCEdge,
-    ACDCCircuit,
-    ACDCResult,
-    ACDC_KL_THRESHOLD,
-    ACDC_FAITHFULNESS_THRESHOLD,
+from glassbox.mlflow_integration import (
+    GlassboxMLflowCallback,
+    log_glassbox_run,
+    register_compliance_artifact,
 )
 
 # ---------------------------------------------------------------------------
 # Multi-Architecture Adapter — GQA + RMSNorm support (v4.2.0)
 # ---------------------------------------------------------------------------
 from glassbox.multi_arch import (
-    MultiArchAdapter,
+    GQA_ARCHITECTURES,
+    RMSNORM_ARCHITECTURES,
+    SUPPORTED_ARCHITECTURES,
     ArchitectureConfig,
     ArchitectureReport,
     GQAAttentionMapper,
+    MultiArchAdapter,
     RMSNormFolding,
-    SUPPORTED_ARCHITECTURES,
-    RMSNORM_ARCHITECTURES,
-    GQA_ARCHITECTURES,
 )
 
+# ---------------------------------------------------------------------------
+# Multi-Agent Causal Handoff Tracing (v3.4.0 — Article 9 system-level risk)
+# ---------------------------------------------------------------------------
+from glassbox.multiagent import (
+    AgentCall,
+    AgentLiabilityScore,
+    BiasSignals,
+    HandoffAnalysis,
+    LiabilityReport,
+    MultiAgentAudit,
+)
+
+# ---------------------------------------------------------------------------
+# Slack / Teams Alerting — SlackNotifier, TeamsNotifier, AlertConfig (v3.3.0)
+# ---------------------------------------------------------------------------
+from glassbox.notify import AlertConfig, SlackNotifier, TeamsNotifier
+
+# ---------------------------------------------------------------------------
+# SAE Polysemanticity Score — entropy-based head analysis (v4.0.0)
+# ---------------------------------------------------------------------------
+from glassbox.polysemanticity import (
+    HeadPolysemanticity,
+    PolysemanticityScorerSAE,
+    PolysemanticitySummary,
+)
 from glassbox.prompt_corruption import (
-    CorruptionStrategy,
-    auto_corrupt,
     CorruptionSelector,
+    CorruptionStrategy,
+    antonym_corruption,
+    auto_corrupt,
     get_antonym,
     name_swap_corruption,
     random_token_corruption,
-    antonym_corruption,
 )
 
-from glassbox.large_model import (
-    LargeModelAttributionPatcher,
-    analyze_large,
-    estimate_memory,
-    MemoryEstimate,
-    classify_model_size,
+# ---------------------------------------------------------------------------
+# Steering Vector Export (v3.4.0 — Article 9(2)(b) risk mitigation)
+# ---------------------------------------------------------------------------
+from glassbox.steering import (
+    SteeringVector,
+    SteeringVectorExporter,
+    extract_steering_vector,
+)
+
+# ---------------------------------------------------------------------------
+# Statistical Validation Gates — SampleSizeGate + HeldOutValidator (v3.7.0)
+# ---------------------------------------------------------------------------
+from glassbox.validation import (
+    GENERALIZATION_GAP_THRESHOLD,
+    N_HARD_MINIMUM,
+    N_SOFT_MINIMUM,
+    HeldOutValidationResult,
+    HeldOutValidator,
+    SampleSizeError,
+    SampleSizeGate,
+    SampleSizeWarning,
 )
 
 # ---------------------------------------------------------------------------

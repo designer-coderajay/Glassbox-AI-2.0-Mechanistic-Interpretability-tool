@@ -45,7 +45,6 @@ import csv
 import hashlib
 import json
 import logging
-import os
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -179,7 +178,7 @@ class AuditLog:
     def _load(self) -> None:
         """Load existing records from disk."""
         self._records = []
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:

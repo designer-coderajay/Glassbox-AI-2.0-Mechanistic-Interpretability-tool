@@ -73,9 +73,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
 import torch
-import torch.nn as nn
 
 logger = logging.getLogger(__name__)
 
@@ -236,7 +234,7 @@ class ArchitectureConfig:
     @classmethod
     def from_transformer_lens(
         cls, model: object
-    ) -> "ArchitectureConfig":
+    ) -> ArchitectureConfig:
         """
         Auto-detect architecture from a HookedTransformer.cfg.
 
@@ -894,7 +892,7 @@ class MultiArchAdapter:
         self.rmsnorm_folding = None  # Lazy-initialized with model reference in from_model()
 
     @classmethod
-    def from_model(cls, model: object) -> "MultiArchAdapter":
+    def from_model(cls, model: object) -> MultiArchAdapter:
         """
         Auto-detect architecture and create adapter.
 
@@ -936,7 +934,7 @@ class MultiArchAdapter:
 
         if self.config.norm_type == "rmsnorm":
             warnings.append(
-                f"RMSNorm detected: scale folding recommended for faithful attribution"
+                "RMSNorm detected: scale folding recommended for faithful attribution"
             )
 
         # Build GQA mapping dict

@@ -111,7 +111,7 @@ class RiskEntry:
         }
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "RiskEntry":
+    def from_dict(cls, d: Dict[str, Any]) -> RiskEntry:
         return cls(
             description = d["description"],
             model_name  = d.get("model_name", "unknown"),

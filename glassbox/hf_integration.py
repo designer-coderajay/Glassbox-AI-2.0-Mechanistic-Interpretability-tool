@@ -338,7 +338,7 @@ class HuggingFaceModelCard:
                 repo_type = self.repo_type,
                 token     = self.token,
             )
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 return f.read()
         except Exception:
             # Model card doesn't exist yet — start blank
@@ -419,7 +419,8 @@ class HuggingFaceModelCard:
         return cleaned.rstrip() + new_section
 
     def _push_card(self, content: str, commit_message: str) -> None:
-        import tempfile, os
+        import os
+        import tempfile
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".md", delete=False, encoding="utf-8"
         ) as tmp:

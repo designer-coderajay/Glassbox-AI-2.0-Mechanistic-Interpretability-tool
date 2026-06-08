@@ -63,8 +63,8 @@ Regulation (EU) 2024/1689 — EU AI Act:
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Dict, List, Tuple
 
 import numpy as np
 

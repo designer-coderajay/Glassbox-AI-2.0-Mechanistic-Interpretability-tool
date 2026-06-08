@@ -90,7 +90,7 @@ __all__ = [
 
 _tracer         = None     # opentelemetry.trace.Tracer | None
 _otel_available = None     # bool | None  (lazy check)
-_config: Optional["TelemetryConfig"] = None
+_config: Optional[TelemetryConfig] = None
 
 
 def _check_otel() -> bool:
@@ -323,7 +323,6 @@ class _TraceSpan:
         if _tracer is None:
             return self
         try:
-            from opentelemetry import trace
             self._cm   = _tracer.start_as_current_span(self._name)
             self._span = self._cm.__enter__()
             if self._attrs and self._span is not None:

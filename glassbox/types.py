@@ -11,7 +11,7 @@ intent — Glassbox's function signatures become self-describing.
 """
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union
 
 __all__ = [
     # Head / circuit types
