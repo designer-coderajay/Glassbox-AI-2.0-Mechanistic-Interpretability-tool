@@ -19,10 +19,16 @@ pytestmark = pytest.mark.slow
 # ---------------------------------------------------------------------------
 @pytest.fixture(scope="module")
 def engine():
-    # Skip cleanly only when transformer_lens genuinely cannot be imported
-    # (e.g. a bare local environment). importorskip actually attempts the
-    # import, so when the package IS installed — as in CI — these tests run
-    # instead of being skipped on a stale sys.modules sentinel.
+    # Run these heavy model tests only against a REAL transformer_lens. It can be
+    # unavailable two ways:
+    #   1. genuinely not installed         → importorskip skips cleanly
+    #   2. replaced by a MagicMock stub     → conftest injects one when torch is
+    #      absent; the stub has no real __file__, so detect and skip rather than
+    #      run the engine against a fake model (which produced the CI errors).
+    import sys
+    _tl = sys.modules.get("transformer_lens")
+    if _tl is not None and not hasattr(_tl, "__file__"):
+        pytest.skip("transformer_lens is a test stub, not the real package — skipped")
     pytest.importorskip("transformer_lens")
 
     from transformer_lens import HookedTransformer

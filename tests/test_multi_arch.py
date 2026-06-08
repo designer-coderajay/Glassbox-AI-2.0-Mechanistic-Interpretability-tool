@@ -37,7 +37,26 @@ import pytest
 # ---------------------------------------------------------------------------
 
 def _inject_stubs():
-    """Inject MagicMock stubs for heavy deps that aren't installed offline."""
+    """Inject MagicMock stubs for heavy deps that are GENUINELY not installed.
+
+    Detection uses importlib.util.find_spec — "does this package exist on disk" —
+    not sys.modules membership ("has it been imported yet"). The latter is
+    unreliable: at collection time a real, installed package may simply not be
+    imported into sys.modules yet. Stubbing it then poisons every later real
+    import for the whole session — which is exactly how test_engine ended up
+    loading a MagicMock instead of a real HookedTransformer in CI.
+    """
+    import importlib.util
+
+    def _installed(top: str) -> bool:
+        # find_spec can raise ValueError when sys.modules already holds a
+        # non-module stub (offline mode, where conftest injected one); treat
+        # that as "not a real install" so we leave the existing stub in place.
+        try:
+            return importlib.util.find_spec(top) is not None
+        except (ImportError, ValueError):
+            return False
+
     for mod_name in [
         "torch", "torch.nn", "torch.nn.functional", "torch.autograd",
         "torch.autograd.functional", "torch.cuda", "torch.utils",
@@ -48,24 +67,25 @@ def _inject_stubs():
         "scipy.spatial.distance",
     ]:
         top = mod_name.split(".")[0]
-        if sys.modules.get(top) is not None and hasattr(sys.modules[top], "__file__"):
-            continue  # real package — leave alone
+        if _installed(top):
+            continue  # genuinely installed — never stub it
         if mod_name not in sys.modules:
             sys.modules[mod_name] = MagicMock()
 
-    # torch.Tensor needs to be an actual type so isinstance checks work
-    torch_stub = sys.modules["torch"]
-    if not isinstance(getattr(torch_stub, "Tensor", None), type):
-        class _FakeTensor:
-            pass
-        torch_stub.Tensor = _FakeTensor
-    # nn.Module similarly
-    nn_stub = sys.modules["torch.nn"]
-    if not isinstance(getattr(nn_stub, "Module", None), type):
-        class _FakeModule:
-            pass
-        nn_stub.Module = _FakeModule
-    torch_stub.nn = nn_stub
+    # The Tensor / nn.Module type fix-ups are only needed when torch was stubbed;
+    # a real torch provides these itself and must not be patched.
+    if not _installed("torch"):
+        torch_stub = sys.modules["torch"]
+        if not isinstance(getattr(torch_stub, "Tensor", None), type):
+            class _FakeTensor:
+                pass
+            torch_stub.Tensor = _FakeTensor
+        nn_stub = sys.modules["torch.nn"]
+        if not isinstance(getattr(nn_stub, "Module", None), type):
+            class _FakeModule:
+                pass
+            nn_stub.Module = _FakeModule
+        torch_stub.nn = nn_stub
 
 
 _inject_stubs()
