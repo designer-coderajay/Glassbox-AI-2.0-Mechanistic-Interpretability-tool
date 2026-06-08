@@ -88,3 +88,19 @@ class TestBatchAndToken:
         dis = gb.model.to_single_token(IOI_INCORRECT)
         out = gb.token_attribution(tokens, tgt, dis)
         assert isinstance(out, dict)
+
+
+class TestCompFallback:
+    def test_comp_zero_ablation_on_identical_tokens(self, gb):
+        # When corrupted tokens == clean tokens, _comp falls back to
+        # zero-ablation comprehensiveness (covers _comp_zero_ablation).
+        import torch
+        tokens = gb.model.to_tokens(IOI_PROMPT)
+        tgt = gb.model.to_single_token(IOI_CORRECT)
+        dis = gb.model.to_single_token(IOI_INCORRECT)
+        with torch.no_grad():
+            logits = gb.model(tokens)
+        clean_ld = (logits[0, -1, tgt] - logits[0, -1, dis]).item()
+        comp = gb._comp([(9, 9), (10, 0)], tokens, tokens, clean_ld, tgt, dis)
+        assert isinstance(comp, float)
+        assert 0.0 <= comp <= 1.0
