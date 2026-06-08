@@ -1,0 +1,105 @@
+name: CI
+
+# Tiered pipeline:
+#   • lint  — runs on EVERY push and PR. Fast (~30s), no torch. Warn-only for now.
+#   • test  — runs on push/PR to main + weekly + manual. Installs the real
+#             torch + transformer_lens stack and runs the full suite with coverage.
+#
+# Why coverage is measured, not gated (yet):
+#   We have not yet measured true coverage with the real model installed, so the
+#   gate is OFF (--cov-fail-under=0). The run still PRINTS the real % in the log.
+#   Once you see a stable green number, set COVERAGE_MIN below to that value
+#   (or 80) and flip `--cov-fail-under=0` to `--cov-fail-under=${COVERAGE_MIN}`.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"   # Mondays 06:00 UTC — weekly full run
+  workflow_dispatch: {}    # manual "Run workflow" button
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # FAST lane — every push, every branch. No torch, no model download.
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install ruff
+        run: pip install "ruff==0.15.16"
+
+      - name: Run ruff
+        # WARN-ONLY for now: ~955 cosmetic items (Dict->dict, etc.) remain.
+        # After the cosmetic sweep, delete the next line to make lint blocking.
+        continue-on-error: true
+        run: ruff check glassbox/
+
+  # ---------------------------------------------------------------------------
+  # FULL lane — main pushes/PRs + weekly + manual. Real torch + model.
+  # ---------------------------------------------------------------------------
+  test:
+    name: Test + coverage (full stack)
+    runs-on: ubuntu-latest
+    # Only pay the heavy cost where it matters, not on every feature-branch push.
+    if: >
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    timeout-minutes: 30
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      TRANSFORMERS_OFFLINE: "0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Cache HuggingFace / TransformerLens model weights
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-cache-gpt2-${{ runner.os }}
+
+      - name: Install package + test tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install pytest-cov
+
+      - name: Run full suite with coverage (gate OFF — measuring real %)
+        run: |
+          pytest \
+            --cov=glassbox \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-fail-under=0 \
+            -v
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: ignore
