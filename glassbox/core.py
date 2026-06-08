@@ -82,10 +82,11 @@ costs O(3 + 2p) where p is typically 0-4 on IOI prompts.
 
 import logging
 import re
-import torch
+from typing import Dict, List, Optional, Tuple
+
+import einops  # noqa: F401 — imported for TransformerLens compat
 import numpy as np
-import einops                               # noqa: F401 — imported for TransformerLens compat
-from typing import Dict, List, Tuple, Optional
+import torch
 
 # NOTE: We intentionally do NOT set global random seeds here.
 # Calling torch.manual_seed / np.random.seed at module-import time
@@ -2516,7 +2517,7 @@ class GlassboxV2:
                 for h in range(n_heads):
                     key = f"blocks.{l}.attn.hook_pattern"
                     if key in cache:
-                        A   = cache[key][0, h].float().numpy()   # [seq, seq]
+                        A   = cache[key][0, h].float().cpu().numpy()   # [seq, seq]
                         A   = np.clip(A, 1e-9, 1.0)
                         ent = -float(np.sum(A * np.log(A), axis=-1).mean())
                         all_entropies[(l, h)] = ent

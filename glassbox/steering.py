@@ -30,7 +30,6 @@ References
 
 from __future__ import annotations
 
-import math
 import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
@@ -79,7 +78,7 @@ class SteeringVector:
         model_name, glassbox_version, eu_article_ref, timestamp_utc.
     """
 
-    direction: "torch.Tensor"
+    direction: torch.Tensor
     layer: int
     concept_label: str
     scale: float = -15.0           # negative = suppress; tuned for most GPT-2-family models
@@ -122,7 +121,7 @@ def _collect_residual_stream(
     texts: List[str],
     layer: int,
     device: Optional[str] = None,
-) -> "torch.Tensor":
+) -> torch.Tensor:
     """
     Run ``model`` on each text and return the mean last-token residual-stream
     activation at ``layer``.
@@ -138,7 +137,7 @@ def _collect_residual_stream(
     model = model.to(dev)
     model.eval()
 
-    activations: List["torch.Tensor"] = []
+    activations: List[torch.Tensor] = []
 
     with torch.no_grad():
         for text in texts:
@@ -156,9 +155,9 @@ def _collect_residual_stream(
 
 
 def _mean_diff_direction(
-    positive_acts: "torch.Tensor",
-    negative_acts: "torch.Tensor",
-) -> "torch.Tensor":
+    positive_acts: torch.Tensor,
+    negative_acts: torch.Tensor,
+) -> torch.Tensor:
     """
     Compute the normalised mean-difference direction (Representation
     Engineering, §3.1).
@@ -170,9 +169,9 @@ def _mean_diff_direction(
 
 
 def _pca_direction(
-    positive_acts: "torch.Tensor",
-    negative_acts: "torch.Tensor",
-) -> "torch.Tensor":
+    positive_acts: torch.Tensor,
+    negative_acts: torch.Tensor,
+) -> torch.Tensor:
     """
     Compute the top principal component of the contrast matrix as an
     alternative to mean-diff (more robust with small datasets).
@@ -429,7 +428,7 @@ class SteeringVectorExporter:
         import json
 
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-        np.save(path, vector.direction.numpy())
+        np.save(path, vector.direction.cpu().numpy())
 
         meta_path = path.replace(".npy", "_meta.json")
         with open(meta_path, "w") as fh:
