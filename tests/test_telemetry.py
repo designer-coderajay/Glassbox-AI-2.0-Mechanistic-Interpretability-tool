@@ -8,6 +8,9 @@ disabled), the trace_span context-manager/decorator, and the
 instrument_glassbox wrapper — none of which require opentelemetry installed.
 """
 
+import sys
+from unittest.mock import MagicMock
+
 import pytest
 
 from glassbox import telemetry
@@ -18,6 +21,19 @@ from glassbox.telemetry import (
     teardown_telemetry,
     trace_span,
 )
+
+# Module paths that setup_telemetry imports lazily. Stubbing these with
+# MagicMocks lets the real setup/teardown/span bodies run without OpenTelemetry
+# actually installed — deterministic in every environment (sandbox + CI).
+_OTEL_MODS = [
+    "opentelemetry", "opentelemetry.trace", "opentelemetry.sdk",
+    "opentelemetry.sdk.resources", "opentelemetry.sdk.trace",
+    "opentelemetry.sdk.trace.export",
+    "opentelemetry.exporter", "opentelemetry.exporter.otlp",
+    "opentelemetry.exporter.otlp.proto",
+    "opentelemetry.exporter.otlp.proto.grpc",
+    "opentelemetry.exporter.otlp.proto.grpc.trace_exporter",
+]
 
 
 @pytest.fixture(autouse=True)
@@ -152,3 +168,115 @@ class TestInstrument:
         gb = _FakeGB(_res(0.9))
         telemetry.instrument_glassbox(gb)
         assert gb.analyze("p", "c", "i", method="integrated_gradients")["n_heads"] == 4
+
+
+# ---------------------------------------------------------------------------
+# OTel-active paths, driven with mocked opentelemetry modules
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def otel(monkeypatch):
+    """Stub the opentelemetry module tree so the real setup/span bodies run."""
+    for m in _OTEL_MODS:
+        monkeypatch.setitem(sys.modules, m, MagicMock())
+    monkeypatch.setattr(telemetry, "_otel_available", True)
+    monkeypatch.setattr(telemetry, "_tracer", None)
+    monkeypatch.setattr(telemetry, "_config", None)
+    return sys.modules
+
+
+class TestCheckOtelBranches:
+    def test_true_when_importable(self, monkeypatch):
+        monkeypatch.setattr(telemetry, "_otel_available", None)
+        monkeypatch.setitem(sys.modules, "opentelemetry", MagicMock())
+        assert telemetry._check_otel() is True
+
+    def test_false_when_absent(self, monkeypatch):
+        monkeypatch.setattr(telemetry, "_otel_available", None)
+        # None in sys.modules forces `import opentelemetry` to raise ImportError
+        # regardless of whether the package is actually installed.
+        monkeypatch.setitem(sys.modules, "opentelemetry", None)
+        assert telemetry._check_otel() is False
+
+
+class TestSetupActive:
+    def test_setup_success(self, otel):
+        assert setup_telemetry(endpoint="http://localhost:4317") is True
+        assert is_telemetry_enabled() is True
+
+    def test_setup_parses_env_headers(self, otel, monkeypatch):
+        monkeypatch.setenv("GLASSBOX_OTEL_HEADERS", "x-key=val,nopair,x-two=v2")
+        assert setup_telemetry(endpoint="http://x:4317", headers=None) is True
+
+    def test_setup_body_exception_returns_false(self, otel):
+        otel["opentelemetry.sdk.resources"].Resource.side_effect = RuntimeError("boom")
+        assert setup_telemetry(endpoint="http://x:4317") is False
+
+    def test_teardown_real_path(self, otel):
+        setup_telemetry(endpoint="http://x:4317")
+        teardown_telemetry()
+        assert is_telemetry_enabled() is False
+
+
+class TestTraceSpanActive:
+    def test_span_sets_attributes(self, otel):
+        setup_telemetry(endpoint="http://x:4317")
+        with trace_span("op", {"s": "v", "n": 3, "flag": True, "lst": [1, 2]}):
+            pass
+
+    def test_span_exception_sets_status(self, otel):
+        setup_telemetry(endpoint="http://x:4317")
+        with pytest.raises(ValueError):
+            with trace_span("op"):
+                raise ValueError("x")
+
+    def test_set_attribute_method_active(self, otel):
+        setup_telemetry(endpoint="http://x:4317")
+        sp = trace_span("op")
+        with sp:
+            sp.set_attribute("k", "v")
+
+    def test_decorator_active(self, otel):
+        setup_telemetry(endpoint="http://x:4317")
+
+        @trace_span("fn", {"a": 1})
+        def double(x):
+            return x * 2
+
+        assert double(5) == 10
+
+    def test_instrument_with_active_tracer(self, otel):
+        setup_telemetry(endpoint="http://x:4317")
+        gb = _FakeGB(_res(0.9))
+        telemetry.instrument_glassbox(gb)
+        # now traced_analyze runs the ACTIVE span path (set_attribute on real span)
+        assert gb.analyze("p", "c", "i")["faithfulness"]["f1"] == 0.9
+
+
+class TestActiveErrorHandling:
+    """The defensive `except: pass` handlers must swallow otel errors silently."""
+
+    def test_teardown_swallows_shutdown_error(self, otel):
+        sys.modules["opentelemetry"].trace.get_tracer_provider.return_value.shutdown.side_effect = RuntimeError("x")
+        setup_telemetry(endpoint="http://x")
+        teardown_telemetry()  # must not raise
+
+    def test_enter_swallows_tracer_error(self, otel):
+        setup_telemetry(endpoint="http://x")
+        telemetry._tracer.start_as_current_span.side_effect = RuntimeError("x")
+        with trace_span("op", {"a": 1}):
+            pass  # __enter__ swallows the error, no raise
+
+    def test_exit_swallows_cm_error(self, otel):
+        setup_telemetry(endpoint="http://x")
+        telemetry._tracer.start_as_current_span.return_value.__exit__.side_effect = RuntimeError("x")
+        with trace_span("op"):
+            pass  # __exit__ swallows the error
+
+    def test_set_attribute_swallows_error(self, otel):
+        setup_telemetry(endpoint="http://x")
+        span = telemetry._tracer.start_as_current_span.return_value.__enter__.return_value
+        span.set_attribute.side_effect = RuntimeError("x")
+        sp = trace_span("op")  # no attrs, so __enter__ doesn't call set_attribute
+        with sp:
+            sp.set_attribute("k", "v")  # the method swallows the error

@@ -228,8 +228,8 @@ def setup_telemetry(
                 headers=resolved_headers,
                 insecure=insecure,
             )
-        except ImportError:
-            # Fallback to HTTP/protobuf exporter
+        except ImportError:  # pragma: no cover - defensive HTTP exporter fallback
+            # Fallback to HTTP/protobuf exporter when the gRPC exporter is absent.
             from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
                 OTLPSpanExporter,
             )
