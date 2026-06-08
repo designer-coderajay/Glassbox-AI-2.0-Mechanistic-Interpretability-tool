@@ -90,9 +90,12 @@ jobs:
       - name: Verify model stack imports (diagnostic)
         # If this fails, transformer_lens/torch did NOT install cleanly and the
         # engine tests can never run — that's the real problem to fix, not a flake.
+        # Note: transformer_lens does not expose a top-level __version__, so we
+        # check importability and read the version via importlib.metadata.
         run: |
           python -c "import torch; print('torch', torch.__version__)"
-          python -c "import transformer_lens as tl; print('transformer_lens', tl.__version__)"
+          python -c "import transformer_lens; print('transformer_lens import: OK')"
+          python -c "import importlib.metadata as m; print('transformer_lens', m.version('transformer-lens'))" || echo "version lookup skipped (non-fatal)"
 
       - name: Run full suite with coverage (gate OFF — measuring real %)
         run: |
