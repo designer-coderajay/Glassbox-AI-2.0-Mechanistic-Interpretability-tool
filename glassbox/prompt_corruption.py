@@ -95,7 +95,7 @@ import logging
 import random
 import re
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +239,7 @@ _ANTONYM_TABLE: Dict[str, str] = {
     "exempt":         "liable",
     "convicted":      "acquitted",
     "acquitted":      "convicted",
-    "liable":         "not liable",
+    "liable":         "exempt",
     "negligent":      "careful",
     "careful":        "negligent",
     "criminal":       "lawful",
@@ -271,8 +271,8 @@ _ANTONYM_TABLE: Dict[str, str] = {
     "admitted":       "rejected",
     "enrolled":       "expelled",
     "expelled":       "enrolled",
-    "graduating":     "failing",
-    "promoted":       "held back",
+    "graduating":     "failed",
+    "promoted":       "demoted",
     "exempt":         "required",
     "required":       "exempt",
     "eligible":       "ineligible",
@@ -614,9 +614,9 @@ class CorruptionSelector:
         return (
             CorruptionStrategy.RANDOM_TOKEN,
             corrupted,
-            f"RandomTokenReplacement selected (default fallback): no entity swap, "
-            f"antonym, or negation pattern found. Replaced 25% of tokens with "
-            f"common English words (Meng et al. 2022). Expected Δz ≠ 0.",
+            "RandomTokenReplacement selected (default fallback): no entity swap, "
+            "antonym, or negation pattern found. Replaced 25% of tokens with "
+            "common English words (Meng et al. 2022). Expected Δz ≠ 0.",
         )
 
 
