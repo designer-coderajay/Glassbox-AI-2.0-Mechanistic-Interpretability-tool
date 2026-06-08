@@ -105,13 +105,18 @@ jobs:
           python -c "import transformer_lens; print('transformer_lens import: OK')"
           python -c "import importlib.metadata as m; print('transformer_lens', m.version('transformer-lens'))" || echo "version lookup skipped (non-fatal)"
 
-      - name: Run full suite with coverage (gate OFF — measuring real %)
+      - name: Run full suite with coverage (gate at measured floor)
+        # Measured real coverage with the engine actually exercised: 48%
+        # (CI run #5, 2026-06-08, 494 passed). Gate set to 45% — a small buffer
+        # below current so it catches regressions without flaking. Target is 80%;
+        # raise this as coverage of the under-tested modules (notify, telemetry,
+        # mlflow_integration, sae_attribution, bias, acdc, das, ...) improves.
         run: |
           pytest \
             --cov=glassbox \
             --cov-report=term-missing \
             --cov-report=xml \
-            --cov-fail-under=0 \
+            --cov-fail-under=45 \
             -v
 
       - name: Upload coverage report
