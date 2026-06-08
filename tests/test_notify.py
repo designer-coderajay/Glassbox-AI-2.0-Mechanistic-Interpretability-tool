@@ -222,6 +222,27 @@ class TestAlertConfig:
         with pytest.warns(UserWarning):
             cfg.notify_audit_complete(result)  # must not raise
 
+    def test_compliance_drop_failure_is_warned(self, monkeypatch):
+        # Prime a previous result, then make the drop notification fail.
+        cfg = AlertConfig(slack_webhook="https://s")
+        high = {"faithfulness": {"sufficiency": 0.95}, "n_heads": 3}
+        low = {"faithfulness": {"sufficiency": 0.40}, "n_heads": 3}
+        cfg.notify_audit_complete(high)  # sets _last_result (no send capture needed)
+
+        def _boom(url, payload, timeout=10):
+            raise RuntimeError("down")
+        monkeypatch.setattr(notify, "_post_json", _boom)
+        with pytest.warns(UserWarning):
+            cfg.notify_audit_complete(low)  # drop + audit sends both fail, warned
+
+    def test_circuit_drift_failure_is_warned(self, monkeypatch, diff_drift):
+        def _boom(url, payload, timeout=10):
+            raise RuntimeError("down")
+        monkeypatch.setattr(notify, "_post_json", _boom)
+        cfg = AlertConfig(slack_webhook="https://s", jaccard_alert_threshold=0.75)
+        with pytest.warns(UserWarning):
+            cfg.notify_circuit_drift(diff_drift)  # must not raise
+
 
 # ---------------------------------------------------------------------------
 # _post_json (HTTP path) via mocked urlopen

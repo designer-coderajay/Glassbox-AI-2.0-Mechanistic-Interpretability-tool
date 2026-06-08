@@ -117,6 +117,17 @@ class TestCounterfactual:
         d = res.to_dict()
         assert d["max_gap"] == 0.0 and "eu_ai_act_articles" in d
 
+    def test_logprobs_with_nondict_value_rebuilds_from_groups(self, analyzer):
+        # A non-dict value makes the "all dicts" fast-path fail, exercising the
+        # rebuild-from-groups branch that reads logprobs[value] directly.
+        res = analyzer.counterfactual_fairness_test(
+            prompt_template=self.TEMPLATE,
+            groups={"g": ["a"]},
+            target_tokens=["x"],
+            logprobs={"a": {"x": 0.5}, "_marker": 0},
+        )
+        assert res.probabilities == {"a": {"x": 0.5}}
+
 
 # ---------------------------------------------------------------------------
 # Demographic parity
@@ -205,6 +216,20 @@ class TestTokenBias:
             logprobs={"man": {"The {token} is a": 0.2},
                       "woman": {"The {token} is a": 0.3}})
         assert res.flagged_pairs == []
+
+    def test_online_empty_model_output_zero_score(self, analyzer):
+        # model_fn returns an empty dict -> association score falls back to 0.0.
+        res = analyzer.token_bias_probe(
+            demographic_tokens=["man"], context_templates=self.CTX,
+            model_fn=lambda p: {})
+        assert res.overall_bias_score == 0.0
+
+    def test_to_dict(self, analyzer):
+        res = analyzer.token_bias_probe(
+            demographic_tokens=["man"], context_templates=self.CTX,
+            logprobs={"man": {"The {token} is a": 0.5}})
+        d = res.to_dict()
+        assert "demographic_tokens" in d and "overall_bias_score" in d
 
 
 # ---------------------------------------------------------------------------

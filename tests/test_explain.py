@@ -149,6 +149,16 @@ class TestExplain:
         out = explain(good)
         assert isinstance(out, str) and out
 
+    def test_standard_appends_risk_and_stability(self):
+        # A poor result with instability produces BOTH a non-empty risk_flags
+        # and stability_summary section, so explain() appends both in standard mode.
+        res = _result(0.30, 0.10, 0.15, 12, "incomplete",
+                      stability={"mean_jaccard": 0.40, "std_jaccard": 0.05,
+                                 "stability_rate": 0.5, "n_prompts": 8})
+        out = NaturalLanguageExplainer(verbosity="standard").explain(res)
+        assert "Risk flags identified" in out
+        assert "Circuit stability" in out
+
 
 # ---------------------------------------------------------------------------
 # explain_sections()
