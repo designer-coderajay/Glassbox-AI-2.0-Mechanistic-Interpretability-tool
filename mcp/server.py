@@ -358,8 +358,8 @@ async def glassbox_faithfulness_metrics(params: FaithfulnessInput) -> str:
         "circuit_size": len(params.cited_heads),
         "eu_ai_act_relevance": {
             "article_13": "Transparency: F1={:.2f} quantifies explanation quality".format(f1),
-            "annex_iv_section_4": "Testing: sufficiency={:.2f}, comprehensiveness={:.2f}".format(suff, comp),
-            "annex_iv_section_6": "Explainability: causal circuit identified, {} heads".format(len(params.cited_heads)),
+            "annex_iv_section_3": "Monitoring & control: causal circuit identified, {} heads".format(len(params.cited_heads)),
+            "annex_iv_section_4": "Performance metrics: sufficiency={:.2f}, comprehensiveness={:.2f}".format(suff, comp),
         }
     }
     return json.dumps(output, indent=2)
@@ -425,82 +425,91 @@ async def glassbox_compliance_report(params: ComplianceReportInput) -> str:
             "Note: model confidence is not a valid compliance proxy (r=0.009 correlation with faithfulness, arXiv:2603.09988)."
         ),
         "annex_iv": {
+            # Canonical EU AI Act (Reg 2024/1689) Annex IV, Article 11(1): the nine
+            # required points, in regulation order. Glassbox fills the technical /
+            # measured content; the provider completes the legal and operational items.
             "section_1_general_description": {
                 "system_name": params.model_name,
                 "version": "evaluated via glassbox-mech-interp",
                 "intended_purpose": params.intended_use,
-                "deployment_context": "Subject to EU AI Act high-risk classification review",
+                "deployment_context": "Subject to EU AI Act high-risk classification review (Annex III)",
+                "provider_completes": "Provider name, version history, hardware, user interface, instructions for use",
                 "known_limitations": [
-                    "Analysis performed on GPT-2 architecture (decoder-only transformer)",
+                    "Analysis performed on a decoder-only transformer (GPT-2 class)",
                     "Confidence scores correlate near-zero with faithfulness (r=0.009)",
                     "Distributed backup circuits reduce comprehensiveness to 0.22",
-                ]
+                ],
             },
-            "section_2_development_process": {
+            "section_2_development_process_and_design": {
                 "architecture": "Decoder-only transformer (GPT-2 class)",
                 "analysis_method": "Attribution patching (gradient x activation difference)",
                 "baseline_comparison": "37x faster than ACDC (Conmy et al., NeurIPS 2023)",
                 "evaluation_dataset": "Indirect Object Identification (IOI) task",
                 "forward_passes_required": 3,
+                # Annex IV (2)(d) — data requirements:
+                "training_data": "Public internet text (GPT-2 WebText / OpenWebText)",
+                "analysis_data": "User-supplied prompt — no data retention by Glassbox",
+                # Annex IV (2)(h) — cybersecurity measures:
+                "cybersecurity_measures": "Model loaded from HuggingFace Hub with model-card validation; prompt length capped at 512 tokens; dependency supply chain pip-audited at release",
             },
-            "section_3_monitoring": {
-                "oversight_mechanism": "Human review required for all high-stakes decisions",
-                "monitoring_metric": "Faithfulness F1 score per analysis",
-                "alert_threshold": "F1 < 0.50 triggers mandatory human review",
-                "incident_reporting": "Document and escalate when grade drops below C",
+            "section_3_monitoring_functioning_control": {
+                "capabilities_and_limitations": "Faithfulness F1 quantifies how completely the cited circuit reproduces the decision",
+                "explainability_method": "Attribution patching (causal, not correlational); logit lens available",
+                "cited_attention_heads": params.cited_heads,
+                "human_oversight": "Human review required before operational use; auto-reject below grade D (Article 14)",
+                "monitoring_metric": "Faithfulness F1 per analysis; F1 < 0.50 triggers mandatory human review",
             },
-            "section_4_testing_validation": {
+            "section_4_performance_metrics_appropriateness": {
+                "metrics_used": "Faithfulness — sufficiency, comprehensiveness, F1 (their harmonic mean)",
+                "why_appropriate": "Faithfulness measures whether the explanation is causally true, which a confidence score cannot (r=0.009). It is the appropriate metric for an explainability audit under Articles 13 and 15.",
                 "faithfulness_f1": params.f1_score,
                 "sufficiency": params.sufficiency,
                 "comprehensiveness": params.comprehensiveness,
-                "confidence_faithfulness_correlation": 0.009,
-                "test_suite": "76 automated tests (glassbox-mech-interp v4.3.1)",
                 "benchmark": "ACDC (Conmy et al., NeurIPS 2023) — Glassbox is 37x faster",
+                "test_suite": "76 automated tests (glassbox-mech-interp)",
             },
-            "section_5_risk_assessment": {
+            "section_5_risk_management": {
+                "article_reference": "Article 9 — risk management system",
                 "identified_risks": [
                     {
                         "risk": "Confidence-faithfulness gap",
                         "severity": "HIGH",
-                        "description": f"r={0.009} correlation — confidence scores cannot substitute for causal analysis",
+                        "description": "r=0.009 correlation — confidence scores cannot substitute for causal analysis",
                         "mitigation": "Always use Glassbox F1 for compliance assessment, never confidence scores",
                     },
                     {
                         "risk": "Distributed backup circuits",
                         "severity": "MEDIUM",
-                        "description": f"Comprehensiveness={params.comprehensiveness:.2f} reveals backup mechanisms beyond cited circuit",
-                        "mitigation": "Document that ablating primary circuit does not fully disable the behavior",
-                    }
+                        "description": f"Comprehensiveness={params.comprehensiveness:.2f} reveals backup mechanisms beyond the cited circuit",
+                        "mitigation": "Document that ablating the primary circuit does not fully disable the behaviour",
+                    },
                 ],
-                "residual_risks": "Backup circuits may re-enable behavior even after primary circuit mitigation",
+                "residual_risks": "Backup circuits may re-enable behaviour even after primary-circuit mitigation",
             },
-            "section_6_transparency": {
-                "explainability_method": "Attribution patching (causal, not correlational)",
-                "cited_attention_heads": params.cited_heads,
-                "circuit_sufficiency": params.sufficiency,
-                "explanation_limitations": [
-                    "Gradient-based attribution is an approximation of full activation patching",
-                    "Analysis is prompt-specific — different prompts may reveal different circuits",
+            "section_6_lifecycle_changes": {
+                "predetermined_changes": "Re-run the Glassbox audit on any fine-tune, model swap, or prompt-template change",
+                "retesting_trigger": "Substantial modification as defined under Article 83",
+                "change_log": "Provider maintains a dated log of substantial modifications (Article 16(d))",
+            },
+            "section_7_harmonised_standards": {
+                "status": "No harmonised standards under Article 40 have yet been formally adopted for AI interpretability; this section lists the methods and references applied.",
+                "methods_applied": [
+                    "Attribution patching (Mahale 2026, arXiv:2603.09988)",
+                    "ACDC circuit discovery (Conmy et al., NeurIPS 2023)",
+                    "IOI circuit analysis (Wang et al., 2022)",
                 ],
-                "logit_lens_available": True,
+                "provider_completes": "List any harmonised standards or common specifications applied (Articles 40/41)",
             },
-            "section_7_data_governance": {
-                "training_data": "Public internet text (GPT-2 WebText, OpenWebText)",
-                "analysis_data": "User-supplied prompt — no data retention by Glassbox",
-                "gdpr_compliance": "No personal data stored or transmitted by this analysis",
-                "bias_assessment": "Bias assessment requires targeted evaluation beyond this audit",
+            "section_8_eu_declaration_of_conformity": {
+                "status": "NOT generated by Glassbox — provider-signed legal document",
+                "requirement": "Provider must draw up a written EU Declaration of Conformity before placing the system on the market (Article 47); this section cross-references that document.",
+                "human_sign_off_required": True,
             },
-            "section_8_human_oversight": {
-                "override_capability": "All Glassbox analyses require human review before operational use",
-                "operator_controls": "Grade threshold configurable; auto-reject below grade D",
-                "user_notification": "Compliance grade and faithfulness metrics surfaced in all outputs",
-                "audit_trail": "JSON report with ISO 8601 timestamp; importable to GRC systems",
-            },
-            "section_9_cybersecurity": {
-                "model_source": "HuggingFace Hub with model card validation",
-                "input_validation": "Prompt length limited to 512 tokens; model name validated against allowlist",
-                "adversarial_resilience": "Attribution patching robust to minor input perturbations",
-                "supply_chain": "pip-audit clean on all dependencies as of release date",
+            "section_9_post_market_monitoring": {
+                "article_reference": "Article 72 — post-market monitoring plan",
+                "plan": "Re-evaluate circuit faithfulness on a defined cadence and after any model or data change",
+                "alert_threshold": "Grade dropping below C triggers review; F1 < 0.50 blocks operational use",
+                "incident_reporting": "Serious incidents reported under Article 73",
             },
         }
     }
