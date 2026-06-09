@@ -82,6 +82,14 @@ class TestBatchAndToken:
         )
         assert isinstance(results, list) and len(results) == 1
 
+    def test_batch_analyze_with_progress(self, gb):
+        # show_progress=True drives the per-item logging branch.
+        results = gb.batch_analyze(
+            [(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT)],
+            show_progress=True,
+        )
+        assert len(results) == 1
+
     def test_token_attribution(self, gb):
         tokens = gb.model.to_tokens(IOI_PROMPT)
         tgt = gb.model.to_single_token(IOI_CORRECT)
