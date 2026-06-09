@@ -106,17 +106,17 @@ jobs:
           python -c "import importlib.metadata as m; print('transformer_lens', m.version('transformer-lens'))" || echo "version lookup skipped (non-fatal)"
 
       - name: Run full suite with coverage (gate at measured floor)
-        # Measured real coverage: 54% locally, 656 passed (2026-06-08). Modules
-        # explain/notify/bias/telemetry are at 100%; core.py at 98% (defensive
-        # guards pragma'd, a few hard real branches left honestly uncovered).
-        # Gate set to 52% — a buffer below current. Target is 80%; raise as the
-        # remaining model-dependent modules (acdc, das, cross_model) gain tests.
+        # Measured real coverage: 62% locally, 710 passed (2026-06-09) after the
+        # Core ML engine push (acdc 95%, das 83%, cross_model 66%, steering 70%,
+        # core 98%; explain/notify/bias/telemetry 100%). Gate set to 58% — a
+        # buffer below current. Target is 80%; raise as the remaining modules
+        # (audit, sae_attribution, hf/mlflow integration) gain tests.
         run: |
           pytest \
             --cov=glassbox \
             --cov-report=term-missing \
             --cov-report=xml \
-            --cov-fail-under=52 \
+            --cov-fail-under=58 \
             -v
 
       - name: Upload coverage report
@@ -126,3 +126,68 @@ jobs:
           name: coverage-xml
           path: coverage.xml
           if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # MCP server check — every push. Verifies the MCP server imports, all 5 tools
+  # register, and the version string is in sync. Lightweight (no torch).
+  # (Folded in from the old Tests workflow, which is now retired.)
+  # ---------------------------------------------------------------------------
+  mcp-check:
+    name: MCP server import + tool registration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install MCP server deps (no torch — CPU import check only)
+        run: |
+          pip install --upgrade pip
+          pip install mcp fastmcp pydantic glassbox-mech-interp --quiet
+
+      - name: Verify server imports and all 5 tools register cleanly
+        run: |
+          python3 - <<'EOF'
+          import sys, types
+
+          for mod in ["torch", "transformer_lens", "einops",
+                      "fancy_einsum", "jaxtyping"]:
+              sys.modules.setdefault(mod, types.ModuleType(mod))
+
+          torch_stub = sys.modules["torch"]
+          torch_stub.cuda = types.SimpleNamespace(is_available=lambda: False)
+          torch_stub.device = str
+          torch_stub.float32 = "float32"
+
+          import importlib.util, pathlib
+          spec = importlib.util.spec_from_file_location(
+              "glassbox_mcp", pathlib.Path("mcp/server.py"))
+          mod = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+
+          expected = {
+              "glassbox_circuit_discovery",
+              "glassbox_faithfulness_metrics",
+              "glassbox_compliance_report",
+              "glassbox_attention_patterns",
+              "glassbox_logit_lens",
+          }
+          registered = {t.name for t in mod.mcp._tool_manager.list_tools()}
+          missing = expected - registered
+          if missing:
+              print(f"FAIL — missing tools: {missing}", file=sys.stderr)
+              sys.exit(1)
+          print(f"OK — {len(registered)} tools registered: {sorted(registered)}")
+          EOF
+
+      - name: Verify version string is current
+        run: |
+          CURRENT=$(python3 -c "
+          import re; t=open('pyproject.toml').read()
+          print(re.search(r'version\s*=\s*\"([^\"]+)\"', t).group(1))")
+          grep -q "glassbox-mech-interp v${CURRENT}" mcp/server.py \
+            && echo "OK — mcp/server.py references v${CURRENT}" \
+            || (echo "FAIL — mcp/server.py has stale version (expected v${CURRENT})" && exit 1)

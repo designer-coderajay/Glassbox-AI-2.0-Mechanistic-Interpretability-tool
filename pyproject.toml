@@ -176,9 +176,10 @@ omit    = ["glassbox/alignment.py", "glassbox/cli.py"]
 [tool.coverage.report]
 show_missing   = true
 skip_covered   = false
-# Honest measured floor (2026-06-08): real coverage is ~54%. Target is 80% as
-# the model-dependent modules gain tests; raise this in step with the CI gate.
-fail_under     = 52
+# Honest measured floor (2026-06-09): real coverage is ~62% after the Core ML
+# engine test push. Target is 80% as the remaining modules gain tests; raise
+# this in step with the CI gate.
+fail_under     = 58
 exclude_lines  = [
     "pragma: no cover",
     "if TYPE_CHECKING:",
