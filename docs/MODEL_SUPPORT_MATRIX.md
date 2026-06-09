@@ -24,7 +24,7 @@ Glassbox's core method — attribution patching via TransformerLens hooks — re
 
 There is no "100% accuracy." Faithfulness is an approximation, by definition. The verified, defensible figures are:
 
-- Faithfulness **F1 = 0.89 (Grade A)** vs. brute-force ablation ground truth.
+- Faithfulness **F1 = 0.64 (Grade B)** vs. brute-force ablation ground truth.
 - **r = 0.009** confidence↔faithfulness — exactness is not the goal; faithful *attribution* is.
 
 Any "100%" accuracy claim is non-compliant with the project's own honesty rules and will fail technical review.

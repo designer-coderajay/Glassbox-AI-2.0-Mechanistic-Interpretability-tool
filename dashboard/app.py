@@ -906,8 +906,8 @@ HEADER = """
     <div class="gb-stat-lbl">Faster than ACDC<br>1.2s vs 43.2s</div>
   </div>
   <div class="gb-stat">
-    <div class="gb-stat-val">0.89</div>
-    <div class="gb-stat-lbl">Faithfulness F1<br>Grade A</div>
+    <div class="gb-stat-val">0.64</div>
+    <div class="gb-stat-lbl">Faithfulness F1<br>Grade B</div>
   </div>
   <div class="gb-stat">
     <div class="gb-stat-val">9/9</div>
