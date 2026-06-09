@@ -102,6 +102,51 @@ class TestSerialization:
 
 
 # ---------------------------------------------------------------------------
+# Compliance output (text + HTML) — needs a vector but no model
+# ---------------------------------------------------------------------------
+
+class TestComplianceOutput:
+    def _vector(self):
+        import torch
+        from glassbox.steering import SteeringVector
+        return SteeringVector(
+            direction=torch.randn(16), layer=5, concept_label="gender_bias",
+            scale=-15.0,
+            source_info={"extraction_method": "mean_diff", "model_name": "gpt2",
+                         "timestamp_utc": "2026-06-08T00:00:00Z"})
+
+    @property
+    def _test_result(self):
+        return {
+            "baseline": {"sufficiency": 0.90},
+            "steered": {"sufficiency": 0.30},
+            "suppression_ratio": 0.67,
+            "passed_threshold": True,
+            "verdict": "Suppression effective.",
+        }
+
+    def test_annex_iv_text(self):
+        from glassbox.steering import SteeringVectorExporter
+        txt = SteeringVectorExporter().to_annex_iv_text(self._vector())
+        assert "gender_bias" in txt and "Article 9(2)(b)" in txt
+
+    def test_annex_iv_text_with_results(self):
+        from glassbox.steering import SteeringVectorExporter
+        txt = SteeringVectorExporter().to_annex_iv_text(self._vector(), self._test_result)
+        assert "Suppression test results" in txt and "EFFECTIVE" in txt
+
+    def test_to_html(self):
+        from glassbox.steering import SteeringVectorExporter
+        html = SteeringVectorExporter().to_html(self._vector())
+        assert "<" in html and "gender_bias" in html
+
+    def test_to_html_with_results(self):
+        from glassbox.steering import SteeringVectorExporter
+        html = SteeringVectorExporter().to_html(self._vector(), self._test_result)
+        assert "<" in html
+
+
+# ---------------------------------------------------------------------------
 # extract + apply on a small model (slow)
 # ---------------------------------------------------------------------------
 
