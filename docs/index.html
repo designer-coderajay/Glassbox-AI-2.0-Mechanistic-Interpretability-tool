@@ -3,331 +3,627 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glassbox — see inside the black box</title>
-<meta name="description" content="Glassbox reads a model's internal circuits and writes the EU AI Act Annex IV paperwork for you. One function call, under two seconds.">
+<title>Glassbox — prove what your model did</title>
+<meta name="description" content="Glassbox traces the exact circuit behind a model's decision, measures how faithful that explanation is, and writes the EU AI Act Annex IV documentation. One function call, under two seconds, on open-weight models.">
 <link rel="canonical" href="https://repo-ashen-psi.vercel.app">
-<meta property="og:title" content="Glassbox — see inside the black box">
-<meta property="og:description" content="Regulator-ready EU AI Act Annex IV from a model's internal circuits, in under two seconds.">
+<meta property="og:title" content="Glassbox — prove what your model did">
+<meta property="og:description" content="Causal circuit discovery + measured faithfulness + regulator-ready EU AI Act Annex IV, in under two seconds.">
 <meta property="og:url" content="https://repo-ashen-psi.vercel.app">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://repo-ashen-psi.vercel.app/assets/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://repo-ashen-psi.vercel.app/assets/og-image.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='5' width='22' height='22' rx='5' fill='none' stroke='%231a1a17' stroke-width='2'/%3E%3Crect x='11' y='11' width='10' height='10' rx='2' fill='none' stroke='%23b85c38' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='5' width='22' height='22' rx='6' fill='none' stroke='%23171614' stroke-width='2'/%3E%3Crect x='11.5' y='11.5' width='9' height='9' rx='2.5' fill='none' stroke='%23b85c38' stroke-width='2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f1eee6; --surface:#f7f4ec; --card:#fffefb; --line:#ddd9cd; --line2:#c9c4b5;
-  --ink:#1a1a17; --ink2:#6c6a60; --ink3:#9a978b;
-  --clay:#b85c38; --clay-deep:#a04d2c; --clay-soft:#f0e2d8;
-  --serif:'Instrument Serif',Georgia,serif; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --bg:#fbfaf7; --surface:#f4f2ec; --card:#ffffff; --ink-dark:#1a1916;
+  --line:#e7e3d9; --line-2:#d8d3c6;
+  --ink:#171614; --ink-2:#56544c; --ink-3:#6e6b5e;
+  --clay:#b85c38; --clay-deep:#9a4a28; --clay-tint:#f3e7df;
+  --ok:#3c6e52;
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+  --maxw:1200px;
+  --pad-x:clamp(20px,5vw,40px);
+  --sec-y:clamp(76px,11vw,132px);
+  --r:10px; --r-lg:16px;
+  --ease:cubic-bezier(.16,1,.3,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background-color:var(--bg);background-image:linear-gradient(rgba(26,26,23,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(26,26,23,.035) 1px,transparent 1px);background-size:46px 46px;color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
-body::before{content:"";position:fixed;inset:0;background:url('assets/circuit-field.png') center/cover no-repeat;opacity:.05;pointer-events:none;z-index:-1}
-a{color:inherit;text-decoration:none}
-img{max-width:100%;display:block}
-.wrap{max-width:1120px;margin:0 auto;padding:0 32px}
-.serif{font-family:var(--serif);font-weight:400;line-height:1.02;letter-spacing:-.01em}
-.mono{font-family:var(--mono);font-size:12.5px;letter-spacing:-.01em}
-.muted{color:var(--ink2)}
-.kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:22px}
-a:focus-visible,button:focus-visible{outline:2px solid var(--clay);outline-offset:3px;border-radius:4px}
-.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
-.reveal.in{opacity:1;transform:none}
-
-.announce{background:var(--ink);color:#f1eee6}
-.announce .wrap{display:flex;gap:10px;align-items:center;justify-content:center;height:40px;font-family:var(--mono);font-size:12.5px}
-.adot{width:6px;height:6px;border-radius:50%;background:var(--clay);display:inline-block;animation:pulse 2.4s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-
-nav{position:sticky;top:0;z-index:30;background:rgba(241,238,230,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
-.brand{display:flex;align-items:center;gap:11px;font-family:var(--mono);font-size:15px}
-.brand svg{width:22px;height:22px}
-.navlinks{display:flex;gap:30px;font-size:14.5px}
-.navlinks a{color:var(--ink2);transition:color .2s}.navlinks a:hover{color:var(--ink)}
-.btn{display:inline-block;border-radius:8px;padding:11px 20px;font-size:14.5px;transition:.18s;border:1px solid transparent;cursor:pointer;font-family:var(--sans)}
-.btn-primary{background:var(--clay-deep);color:#fff}.btn-primary:hover{background:#8f4326}
-.btn-line{border-color:var(--line2);color:var(--ink)}.btn-line:hover{background:var(--surface);border-color:var(--ink3)}
-.menubtn{display:none;background:none;border:none;cursor:pointer;color:var(--ink)}.menubtn svg{width:24px;height:24px}
-#mobile{display:none;border-bottom:1px solid var(--line);background:var(--surface)}
-#mobile a{display:block;padding:14px 32px;border-top:1px solid var(--line);color:var(--ink2)}
-
-section{padding:100px 0;border-bottom:1px solid var(--line)}
-.alt{background:var(--surface)}
-.hero{padding:96px 0 90px}
-.hero .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
-.hero h1{font-family:var(--serif);font-size:78px;letter-spacing:-.02em;margin-bottom:24px}
-.hero h1 em{font-style:italic;color:var(--clay)}
-.hero p{font-size:19px;color:var(--ink2);max-width:520px;margin-bottom:34px}
-.cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
-
-.art{position:relative;aspect-ratio:1/1;width:100%}
-.art svg{width:100%;height:100%;overflow:visible}
-.edge{stroke:var(--line2);stroke-width:1.2;fill:none}
-.edge-live{stroke:var(--clay);stroke-width:1.8;fill:none;stroke-dasharray:5 7;animation:flow 3.2s linear infinite}
-@keyframes flow{to{stroke-dashoffset:-48}}
-.node{fill:var(--card);stroke:var(--line2);stroke-width:1.4}
-.node-live{fill:var(--clay);stroke:var(--clay-deep);stroke-width:1.4;animation:beat 2.6s ease-in-out infinite}
-@keyframes beat{0%,100%{r:6}50%{r:8.5}}
-.cube{fill:none;stroke:var(--ink);stroke-width:1.6;opacity:.55}
-.cubeface{fill:var(--clay);opacity:.05}
-
-.trust{padding:46px 0;border-bottom:1px solid var(--line)}
-.trust .lab{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:18px}
-.trust .items{display:flex;gap:30px;flex-wrap:wrap;font-size:15px;color:var(--ink2)}
-.trust .items span{font-weight:500}
-
-h2.big{font-family:var(--serif);font-size:52px;letter-spacing:-.02em;margin-bottom:20px}
-.lead{font-size:19px;color:var(--ink2);max-width:660px}
-.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:52px}
-.pill{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:30px 28px;transition:transform .25s cubic-bezier(.16,1,.3,1),border-color .25s}
-.pill:hover{transform:translateY(-4px);border-color:var(--line2)}
-.pill .ic{width:42px;height:42px;border:1px solid var(--line2);border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;color:var(--clay);font-family:var(--mono);font-size:12px}
-.pill .ic svg{width:20px;height:20px}
-.pill h3{font-size:18px;font-weight:500;margin-bottom:10px}
-.pill p{font-size:14.5px;color:var(--ink2)}
-
-.metrics{background:var(--ink);color:#f1eee6;border:none}
-.metrics .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:36px}
-.metrics .n{font-family:var(--serif);font-size:56px;line-height:1;color:#fff}
-.metrics .n em{color:var(--clay);font-style:normal}
-.metrics .l{font-size:13.5px;color:#a8a59a;margin-top:12px}
-
-.split{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:52px}
-.code{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.code .bar{display:flex;gap:7px;padding:13px 18px;border-bottom:1px solid var(--line)}
-.code .bar i{width:11px;height:11px;border-radius:50%;border:1px solid var(--line2);display:inline-block}
-.code pre{padding:20px 22px;font-family:var(--mono);font-size:13px;line-height:1.8;overflow-x:auto;color:var(--ink)}
-.code .c{color:var(--ink3)}.code .s{color:var(--clay)}
-.code .hl{background:var(--clay-soft);display:block;margin:0 -22px;padding:2px 22px}
-
-.steps{margin-top:52px;display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
-.step{padding:30px 28px;border-right:1px solid var(--line)}
-.step:last-child{border-right:none}
-.step .no{font-family:var(--serif);font-size:34px;color:var(--clay)}
-.step h4{font-size:16.5px;font-weight:500;margin:12px 0 8px}
-.step p{font-size:14px;color:var(--ink2)}
-
-.feature-img{margin-top:48px;border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.vault{margin-top:46px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.vault div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;font-size:14px}
-.vault div b{font-family:var(--mono);font-size:12px;color:var(--clay);font-weight:400;display:block;margin-bottom:5px}
-
-.rows{margin-top:46px;border-top:1px solid var(--line)}
-.r{display:grid;grid-template-columns:220px 1fr;gap:30px;padding:24px 0;border-bottom:1px solid var(--line);align-items:baseline}
-.r h4{font-size:16.5px;font-weight:500}.r p{font-size:14.5px;color:var(--ink2)}.r .mono{color:var(--ink3)}
-
-table{width:100%;border-collapse:collapse;margin-top:42px;font-size:14.5px}
-th,td{text-align:left;padding:16px 14px;border-bottom:1px solid var(--line)}
-th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:400}
-td.mono{color:var(--ink2)}
-.tag{display:inline-block;background:var(--clay-soft);color:#8f4324;border-radius:6px;padding:3px 9px;font-size:12px;font-family:var(--mono)}
-.disc{margin-top:24px;font-size:12.5px;color:var(--ink3);max-width:780px;line-height:1.7}
-
-.quote{padding:120px 0;text-align:center}
-.quote p{font-family:var(--serif);font-size:40px;line-height:1.2;letter-spacing:-.01em;max-width:18ch;margin:0 auto}
-.quote .src{font-family:var(--mono);font-size:12.5px;color:var(--ink3);margin-top:28px}
-
-.cta-band{text-align:center;padding:120px 0}
-.cta-band h2{font-family:var(--serif);font-size:62px;letter-spacing:-.02em;margin-bottom:22px}
-.cta-band p{color:var(--ink2);font-size:19px;margin-bottom:36px}
-
-footer{padding:64px 0 44px;background:var(--surface)}
-.fgrid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:32px;margin-bottom:40px}
-footer h5{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px;font-weight:400}
-footer a{display:block;color:var(--ink2);font-size:14px;margin-bottom:9px}footer a:hover{color:var(--ink)}
-.fbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;padding-top:26px;border-top:1px solid var(--line);font-size:13px;color:var(--ink3)}
-
-@media(max-width:860px){
-  .hero .grid,.split{grid-template-columns:1fr;gap:40px}.art{max-width:360px;margin:0 auto}
-  .hero h1{font-size:50px}h2.big,.cta-band h2{font-size:36px}.quote p{font-size:30px}
-  .pillars,.metrics .grid,.steps,.vault,.fgrid{grid-template-columns:1fr}
-  .metrics .grid{gap:28px}.step{border-right:none;border-bottom:1px solid var(--line)}
-  .r{grid-template-columns:1fr;gap:6px}.navlinks{display:none}.menubtn{display:block}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:17px;line-height:1.65;font-feature-settings:"ss01","cv05";
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  font-variant-numeric:tabular-nums;overflow-x:hidden;
 }
-@media(prefers-reduced-motion:reduce){*{animation:none!important}.reveal{opacity:1;transform:none;transition:none}}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+::selection{background:var(--clay-tint);color:var(--clay-deep)}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--pad-x)}
+.serif{font-family:var(--serif);font-weight:400}
+.mono{font-family:var(--mono)}
+.eyebrow{
+  font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--clay-deep);display:inline-flex;
+  align-items:center;gap:9px;margin-bottom:22px;
+}
+.eyebrow::before{content:"";width:22px;height:1px;background:var(--clay)}
+h2.h{font-size:clamp(28px,3.8vw,46px);line-height:1.08;letter-spacing:-.025em;font-weight:600;color:var(--ink)}
+.lead{font-size:clamp(17px,1.6vw,20px);color:var(--ink-2);max-width:62ch;margin-top:20px;line-height:1.6}
+a:focus-visible,button:focus-visible{outline:2px solid var(--clay);outline-offset:3px;border-radius:5px}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:9px;border-radius:var(--r);padding:13px 22px;
+  font-size:15px;font-weight:500;font-family:var(--sans);border:1px solid transparent;
+  cursor:pointer;transition:.2s var(--ease);white-space:nowrap}
+.btn-primary{background:var(--clay-deep);color:#fff}
+.btn-primary:hover{background:#83401f;transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line-2);color:var(--ink);background:transparent}
+.btn-ghost:hover{background:var(--card);border-color:var(--ink-3)}
+.btn svg{width:16px;height:16px}
+
+/* announce */
+.announce{background:var(--ink-dark);color:#f0ede4}
+.announce .wrap{display:flex;gap:11px;align-items:center;justify-content:center;
+  min-height:42px;padding:7px var(--pad-x);font-family:var(--mono);font-size:12.5px;
+  letter-spacing:.01em;text-align:center;flex-wrap:wrap}
+.announce b{color:var(--clay);font-weight:500}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--clay);flex:none;animation:pulse 2.6s var(--ease) infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(251,250,247,.8);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:600;font-size:17px;letter-spacing:-.02em}
+.brand svg{width:26px;height:26px}
+.brand .v{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--ink-3);
+  border:1px solid var(--line-2);border-radius:5px;padding:1px 6px;letter-spacing:0}
+.navlinks{display:flex;gap:28px;margin-left:auto;font-size:15px}
+.navlinks a{color:var(--ink-2);transition:color .18s}
+.navlinks a:hover{color:var(--ink)}
+.navcta{display:flex;gap:10px;align-items:center}
+.navcta .btn{padding:9px 16px;font-size:14px}
+.iconbtn{display:none;background:none;border:1px solid var(--line-2);border-radius:8px;
+  width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+.iconbtn svg{width:20px;height:20px}
+#m-menu{display:none;border-bottom:1px solid var(--line);background:var(--surface)}
+#m-menu a{display:block;padding:15px var(--pad-x);border-top:1px solid var(--line);color:var(--ink-2);font-size:15px}
+
+/* hero */
+.hero{padding:clamp(56px,8vw,104px) 0 clamp(64px,9vw,108px);position:relative}
+.hero .grid{display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(32px,5vw,68px);align-items:center}
+.hero h1{font-family:var(--serif);font-size:clamp(44px,6.6vw,82px);line-height:1.0;
+  letter-spacing:-.018em;color:var(--ink)}
+.hero h1 .pt{color:var(--clay)}
+.hero h1 .em{font-style:italic}
+.hero .sub{font-size:clamp(17px,1.7vw,20px);color:var(--ink-2);max-width:46ch;margin:26px 0 0;line-height:1.58}
+.hero .cta{display:flex;gap:13px;flex-wrap:wrap;align-items:center;margin-top:34px}
+.pill-cmd{display:inline-flex;align-items:center;gap:12px;background:var(--card);
+  border:1px solid var(--line-2);border-radius:var(--r);padding:11px 14px;font-family:var(--mono);
+  font-size:13.5px;color:var(--ink);cursor:pointer;transition:.18s var(--ease)}
+.pill-cmd:hover{border-color:var(--ink-3)}
+.pill-cmd .pf{color:var(--clay-deep)}
+.pill-cmd .cp{display:inline-flex;color:var(--ink-3)}
+.pill-cmd .cp svg{width:15px;height:15px}
+.pill-cmd.copied{border-color:var(--ok);color:var(--ok)}
+.hero .fine{margin-top:20px;font-size:13.5px;color:var(--ink-3);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hero .fine b{color:var(--ink-2);font-weight:500}
+
+/* hero art */
+.art{position:relative;aspect-ratio:1/1;width:100%;max-width:480px;margin-left:auto}
+.art svg{width:100%;height:100%;overflow:visible}
+.gb-face{fill:var(--clay);opacity:.045}
+.gb-edge{fill:none;stroke:var(--ink);stroke-width:1.5;opacity:.4;stroke-linejoin:round}
+.gb-wire{fill:none;stroke:var(--line-2);stroke-width:1.3}
+.gb-live{fill:none;stroke:var(--clay);stroke-width:1.9;stroke-dasharray:4 7;stroke-linecap:round;animation:flow 3.4s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-44}}
+.gb-node{fill:var(--card);stroke:var(--line-2);stroke-width:1.4}
+.gb-hot{fill:var(--clay);stroke:var(--clay-deep);stroke-width:1.4;animation:beat 2.8s var(--ease) infinite}
+@keyframes beat{0%,100%{r:5.5}50%{r:8}}
+.art .cap{position:absolute;left:0;bottom:-2px;font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.02em}
+
+/* logo strip / credibility */
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface)}
+.strip .wrap{padding:30px var(--pad-x);display:flex;align-items:center;gap:clamp(20px,4vw,48px);flex-wrap:wrap;justify-content:center}
+.strip .lab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.strip .items{display:flex;gap:clamp(18px,3vw,40px);flex-wrap:wrap;align-items:center;justify-content:center;
+  font-size:14.5px;color:var(--ink-2)}
+.strip .items b{color:var(--ink);font-weight:500}
+.strip .sep{width:1px;height:16px;background:var(--line-2)}
+
+section{padding:var(--sec-y) 0}
+.section-head{max-width:64ch}
+
+/* pillars */
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:clamp(40px,5vw,60px)}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:30px 28px 28px;transition:.3s var(--ease);display:flex;flex-direction:column}
+.pcard:hover{transform:translateY(-4px);border-color:var(--line-2);box-shadow:0 14px 40px -20px rgba(23,22,20,.18)}
+.pnum{font-family:var(--mono);font-size:12px;color:var(--clay-deep);letter-spacing:.1em}
+.picon{width:44px;height:44px;border:1px solid var(--line-2);border-radius:12px;display:flex;
+  align-items:center;justify-content:center;color:var(--clay);margin:18px 0 20px}
+.picon svg{width:21px;height:21px}
+.pcard h3{font-size:19px;font-weight:600;letter-spacing:-.01em;margin-bottom:9px}
+.pcard p{font-size:14.5px;color:var(--ink-2);line-height:1.6}
+.pcard .stat{margin-top:auto;padding-top:18px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:12px;color:var(--ink-3);display:flex;gap:7px;flex-wrap:wrap;align-items:baseline}
+.pcard .stat b{color:var(--ink);font-weight:500}
+
+/* metrics band */
+.metrics{background:var(--ink-dark);color:#f0ede4}
+.metrics .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(24px,3vw,40px)}
+.metrics .m .n{font-family:var(--serif);font-size:clamp(42px,5.5vw,62px);line-height:1;color:#fff}
+.metrics .m .n em{color:var(--clay);font-style:normal}
+.metrics .m .l{font-size:13.5px;color:#a8a399;margin-top:14px;line-height:1.5}
+.metrics .m .l b{color:#e8e4da;font-weight:500}
+
+/* how it works split */
+.split{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,52px);align-items:start;margin-top:clamp(40px,5vw,58px)}
+.code{background:var(--ink-dark);border:1px solid #2a2722;border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:0 24px 60px -34px rgba(23,22,20,.4)}
+.code .bar{display:flex;align-items:center;gap:7px;padding:13px 16px;border-bottom:1px solid #2a2722}
+.code .bar i{width:11px;height:11px;border-radius:50%;background:#3a3631;display:inline-block}
+.code .bar .fn{margin-left:8px;font-family:var(--mono);font-size:11.5px;color:#6f6a62}
+.code pre{padding:20px 22px;font-family:var(--mono);font-size:13px;line-height:1.85;
+  overflow-x:auto;color:#d6d1c7;tab-size:2}
+.code .k{color:#d98a63}.code .s{color:#9bb48a}.code .c{color:#6f6a62}.code .f{color:#e8e4da}
+.code .hl{background:rgba(184,92,56,.16);display:block;margin:0 -22px;padding:1px 22px;border-left:2px solid var(--clay)}
+.steps{display:flex;flex-direction:column;gap:6px}
+.step{padding:22px 24px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);
+  display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;transition:.25s var(--ease)}
+.step:hover{border-color:var(--line-2)}
+.step .sn{font-family:var(--serif);font-size:30px;color:var(--clay);line-height:.9;width:34px}
+.step h4{font-size:16px;font-weight:600;margin-bottom:5px}
+.step p{font-size:14px;color:var(--ink-2);line-height:1.55}
+
+/* compliance */
+.alt{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.risk{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:clamp(36px,4vw,52px)}
+.risk .rc{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:26px 24px}
+.risk .rc .rn{font-family:var(--serif);font-size:38px;line-height:1;color:var(--ink)}
+.risk .rc .rn em{color:var(--clay);font-style:normal}
+.risk .rc .rl{font-size:14px;color:var(--ink-2);margin-top:12px;line-height:1.5}
+.vault{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.vault div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px 18px;font-size:13.5px;color:var(--ink);line-height:1.45}
+.vault div b{display:block;font-family:var(--mono);font-size:11.5px;color:var(--clay-deep);
+  font-weight:500;margin-bottom:6px;letter-spacing:.02em}
+.vault div.sign{background:var(--clay-tint);border-color:#e6cdbe}
+.artref{margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--ink-3);display:flex;gap:18px;flex-wrap:wrap}
+.artref span b{color:var(--ink-2);font-weight:500}
+
+/* comparison */
+.tablewrap{margin-top:clamp(36px,4vw,52px);border:1px solid var(--line);border-radius:var(--r-lg);
+  overflow:hidden;background:var(--card)}
+table.cmp{width:100%;border-collapse:collapse;font-size:14.5px}
+table.cmp th,table.cmp td{text-align:left;padding:18px 20px;border-bottom:1px solid var(--line)}
+table.cmp thead th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:500;background:var(--surface)}
+table.cmp tbody tr:last-child td{border-bottom:none}
+table.cmp td:first-child,table.cmp th:first-child{font-weight:500;color:var(--ink)}
+table.cmp .me{background:rgba(184,92,56,.045)}
+table.cmp .me td:first-child{box-shadow:inset 2px 0 0 var(--clay)}
+.yes{color:var(--ok);font-weight:500}.no{color:var(--ink-3)}
+.tag{display:inline-block;background:var(--clay-tint);color:var(--clay-deep);border-radius:6px;
+  padding:3px 9px;font-family:var(--mono);font-size:11.5px}
+.disc{margin-top:20px;font-size:13px;color:var(--ink-3);max-width:80ch;line-height:1.65}
+
+/* models */
+table.mdl{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:clamp(36px,4vw,48px)}
+table.mdl th,table.mdl td{text-align:left;padding:16px 16px;border-bottom:1px solid var(--line)}
+table.mdl th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+table.mdl td.mono{font-family:var(--mono);font-size:13px;color:var(--ink-2)}
+.st{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2)}
+.st::before{content:"";width:7px;height:7px;border-radius:50%}
+.st.live::before{background:var(--ok)}
+.st.sched::before{background:var(--clay)}
+.st.impl::before{background:var(--ink-3)}
+
+/* domains */
+.rows{margin-top:clamp(36px,4vw,48px);border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:240px 1fr auto;gap:24px;padding:24px 0;
+  border-bottom:1px solid var(--line);align-items:baseline}
+.row h4{font-size:17px;font-weight:600}
+.row p{font-size:14.5px;color:var(--ink-2)}
+.row .ref{font-family:var(--mono);font-size:12px;color:var(--ink-3);white-space:nowrap}
+
+/* quote */
+.quote{text-align:center;padding:clamp(88px,12vw,148px) 0}
+.quote p{font-family:var(--serif);font-size:clamp(30px,4.4vw,52px);line-height:1.16;
+  letter-spacing:-.012em;max-width:20ch;margin:0 auto;color:var(--ink)}
+.quote .src{font-family:var(--mono);font-size:13px;color:var(--ink-3);margin-top:30px;
+  max-width:54ch;margin-left:auto;margin-right:auto;line-height:1.7}
+.quote .src b{color:var(--clay-deep);font-weight:500}
+
+/* research feed */
+.feed{margin-top:clamp(36px,4vw,48px);display:flex;flex-direction:column}
+.fitem{display:grid;grid-template-columns:140px 1fr auto;gap:24px;padding:24px 0;
+  border-top:1px solid var(--line);align-items:center;transition:.2s var(--ease)}
+.fitem:last-child{border-bottom:1px solid var(--line)}
+.fitem:hover{padding-left:8px}
+.fitem .fd{font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
+.fitem .ft{font-size:16px;font-weight:500;color:var(--ink)}
+.fitem .ft span{display:block;font-weight:400;font-size:13.5px;color:var(--ink-2);margin-top:3px}
+.fitem .fk{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--clay-deep)}
+.fitem .fa{color:var(--ink-3);transition:.2s}
+.fitem:hover .fa{color:var(--clay);transform:translateX(3px)}
+.fitem .fa svg{width:17px;height:17px}
+
+/* cta band */
+.ctaband{text-align:center;padding:clamp(80px,11vw,132px) 0;background:var(--surface);border-top:1px solid var(--line)}
+.ctaband h2{font-family:var(--serif);font-size:clamp(36px,5.5vw,64px);line-height:1.02;letter-spacing:-.018em}
+.ctaband p{color:var(--ink-2);font-size:clamp(16px,1.5vw,19px);margin:18px auto 32px;max-width:48ch}
+.ctaband .cta{display:flex;gap:13px;justify-content:center;flex-wrap:wrap;align-items:center}
+
+/* footer */
+footer{background:var(--ink-dark);color:#cfcabf;padding:clamp(56px,7vw,80px) 0 40px}
+.fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:clamp(24px,3vw,40px);padding-bottom:44px;border-bottom:1px solid #2a2722}
+.fbrand .brand{color:#fff}.fbrand .brand .v{color:#8b8478;border-color:#3a3631}
+.fbrand p{font-size:13.5px;color:#8b8478;max-width:30ch;margin-top:16px;line-height:1.6}
+footer h5{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8b8478;font-weight:500;margin-bottom:16px}
+footer .fcol a{display:block;color:#cfcabf;font-size:14px;margin-bottom:11px;transition:color .18s;width:fit-content}
+footer .fcol a:hover{color:#fff}
+.fbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;padding-top:26px;font-size:12.5px;color:#8b8478}
+.fbar .mono{font-family:var(--mono)}
+
+@media(max-width:960px){
+  .fgrid{grid-template-columns:1fr 1fr 1fr;row-gap:36px}
+  .fbrand{grid-column:1/-1}
+}
+@media(max-width:860px){
+  .navlinks{display:none}.navcta .btn-ghost{display:none}.iconbtn{display:flex}
+  .hero .grid,.split{grid-template-columns:1fr}
+  .art{margin:0 auto;max-width:380px}
+  .pillars,.metrics .grid,.risk .vault,.vault{grid-template-columns:1fr}
+  .metrics .grid{grid-template-columns:1fr 1fr;gap:32px 24px}
+  .risk{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr;gap:6px}.row .ref{margin-top:4px}
+  .fitem{grid-template-columns:1fr;gap:6px}.fitem .fa{display:none}
+}
+@media(max-width:520px){
+  .metrics .grid{grid-template-columns:1fr}
+  table.cmp{font-size:13px}table.cmp th,table.cmp td{padding:13px 12px}
+}
 </style>
 </head>
 <body>
 
-<div class="announce"><div class="wrap"><span class="adot"></span> EU AI Act enforcement starts 2 August 2026. Annex IV becomes mandatory.</div></div>
+<div class="announce"><div class="wrap"><span class="dot"></span> <span>EU AI Act — Annex IV technical documentation becomes <b>mandatory 2 August 2026</b> for high-risk AI systems.</span></div></div>
 
 <nav><div class="wrap">
-  <a class="brand" href="#"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11" y="11" width="10" height="10" rx="2" fill="none" stroke="#b85c38" stroke-width="2"/></svg> glassbox</a>
-  <div class="navlinks"><a href="#method">Method</a><a href="#results">Results</a><a href="#how">How it works</a><a href="#models">Models</a><a href="#compliance">Compliance</a></div>
-  <a class="btn btn-line" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a>
-  <button class="menubtn" id="mtoggle" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <a class="brand" href="#top" aria-label="Glassbox home">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11.5" y="11.5" width="9" height="9" rx="2.5" fill="none" stroke="#b85c38" stroke-width="2"/></svg>
+    glassbox <span class="v">v4.3.1</span>
+  </a>
+  <div class="navlinks">
+    <a href="#method">Method</a><a href="#results">Results</a><a href="#compliance">Compliance</a><a href="#compare">Compare</a><a href="#models">Models</a>
+  </div>
+  <div class="navcta">
+    <a class="btn btn-ghost" href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a>
+    <a class="btn btn-primary" href="https://pypi.org/project/glassbox-mech-interp/">Install</a>
+    <button class="iconbtn" id="mtoggle" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/></svg></button>
+  </div>
 </div>
-<div id="mobile"><a href="#method">Method</a><a href="#results">Results</a><a href="#how">How it works</a><a href="#models">Models</a><a href="#compliance">Compliance</a></div>
+<div id="m-menu">
+  <a href="#method">Method</a><a href="#results">Results</a><a href="#compliance">Compliance</a><a href="#compare">Compare</a><a href="#models">Models</a><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a>
+</div>
 </nav>
 
-<header class="hero"><div class="wrap"><div class="grid">
+<header class="hero" id="top"><div class="wrap"><div class="grid">
   <div class="reveal">
-    <div class="kicker">Mechanistic interpretability · EU AI Act</div>
-    <h1 class="serif">See inside the <em>black box</em></h1>
-    <p>Glassbox reads a model's internal circuits and writes the EU AI Act Annex IV paperwork for you. One function call. Under two seconds.</p>
+    <span class="eyebrow">Mechanistic interpretability for the EU AI Act</span>
+    <h1 class="serif">Prove what your<br>model <span class="em">actually</span> did<span class="pt">.</span></h1>
+    <p class="sub">Glassbox traces the exact circuit behind a decision, measures how faithful that explanation really is, and writes the Annex IV documentation — one function call, under two seconds, on open-weight models.</p>
     <div class="cta">
-      <a class="btn btn-primary" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Try the live demo</a>
-      <a class="btn btn-line" href="https://pypi.org/project/glassbox-mech-interp/">pip install glassbox-mech-interp</a>
+      <button class="pill-cmd" id="copycmd" aria-label="Copy install command">
+        <span><span class="pf">$</span>&nbsp;pip install glassbox-mech-interp</span>
+        <span class="cp" id="cpicon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span>
+      </button>
+      <a class="btn btn-ghost" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">See it on a live model
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
+    <div class="fine"><b>Open source</b> · MIT core · runs on <b>GPT-2 → Llama-3, Mistral, Phi-3</b></div>
   </div>
-  <div class="art reveal" role="img" aria-label="A glass box holding an attention circuit, with two causal pathways lit in clay.">
-    <svg viewBox="0 0 360 360">
-      <polygon class="cubeface" points="70,96 244,70 290,250 116,276"/>
-      <path class="cube" d="M70,96 L244,70 L290,250 L116,276 Z"/>
-      <path class="cube" d="M70,96 L96,150 M244,70 L268,128 M290,250 L266,300 M116,276 L92,224"/>
-      <path class="edge" d="M120,140 L180,120 L240,150"/><path class="edge" d="M120,140 L150,200 L210,210"/>
-      <path class="edge" d="M240,150 L210,210 L250,250"/><path class="edge" d="M180,120 L150,200"/>
-      <path class="edge-live" d="M120,140 L180,120 L210,210 L250,250"/><path class="edge-live" d="M150,200 L210,210 L240,150"/>
-      <circle class="node" cx="120" cy="140" r="6"/><circle class="node" cx="240" cy="150" r="6"/><circle class="node" cx="250" cy="250" r="6"/>
-      <circle class="node-live" cx="180" cy="120" r="6"/><circle class="node-live" cx="150" cy="200" r="6"/><circle class="node-live" cx="210" cy="210" r="6"/>
+
+  <div class="art reveal" role="img" aria-label="A glass box holding an attention circuit, with the causally important pathways lit in clay.">
+    <svg viewBox="0 0 400 400">
+      <polygon class="gb-face" points="78,104 268,76 320,276 128,308"/>
+      <path class="gb-edge" d="M78,104 L268,76 L320,276 L128,308 Z"/>
+      <path class="gb-edge" d="M78,104 L104,160 M268,76 L296,140 M320,276 L292,330 M128,308 L100,250"/>
+      <path class="gb-edge" d="M104,160 L296,140 L292,330 L100,250 Z" opacity=".22"/>
+      <path class="gb-wire" d="M150,168 L210,150 L268,178"/>
+      <path class="gb-wire" d="M150,168 L182,232 L244,238"/>
+      <path class="gb-wire" d="M268,178 L244,238 L276,282"/>
+      <path class="gb-wire" d="M210,150 L182,232"/>
+      <path class="gb-wire" d="M244,238 L210,150"/>
+      <path class="gb-live" d="M150,168 L210,150 L244,238 L276,282"/>
+      <path class="gb-live" d="M182,232 L244,238 L268,178"/>
+      <circle class="gb-node" cx="150" cy="168" r="5.5"/>
+      <circle class="gb-node" cx="268" cy="178" r="5.5"/>
+      <circle class="gb-node" cx="276" cy="282" r="5.5"/>
+      <circle class="gb-hot" cx="210" cy="150" r="6"/>
+      <circle class="gb-hot" cx="182" cy="232" r="6"/>
+      <circle class="gb-hot" cx="244" cy="238" r="6"/>
     </svg>
+    <span class="cap">minimal faithful circuit · 3 heads</span>
   </div>
 </div></div></header>
 
-<div class="trust reveal"><div class="wrap">
-  <div class="lab">Runs on open-weight models</div>
-  <div class="items"><span>GPT-2</span><span>Pythia</span><span>GPT-J</span><span>Llama 2 / 3</span><span>Mistral</span><span>Phi-2 / 3</span><span>Gemma</span><span>Qwen2</span></div>
+<div class="strip reveal"><div class="wrap">
+  <span class="lab">Grounded in</span>
+  <div class="items">
+    <span>Built on <b>PyTorch</b> &amp; <b>TransformerLens</b></span><span class="sep"></span>
+    <span>Method anchored to <b>ACDC</b> (Conmy 2023) &amp; <b>IOI</b> (Wang 2022)</span><span class="sep"></span>
+    <span><b>76</b> automated tests</span><span class="sep"></span>
+    <span><b>arXiv 2603.09988</b></span>
+  </div>
 </div></div>
 
-<section id="why"><div class="wrap">
-  <div class="reveal"><div class="kicker">Why now</div>
-  <h2 class="big serif">The deadline is the whole story</h2>
-  <p class="lead">From 2 August 2026, any high-risk AI system sold into the EU has to keep Annex IV technical documentation. Skip it and the fine reaches €35M or 7% of global revenue, whichever is larger. Most teams still write this by hand, one model at a time. That is the gap Glassbox closes.</p></div>
-</div></section>
-
-<section id="method" class="alt"><div class="wrap">
-  <div class="reveal"><div class="kicker">The method</div>
-  <h2 class="big serif">Proof from the model's<br>own wiring</h2>
-  <p class="lead">Glassbox ranks every attention head by how much it actually causes the output, then keeps only the heads you truly need. You get the real circuit, not a tidy story told after the fact.</p></div>
+<section id="method"><div class="wrap">
+  <div class="section-head reveal">
+    <span class="eyebrow">The method</span>
+    <h2 class="h">Proof from the model's own wiring,<br>not a story told afterward</h2>
+    <p class="lead">Most explainability tools describe a model from the outside. Glassbox reads the inside — ranking every attention head by the effect it actually has on the output, then keeping only the heads the decision truly depends on.</p>
+  </div>
   <div class="pillars">
-    <div class="pill reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg></div><h3>Discover</h3><p>Attribution patching scores each head by its causal effect. Three forward passes, no correlation guesswork.</p></div>
-    <div class="pill reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12l5 5L20 6"/></svg></div><h3>Verify</h3><p>Sufficiency and comprehensiveness find the smallest circuit that still reproduces the behaviour, checked against full ablation.</p></div>
-    <div class="pill reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg></div><h3>Document</h3><p>Write the full 9-section Annex IV vault. Same input gives the same output, and it is hashed so nobody can edit it quietly.</p></div>
+    <div class="pcard reveal">
+      <span class="pnum">01</span>
+      <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5" stroke-linecap="round"/></svg></div>
+      <h3>Discover</h3>
+      <p>Attribution patching scores each attention head by its causal effect on the prediction — three forward passes, no correlation guesswork.</p>
+      <div class="stat"><b>37× faster</b> than ACDC · <b>1.2s</b> on CPU</div>
+    </div>
+    <div class="pcard reveal">
+      <span class="pnum">02</span>
+      <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3>Verify</h3>
+      <p>Sufficiency and comprehensiveness isolate the smallest circuit that still reproduces the behaviour, scored against full ablation — so the explanation is measured, not asserted.</p>
+      <div class="stat">GPT-2 IOI · <b>suff 1.00</b> · <b>comp 0.22</b> · <b>F1 0.64</b></div>
+    </div>
+    <div class="pcard reveal">
+      <span class="pnum">03</span>
+      <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5" stroke-linejoin="round"/></svg></div>
+      <h3>Document</h3>
+      <p>Eight of the nine Annex IV sections are written straight from the model and content-hashed, so nothing can be edited quietly. The ninth — the Declaration of Conformity — stays in your hands.</p>
+      <div class="stat"><b>9-section</b> Annex IV vault · hashed</div>
+    </div>
   </div>
 </div></section>
 
 <section id="results" class="metrics"><div class="wrap">
+  <div class="section-head reveal" style="margin-bottom:clamp(40px,5vw,58px)">
+    <span class="eyebrow" style="color:var(--clay)">Measured results</span>
+    <h2 class="h" style="color:#fff">Numbers you can reproduce</h2>
+  </div>
   <div class="grid">
-    <div class="reveal"><div class="n" data-count="37" data-suffix="×">37×</div><div class="l">faster than ACDC · 1.2s vs 43.2s</div></div>
-    <div class="reveal"><div class="n" data-count="0.64" data-dp="2">0.64</div><div class="l">faithfulness F1, graded B</div></div>
-    <div class="reveal"><div class="n">9<em>/</em>9</div><div class="l">Annex IV sections structured</div></div>
-    <div class="reveal"><div class="n">&lt;2s</div><div class="l">full audit on GPT-2 Small</div></div>
+    <div class="m reveal"><div class="n" data-count="37" data-suffix="×">37×</div><div class="l">faster than ACDC<br><b>1.2s vs 43.2s</b>, GPT-2 Small</div></div>
+    <div class="m reveal"><div class="n" data-count="0.64" data-dp="2">0.64</div><div class="l">faithfulness <b>F1</b>, Grade B<br>vs brute-force ablation</div></div>
+    <div class="m reveal"><div class="n">9<em>/</em>9</div><div class="l">Annex IV sections<br><b>structured</b> from one run</div></div>
+    <div class="m reveal"><div class="n" data-count="0.009" data-dp="3">0.009</div><div class="l">confidence ↔ faithfulness<br><b>correlation</b> (r), orthogonal</div></div>
   </div>
 </div></section>
 
 <section id="how"><div class="wrap">
-  <div class="reveal"><div class="kicker">How it works</div>
-  <h2 class="big serif">From prompt to evidence</h2>
-  <p class="lead">The same call works whether you are auditing a loan model, a triage classifier, or a CV screener. It picks its own counterfactual when you let it.</p></div>
+  <div class="section-head reveal">
+    <span class="eyebrow">From prompt to evidence</span>
+    <h2 class="h">One call. Any decision.</h2>
+    <p class="lead">The same call works whether you're auditing a loan model, a triage classifier, or a CV screener. It picks its own counterfactual when you let it.</p>
+  </div>
   <div class="split">
     <div class="code reveal">
-      <div class="bar"><i></i><i></i><i></i></div>
+      <div class="bar"><i></i><i></i><i></i><span class="fn">audit.py</span></div>
       <pre><span class="c"># any prompt, any domain</span>
-<span class="s">from</span> glassbox <span class="s">import</span> GlassboxV2, build_annex_iv_vault
+<span class="k">from</span> glassbox <span class="k">import</span> <span class="f">GlassboxV2</span>, build_annex_iv_vault
 
-gb = GlassboxV2(model)
-result = gb.analyze(
+gb = <span class="f">GlassboxV2</span>(model)
+result = gb.<span class="f">analyze</span>(
     prompt=<span class="s">"Income €42,000. Decision:"</span>,
     correct=<span class="s">" Approved"</span>,
     incorrect=<span class="s">" Denied"</span>,
     corruption_strategy=<span class="s">"auto"</span>,
 )
 <span class="hl">result[<span class="s">"faithfulness"</span>][<span class="s">"f1"</span>]   <span class="c"># 0.64</span></span>
-vault = build_annex_iv_vault(result)</pre>
+vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     </div>
-    <div class="steps reveal" style="grid-template-columns:1fr">
-      <div class="step"><div class="no">1</div><h4>Point it at a model</h4><p>Load any open-weight transformer. No fine-tuning, no labels, no setup.</p></div>
-      <div class="step"><div class="no">2</div><h4>Run one call</h4><p>It finds the circuit and scores how faithful that circuit is to the decision.</p></div>
-      <div class="step"><div class="no">3</div><h4>Get the vault</h4><p>A regulator-ready Annex IV file, hashed and ready to hand over.</p></div>
+    <div class="steps reveal">
+      <div class="step"><span class="sn">1</span><div><h4>Point it at a model</h4><p>Load any open-weight transformer. No fine-tuning, no labels, no setup.</p></div></div>
+      <div class="step"><span class="sn">2</span><div><h4>Run one call</h4><p>It finds the circuit and scores how faithful that circuit is to the decision.</p></div></div>
+      <div class="step"><span class="sn">3</span><div><h4>Get the vault</h4><p>A regulator-ready Annex IV record, content-hashed and ready to hand over.</p></div></div>
     </div>
   </div>
-</div></section>
-
-<section id="anyprompt" class="alt"><div class="wrap">
-  <div class="reveal"><div class="kicker">Any prompt, any domain</div>
-  <h2 class="big serif">Not just toy tasks</h2>
-  <p class="lead">Early circuit tools only handled name-swap puzzles. Glassbox picks a counterfactual that fits the prompt in front of it, and each strategy comes from a published method.</p></div>
-  <div class="rows reveal">
-    <div class="r"><h4>Credit</h4><p>Loan affordability and limit decisions <span class="mono">· Annex III §5(b)</span></p></div>
-    <div class="r"><h4>Medical triage</h4><p>Priority and severity classification <span class="mono">· high-risk</span></p></div>
-    <div class="r"><h4>Employment</h4><p>CV screening and candidate ranking <span class="mono">· Annex III §4</span></p></div>
-    <div class="r"><h4>Strategies</h4><p>name-swap, antonym, semantic negation, random-token fallback <span class="mono">· auto</span></p></div>
-  </div>
-</div></section>
-
-<section id="models"><div class="wrap">
-  <div class="reveal"><div class="kicker">Model coverage</div>
-  <h2 class="big serif">Open weights, GPT-2 to 200B+</h2>
-  <p class="lead">Eleven architecture families, with grouped-query attention and RMSNorm handled correctly. Big models run through gradient checkpointing and activation offload so you do not need a data centre to audit them.</p></div>
-  <table class="reveal">
-    <tr><th>Class</th><th>Range</th><th>Strategy</th><th>Status</th></tr>
-    <tr><td>small / medium</td><td class="mono">&lt; 7B</td><td class="mono">standard</td><td><span class="tag">runs today</span></td></tr>
-    <tr><td>large</td><td class="mono">7B – 70B</td><td class="mono">checkpoint</td><td><span class="tag">verification scheduled</span></td></tr>
-    <tr><td>xlarge / xxlarge</td><td class="mono">70B – 200B+</td><td class="mono">checkpoint + offload</td><td><span class="tag">implemented</span></td></tr>
-  </table>
-  <p class="disc">Circuit-level analysis needs open weights. Closed API models like Claude, GPT, and Gemini can only get black-box documentation support, because faithfulness cannot be measured without access to the weights.</p>
 </div></section>
 
 <section id="compliance" class="alt"><div class="wrap">
-  <div class="reveal"><div class="kicker">EU AI Act</div>
-  <h2 class="big serif">Annex IV, written for you</h2>
-  <p class="lead">Annex IV has nine sections. Glassbox fills eight of them straight from the model. The ninth, the EU Declaration of Conformity, is a legal sign-off you keep in your own hands.</p></div>
+  <div class="section-head reveal">
+    <span class="eyebrow">EU AI Act · Annex IV</span>
+    <h2 class="h">The documentation, written<br>from the model itself</h2>
+    <p class="lead">From 2 August 2026, every high-risk AI system placed on the EU market must keep Annex IV technical documentation. Glassbox fills eight of the nine sections directly from the model's measured behaviour.</p>
+  </div>
+  <div class="risk">
+    <div class="rc reveal"><div class="rn"><em>€35M</em></div><div class="rl">or 7% of global annual turnover — the maximum penalty under Article 99 for the worst violations.</div></div>
+    <div class="rc reveal"><div class="rn"><em>2 Aug</em> 2026</div><div class="rl">enforcement date for high-risk obligations, including Annex IV documentation.</div></div>
+    <div class="rc reveal"><div class="rn"><em>8</em> of 9</div><div class="rl">Annex IV sections generated automatically; the Declaration of Conformity stays a human sign-off.</div></div>
+  </div>
   <div class="vault reveal">
     <div><b>§1</b>General description of the system</div>
     <div><b>§2</b>Development process and design</div>
-    <div><b>§3</b>Monitoring, functioning, control</div>
-    <div><b>§4</b>Performance metrics</div>
-    <div><b>§5</b>Risk management (Article 9)</div>
+    <div><b>§3</b>Monitoring, functioning and control</div>
+    <div><b>§4</b>Performance metrics and faithfulness</div>
+    <div><b>§5</b>Risk management — Article 9</div>
     <div><b>§6</b>Changes across the lifecycle</div>
-    <div><b>§7</b>Standards applied (Article 40)</div>
-    <div><b>§8</b>Declaration of conformity — you sign</div>
-    <div><b>§9</b>Post-market monitoring (Article 72)</div>
+    <div><b>§7</b>Standards applied — Article 40</div>
+    <div class="sign"><b>§8</b>Declaration of conformity — you sign</div>
+    <div><b>§9</b>Post-market monitoring — Article 72</div>
+  </div>
+  <div class="artref">
+    <span><b>Article 9</b> risk management</span>
+    <span><b>Article 13</b> transparency</span>
+    <span><b>Article 15</b> accuracy &amp; robustness</span>
+    <span><b>Article 72</b> post-market monitoring</span>
   </div>
 </div></section>
 
-<section class="quote"><div class="wrap reveal">
-  <p class="serif">A confident answer is not the same as a correct one.</p>
-  <div class="src">Confidence and circuit faithfulness barely correlate (r = 0.009). That finding is why auditors need the circuit, not the score.</div>
+<section id="compare"><div class="wrap">
+  <div class="section-head reveal">
+    <span class="eyebrow">How Glassbox compares</span>
+    <h2 class="h">Faithfulness is the line<br>most tools can't cross</h2>
+    <p class="lead">Black-box explainers describe a model from the outside and can't tell you whether the explanation is true. Circuit tools can — but they're slow. Glassbox keeps the rigour and drops the cost.</p>
+  </div>
+  <div class="tablewrap reveal">
+    <table class="cmp">
+      <thead><tr><th>Approach</th><th>Faithfulness measured?</th><th>Needs open weights?</th><th>Speed (GPT-2)</th></tr></thead>
+      <tbody>
+        <tr class="me"><td>Glassbox <span class="tag">attribution patching</span></td><td><span class="yes">Yes — suff / comp / F1</span></td><td>Yes</td><td><b>1.2s</b></td></tr>
+        <tr><td>ACDC <span style="color:var(--ink-3);font-size:12.5px">(Conmy 2023)</span></td><td><span class="yes">Yes</span></td><td>Yes</td><td>43.2s <span class="no">· 37× slower</span></td></tr>
+        <tr><td>SHAP / LIME <span style="color:var(--ink-3);font-size:12.5px">(black-box)</span></td><td><span class="no">No guarantee</span></td><td>No — works on APIs</td><td>varies</td></tr>
+        <tr><td>Confidence scores</td><td><span class="no">No — r = 0.009</span></td><td>No</td><td>instant</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="disc">Each row reflects a different trade-off, not a verdict. Black-box methods are the right tool when you only have API access; Glassbox needs open weights because faithfulness cannot be measured without reading the circuit. Where weights are available, it gives you ACDC-grade circuits at a fraction of the runtime — and, unlike a confidence score, an explanation whose faithfulness is actually quantified.</p>
 </div></section>
 
-<section id="cta" class="cta-band"><div class="wrap reveal">
+<section id="models" class="alt"><div class="wrap">
+  <div class="section-head reveal">
+    <span class="eyebrow">Model coverage</span>
+    <h2 class="h">Open weights, GPT-2 to 200B+</h2>
+    <p class="lead">Eleven architecture families, with grouped-query attention and RMSNorm handled correctly. Large models run through gradient checkpointing and activation offload, so you don't need a data centre to audit them.</p>
+  </div>
+  <table class="mdl reveal">
+    <thead><tr><th>Class</th><th>Parameter range</th><th>Strategy</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>small / medium</td><td class="mono">&lt; 7B</td><td class="mono">standard</td><td><span class="st live">runs today</span></td></tr>
+      <tr><td>large</td><td class="mono">7B – 70B</td><td class="mono">checkpoint</td><td><span class="st sched">verification scheduled</span></td></tr>
+      <tr><td>xlarge / xxlarge</td><td class="mono">70B – 200B+</td><td class="mono">checkpoint + offload</td><td><span class="st impl">implemented</span></td></tr>
+    </tbody>
+  </table>
+  <p class="disc">Circuit-level analysis requires open weights. Closed API models — Claude, GPT, Gemini — can only receive black-box documentation support, because faithfulness cannot be measured without access to the weights.</p>
+</div></section>
+
+<section id="domains"><div class="wrap">
+  <div class="section-head reveal">
+    <span class="eyebrow">Any prompt, any domain</span>
+    <h2 class="h">Not just toy tasks</h2>
+    <p class="lead">Early circuit tools only handled name-swap puzzles. Glassbox picks a counterfactual that fits the prompt in front of it, and every strategy traces to a published method.</p>
+  </div>
+  <div class="rows reveal">
+    <div class="row"><h4>Credit</h4><p>Loan affordability and limit decisions</p><span class="ref">Annex III §5(b)</span></div>
+    <div class="row"><h4>Medical triage</h4><p>Priority and severity classification</p><span class="ref">high-risk</span></div>
+    <div class="row"><h4>Employment</h4><p>CV screening and candidate ranking</p><span class="ref">Annex III §4</span></div>
+    <div class="row"><h4>Corruption strategies</h4><p>name-swap, antonym, semantic negation, random-token fallback</p><span class="ref">auto</span></div>
+  </div>
+</div></section>
+
+<section class="quote alt"><div class="wrap reveal">
+  <p class="serif">A confident answer is not the same as a correct one.</p>
+  <div class="src">Across our runs, model confidence and circuit faithfulness barely correlate — <b>r = 0.009</b>. That's why a compliance auditor needs the circuit, not the score.</div>
+</div></section>
+
+<section id="research"><div class="wrap">
+  <div class="section-head reveal">
+    <span class="eyebrow">Research &amp; releases</span>
+    <h2 class="h">The work behind the tool</h2>
+  </div>
+  <div class="feed">
+    <a class="fitem reveal" href="https://arxiv.org/abs/2603.09988">
+      <span class="fd">2026</span>
+      <span class="ft">Faithful circuit discovery for compliance audits<span>Attribution patching, faithfulness metrics, and the confidence–faithfulness gap. Mahale, 2026.</span></span>
+      <span class="fk">Paper</span>
+      <span class="fa" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 17L17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </a>
+    <a class="fitem reveal" href="https://pypi.org/project/glassbox-mech-interp/">
+      <span class="fd">v4.3.1</span>
+      <span class="ft">Multi-architecture adapter<span>Llama-3, Mistral and Phi-3 support with grouped-query attention and RMSNorm folding.</span></span>
+      <span class="fk">Release</span>
+      <span class="fa" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 17L17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </a>
+    <a class="fitem reveal" href="https://github.com/designer-coderajay/glassbox-mech">
+      <span class="fd">Note</span>
+      <span class="ft">Why confidence isn't a compliance proxy<span>The orthogonality result (r = 0.009) and what it means for auditors relying on model confidence.</span></span>
+      <span class="fk">Engineering</span>
+      <span class="fa" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 17L17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </a>
+  </div>
+</div></section>
+
+<section class="ctaband"><div class="wrap reveal">
   <h2 class="serif">Audit a model in two seconds</h2>
-  <p>Open-source core. Evidence your compliance team can actually use.</p>
-  <div class="cta" style="justify-content:center">
-    <a class="btn btn-primary" href="https://pypi.org/project/glassbox-mech-interp/">Install Glassbox</a>
-    <a class="btn btn-line" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Open the demo</a>
+  <p>Open-source core. Evidence your compliance team can actually defend — and a regulator can actually read.</p>
+  <div class="cta">
+    <a class="btn btn-primary" href="https://pypi.org/project/glassbox-mech-interp/">pip install glassbox-mech-interp</a>
+    <a class="btn btn-ghost" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Open the live demo
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
 </div></section>
 
 <footer><div class="wrap">
   <div class="fgrid">
-    <div>
-      <a class="brand" href="#" style="margin-bottom:14px"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11" y="11" width="10" height="10" rx="2" fill="none" stroke="#b85c38" stroke-width="2"/></svg> glassbox</a>
-      <p class="muted" style="font-size:14px;max-width:32ch">See inside the black box. MIT core, BSL 1.1 compliance engine, v4.3.1.</p>
+    <div class="fbrand">
+      <a class="brand" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11.5" y="11.5" width="9" height="9" rx="2.5" fill="none" stroke="#b85c38" stroke-width="2"/></svg> glassbox <span class="v">v4.3.1</span></a>
+      <p>See inside the black box. Causal circuits, measured faithfulness, and EU AI Act Annex IV — from one function call.</p>
     </div>
-    <div><h5>Product</h5><a href="https://pypi.org/project/glassbox-mech-interp/">PyPI package</a><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a><a href="#compliance">Compliance</a></div>
-    <div><h5>Resources</h5><a href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a><a href="https://arxiv.org/abs/2603.09988">Paper</a><a href="#how">How it works</a></div>
-    <div><h5>Models</h5><a href="#models">Coverage</a><a href="#anyprompt">Domains</a><a href="#results">Results</a></div>
+    <div class="fcol"><h5>Product</h5>
+      <a href="https://pypi.org/project/glassbox-mech-interp/">PyPI package</a>
+      <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a>
+      <a href="#how">How it works</a>
+    </div>
+    <div class="fcol"><h5>For engineers</h5>
+      <a href="https://github.com/designer-coderajay/glassbox-mech">GitHub</a>
+      <a href="#method">Method</a>
+      <a href="#models">Model coverage</a>
+    </div>
+    <div class="fcol"><h5>For compliance</h5>
+      <a href="#compliance">Annex IV</a>
+      <a href="#compare">How it compares</a>
+      <a href="#results">Faithfulness</a>
+    </div>
+    <div class="fcol"><h5>Research</h5>
+      <a href="https://arxiv.org/abs/2603.09988">Paper</a>
+      <a href="#research">Releases</a>
+      <a href="#compliance">EU AI Act</a>
+    </div>
   </div>
-  <div class="fbar"><span>© 2026 Ajay Pravin Mahale</span><span class="mono">Outputs are documentation aids, not legal advice or a conformity declaration.</span></div>
+  <div class="fbar">
+    <span>© 2026 Ajay Pravin Mahale · MIT core, BSL 1.1 compliance engine</span>
+    <span class="mono">Outputs are documentation aids, not legal advice or a conformity declaration.</span>
+  </div>
 </div></footer>
 
 <script>
-const mt=document.getElementById('mtoggle'),mo=document.getElementById('mobile');
-mt&&mt.addEventListener('click',()=>{const o=mo.style.display==='block';mo.style.display=o?'none':'block';mt.setAttribute('aria-expanded',!o)});
-const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
-document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-function countUp(el){const t=parseFloat(el.dataset.count),dp=parseInt(el.dataset.dp||'0'),sfx=el.dataset.suffix||'';let s=null;const d=900;
-  function step(ts){if(!s)s=ts;const p=Math.min((ts-s)/d,1);const v=t*p;el.textContent=(dp?v.toFixed(dp):Math.round(v))+sfx;if(p<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
-const rm=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-document.querySelectorAll('.n[data-count]').forEach(el=>{if(rm){el.textContent=(el.dataset.dp?parseFloat(el.dataset.count).toFixed(el.dataset.dp):el.dataset.count)+(el.dataset.suffix||'');return;}
-  const o=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){countUp(el);o.unobserve(el)}})},{threshold:.5});o.observe(el)});
+(function(){
+  var mt=document.getElementById('mtoggle'),mo=document.getElementById('m-menu');
+  if(mt){mt.addEventListener('click',function(){var o=mo.style.display==='block';mo.style.display=o?'none':'block';mt.setAttribute('aria-expanded',String(!o));});
+    mo.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){mo.style.display='none';mt.setAttribute('aria-expanded','false');});});}
+
+  var cmd=document.getElementById('copycmd'),ci=document.getElementById('cpicon');
+  if(cmd){cmd.addEventListener('click',function(){
+    navigator.clipboard&&navigator.clipboard.writeText('pip install glassbox-mech-interp').then(function(){
+      cmd.classList.add('copied');ci.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      setTimeout(function(){cmd.classList.remove('copied');ci.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';},1800);
+    });});}
+
+  var rm=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+
+  function countUp(el){var t=parseFloat(el.dataset.count),dp=parseInt(el.dataset.dp||'0'),sfx=el.dataset.suffix||'',s=null,d=1100;
+    function step(ts){if(!s)s=ts;var p=Math.min((ts-s)/d,1),e=1-Math.pow(1-p,3),v=t*e;el.textContent=(dp?v.toFixed(dp):Math.round(v))+sfx;if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+  document.querySelectorAll('.n[data-count]').forEach(function(el){
+    if(rm){el.textContent=(el.dataset.dp?parseFloat(el.dataset.count).toFixed(el.dataset.dp):el.dataset.count)+(el.dataset.suffix||'');return;}
+    var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){countUp(el);o.unobserve(el);}});},{threshold:.6});o.observe(el);});
+})();
 </script>
 </body>
 </html>
