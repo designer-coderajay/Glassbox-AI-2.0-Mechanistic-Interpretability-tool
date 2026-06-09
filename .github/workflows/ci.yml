@@ -106,17 +106,17 @@ jobs:
           python -c "import importlib.metadata as m; print('transformer_lens', m.version('transformer-lens'))" || echo "version lookup skipped (non-fatal)"
 
       - name: Run full suite with coverage (gate at measured floor)
-        # Measured real coverage (engine + pure-Python suites): 51% locally
-        # (627 passed, 2026-06-08), up from 48% after adding explain/notify/
-        # telemetry/bias tests. Gate set to 50% — a buffer below current.
-        # Target is 80%; raise as the model-dependent modules (acdc, das,
-        # cross_model, core remainder) gain coverage.
+        # Measured real coverage: 54% locally, 656 passed (2026-06-08). Modules
+        # explain/notify/bias/telemetry are at 100%; core.py at 98% (defensive
+        # guards pragma'd, a few hard real branches left honestly uncovered).
+        # Gate set to 52% — a buffer below current. Target is 80%; raise as the
+        # remaining model-dependent modules (acdc, das, cross_model) gain tests.
         run: |
           pytest \
             --cov=glassbox \
             --cov-report=term-missing \
             --cov-report=xml \
-            --cov-fail-under=50 \
+            --cov-fail-under=52 \
             -v
 
       - name: Upload coverage report
