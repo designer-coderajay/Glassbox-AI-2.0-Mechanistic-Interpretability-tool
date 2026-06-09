@@ -14,6 +14,45 @@ from glassbox.acdc import ACDCCircuit, ACDCEdge, ACDCResult
 
 
 # ---------------------------------------------------------------------------
+# discover() — the real ACDC algorithm on a small 2-layer model.
+# Marked slow: it loads a model and tests every candidate edge. A 2-layer
+# model keeps that to a few dozen edges so the run stays well under a minute.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.slow
+class TestDiscover:
+    @pytest.fixture(scope="class")
+    def small_model(self):
+        import sys
+        _tl = sys.modules.get("transformer_lens")
+        if _tl is not None and not hasattr(_tl, "__file__"):
+            pytest.skip("transformer_lens is a test stub, not the real package")
+        pytest.importorskip("transformer_lens")
+        from transformer_lens import HookedTransformer
+        # gelu-2l: 2 layers with MLPs -> a complete (and tiny) ACDC edge graph.
+        return HookedTransformer.from_pretrained("gelu-2l")
+
+    def test_discover_returns_valid_result(self, small_model):
+        from glassbox.acdc import AutomatedCircuitDiscovery
+
+        clean = small_model.to_tokens("The cat sat on the mat and looked around")
+        corrupted = clean.clone()
+        # swap one interior token -> same length, a valid corruption for patching
+        corrupted[0, 3] = clean[0, 1]
+
+        acdc = AutomatedCircuitDiscovery(small_model, threshold=0.5)
+        result = acdc.discover(clean, corrupted)
+
+        assert isinstance(result, ACDCResult)
+        assert isinstance(result.kl_circuit, float)
+        assert result.n_edges_total > 0
+        assert result.circuit.n_edges() <= result.n_edges_total
+        assert result.faithfulness_grade() in ("STRONG", "PARTIAL", "WEAK")
+        assert "ACDC" in result.summary()
+        assert "kl_circuit" in result.to_dict()
+
+
+# ---------------------------------------------------------------------------
 # ACDCEdge
 # ---------------------------------------------------------------------------
 
