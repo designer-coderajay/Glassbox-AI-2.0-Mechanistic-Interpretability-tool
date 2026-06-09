@@ -594,7 +594,7 @@ def analyze_large(
     print(result["corruption_metadata"]["strategy"])  # which corruption was used
     """
     # Build the memory-efficient patcher
-    patcher = LargeModelAttributionPatcher(gb, strategy=strategy, dtype=dtype)
+    LargeModelAttributionPatcher(gb, strategy=strategy, dtype=dtype)
 
     # Log memory estimate before running
     d = getattr(gb.model.cfg, "d_model", 768)

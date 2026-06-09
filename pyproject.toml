@@ -202,5 +202,26 @@ ignore_missing_imports = true
 [tool.ruff]
 line-length    = 100
 target-version = "py38"
-select         = ["E", "F", "I", "N", "UP"]
-ignore         = ["E501"]
+
+[tool.ruff.lint]
+# Enforce the rules that catch real bugs and keep the codebase clean:
+#   E  — style errors (minus the stylistic ones ignored below)
+#   F  — pyflakes: undefined names (caught our F821 NameError), unused imports/vars
+#   I  — import ordering
+# Dropped:
+#   N  — naming; fights standard ML math notation (W_O, W_Q, Δz, layer index `l`)
+#   UP — optional type-hint modernization (Dict->dict); cosmetic, not a bug
+select = ["E", "F", "I"]
+# Stylistic E codes that don't indicate bugs:
+#   E501 line length · E701 one-line compound · E731 lambda assign · E741 `l` name
+ignore = ["E501", "E701", "E731", "E741"]
+
+[tool.ruff.lint.per-file-ignores]
+# __init__.py re-exports the public API — "unused"/redefined imports are
+# intentional (that's how `from glassbox import GlassboxV2` works).
+"glassbox/__init__.py" = ["F401", "F811"]
+# Optional-dependency import blocks: reportlab (PDF generation) and ipywidgets
+# (Jupyter). Imported inside try/except to gate availability — flagged "unused"
+# but removing them would break the graceful optional-dep detection.
+"glassbox/compliance.py" = ["F401"]
+"glassbox/widget.py" = ["F401"]

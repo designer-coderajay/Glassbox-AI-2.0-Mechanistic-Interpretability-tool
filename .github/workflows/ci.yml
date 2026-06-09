@@ -46,9 +46,10 @@ jobs:
         run: pip install "ruff==0.15.16"
 
       - name: Run ruff
-        # WARN-ONLY for now: ~955 cosmetic items (Dict->dict, etc.) remain.
-        # After the cosmetic sweep, delete the next line to make lint blocking.
-        continue-on-error: true
+        # BLOCKING. Lint enforces E/F/I — real bugs (undefined names, unused
+        # imports/vars), import order, and style errors — while ignoring ML math
+        # naming (W_O, W_Q, layer `l`) and optional type-hint modernization.
+        # This is the gate that would have caught the F821 NameError from 4.3.1.
         run: ruff check glassbox/
 
   # ---------------------------------------------------------------------------

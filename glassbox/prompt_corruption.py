@@ -208,7 +208,6 @@ _ANTONYM_TABLE: Dict[str, str] = {
 
     # ── Financial risk / credit (Annex III Art. 5(1)(d)) ────────────────────
     "risky":          "safe",
-    "safe":           "risky",
     "fraud":          "legitimate",
     "legitimate":     "fraud",
     "fraudulent":     "genuine",
@@ -218,15 +217,13 @@ _ANTONYM_TABLE: Dict[str, str] = {
     "insolvent":      "solvent",
     "solvent":        "insolvent",
     "creditworthy":   "uncreditworthy",
-    "uncreditworthy": "creditworthy",
-    "approved":       "denied",   # duplicate — kept for coverage
+    "uncreditworthy": "creditworthy",   # duplicate — kept for coverage
     "profitable":     "unprofitable",
     "unprofitable":   "profitable",
     "liquid":         "illiquid",
     "illiquid":       "liquid",
     "compliant":      "non-compliant",
     "non-compliant":  "compliant",
-    "solvent":        "insolvent",
     "delinquent":     "current",
     "current":        "delinquent",
     "suspicious":     "clean",
@@ -236,10 +233,8 @@ _ANTONYM_TABLE: Dict[str, str] = {
     "guilty":         "innocent",
     "innocent":       "guilty",
     "liable":         "exempt",
-    "exempt":         "liable",
     "convicted":      "acquitted",
     "acquitted":      "convicted",
-    "liable":         "exempt",
     "negligent":      "careful",
     "careful":        "negligent",
     "criminal":       "lawful",
@@ -272,7 +267,6 @@ _ANTONYM_TABLE: Dict[str, str] = {
     "enrolled":       "expelled",
     "expelled":       "enrolled",
     "graduating":     "failed",
-    "promoted":       "demoted",
     "exempt":         "required",
     "required":       "exempt",
     "eligible":       "ineligible",
@@ -289,8 +283,6 @@ _ANTONYM_TABLE: Dict[str, str] = {
     "sad":            "happy",
     "satisfied":      "dissatisfied",
     "dissatisfied":   "satisfied",
-    "positive":       "negative",   # general sentiment duplicate
-    "negative":       "positive",
 }
 
 

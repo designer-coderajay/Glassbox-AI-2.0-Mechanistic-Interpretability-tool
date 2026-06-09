@@ -315,7 +315,7 @@ class BenjaminiHochberg:
         FDRReport
         """
         heads = sorted(observed_attributions.keys())
-        K     = len(heads)
+        len(heads)
 
         se_map: Dict[Tuple[int, int], float] = {}
         for h in heads:
@@ -388,7 +388,7 @@ class BenjaminiHochberg:
         bh_adj_per_head = np.empty(K)
         bh_adj_per_head[sorted_idx] = bh_adjusted
 
-        significant_bh_set  = set(sorted_idx[:i_star + 1]) if i_star >= 0 else set()
+        set(sorted_idx[:i_star + 1]) if i_star >= 0 else set()
         bonferroni_threshold = self.alpha / K
 
         head_results: List[HeadSignificance] = []

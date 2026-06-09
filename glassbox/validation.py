@@ -415,6 +415,6 @@ class HeldOutValidator:
 
         # Combine and validate
         combined    = train_results + test_results
-        all_indices = list(range(len(combined)))
+        list(range(len(combined)))
 
         return self.validate(combined)

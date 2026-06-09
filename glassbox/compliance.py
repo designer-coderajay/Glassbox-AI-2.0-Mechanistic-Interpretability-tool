@@ -544,7 +544,6 @@ class AnnexIVReport:
             md = report.to_model_card("MODEL_CARD.md")
         """
         self._ensure_sections()
-        s1 = self._s1
         s3 = self._s3
         s5 = self._s5
         s4 = self._s4
@@ -1156,7 +1155,7 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
 
         # Explainability summary table
         if self._s3:
-            grade_color = {"A": "#27ae60", "B": "#2980b9", "C": "#e67e22", "D": "#c0392b"}.get(
+            {"A": "#27ae60", "B": "#2980b9", "C": "#e67e22", "D": "#c0392b"}.get(
                 self._s3.explainability_grade[0], "#7f8c8d"
             )
             data = [

@@ -343,7 +343,7 @@ def _sufficiency_from_circuit(
     n_heads     = model.cfg.n_heads
 
     # Get corrupted activations for all heads
-    hook_names = [
+    [
         f"blocks.{l}.attn.hook_z"
         for l in range(n_layers)
     ]

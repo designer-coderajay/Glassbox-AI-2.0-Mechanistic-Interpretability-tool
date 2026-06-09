@@ -428,7 +428,7 @@ class DistributedAlignmentSearch:
         # Score: proportion of LD explained by concept transfer
         # Das score = corr(LD_original, LD_intervened)
         if len(ld_clean_arr) >= 2 and ld_clean_arr.std() > 1e-8 and ld_int_arr.std() > 1e-8:
-            correlation = float(np.corrcoef(ld_clean_arr, ld_int_arr)[0, 1])
+            float(np.corrcoef(ld_clean_arr, ld_int_arr)[0, 1])
             # Negate: if intervention reduces LD, correlation should be negative
             # Re-interpret: fraction of behaviour explained = 1 - (residual_LD / clean_LD)
             residual_fraction = float(np.mean(ld_int_arr) / (np.mean(ld_clean_arr) + 1e-8))

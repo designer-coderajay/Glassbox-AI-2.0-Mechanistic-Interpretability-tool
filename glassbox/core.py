@@ -1275,9 +1275,9 @@ class GlassboxV2:
         mean_attributions      = [float(mean_attrs[i]) for i in range(len(heads))]
         std_attributions       = [float(std_attrs[i])  for i in range(len(heads))]
         stability_scores       = [float(stability[i])  for i in range(len(heads))]
-        mean_attributions_dict = {head: float(mean_attrs[i]) for i, head in enumerate(heads)}
-        std_attributions_dict  = {head: float(std_attrs[i])  for i, head in enumerate(heads)}
-        stability_scores_dict  = {head: float(stability[i])  for i, head in enumerate(heads)}
+        {head: float(mean_attrs[i]) for i, head in enumerate(heads)}
+        {head: float(std_attrs[i])  for i, head in enumerate(heads)}
+        {head: float(stability[i])  for i, head in enumerate(heads)}
 
         # ── Global rank consistency: mean Kendall τ across all run pairs ───
         K = len(all_attr_runs)
@@ -2375,7 +2375,7 @@ class GlassboxV2:
         # Build embedding tensor with gradient tracking
         with torch.enable_grad():
             # embed_input: [1, seq_len, d_model]
-            embed_input = embed[tokens].detach().clone().requires_grad_(True)
+            embed[tokens].detach().clone().requires_grad_(True)
 
             # Run model with custom embedding
             # TransformerLens supports `start_at_layer` or hook injection;

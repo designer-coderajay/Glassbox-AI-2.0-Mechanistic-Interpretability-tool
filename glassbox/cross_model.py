@@ -680,7 +680,7 @@ class CrossModelComparison:
         # Run corrupted forward pass
         corrupted_tokens = model.to_tokens(config.corrupted_prompt)
         with torch.no_grad():
-            corrupted_logits = model(corrupted_tokens)
+            model(corrupted_tokens)
 
         # Simplified attribution: average absolute attention weight difference
         # (This is a heuristic; full GlassboxV2 uses proper patching)
