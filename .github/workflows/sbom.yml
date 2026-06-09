@@ -62,7 +62,7 @@ jobs:
 
       - name: Attach SBOM to GitHub Release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             sbom.cyclonedx.json
