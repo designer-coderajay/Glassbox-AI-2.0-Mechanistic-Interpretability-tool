@@ -466,7 +466,7 @@ async def glassbox_compliance_report(params: ComplianceReportInput) -> str:
                 "sufficiency": params.sufficiency,
                 "comprehensiveness": params.comprehensiveness,
                 "benchmark": "ACDC (Conmy et al., NeurIPS 2023) — Glassbox is 37x faster",
-                "test_suite": "76 automated tests (glassbox-mech-interp)",
+                "test_suite": "76 automated tests (glassbox-mech-interp v4.3.1)",
             },
             "section_5_risk_management": {
                 "article_reference": "Article 9 — risk management system",
