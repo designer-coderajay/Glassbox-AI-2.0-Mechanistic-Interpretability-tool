@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glassbox — prove what your model did</title>
+<title>Glassbox: prove what your model did</title>
 <meta name="description" content="Glassbox traces the exact circuit behind a model's decision, measures how faithful that explanation is, and writes the EU AI Act Annex IV documentation. One function call, under two seconds, on open-weight models.">
 <link rel="canonical" href="https://repo-ashen-psi.vercel.app">
-<meta property="og:title" content="Glassbox — prove what your model did">
+<meta property="og:title" content="Glassbox: prove what your model did">
 <meta property="og:description" content="Causal circuit discovery + measured faithfulness + regulator-ready EU AI Act Annex IV, in under two seconds.">
 <meta property="og:url" content="https://repo-ashen-psi.vercel.app">
 <meta property="og:type" content="website">
@@ -94,7 +94,7 @@ nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
 #m-menu a{display:block;padding:15px var(--pad-x);border-top:1px solid var(--line);color:var(--ink-2);font-size:15px}
 
 .hero{padding:clamp(52px,7vw,92px) 0 clamp(60px,8vw,100px)}
-.hero .grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,64px);align-items:center}
+.hero .grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,64px);align-items:start}
 .hero h1{font-family:var(--display);font-weight:700;font-size:clamp(40px,5.6vw,68px);line-height:1.02;letter-spacing:-.035em;color:var(--ink)}
 .hero h1 .em{color:var(--clay)}
 .hero .sub{font-size:clamp(17px,1.7vw,20px);color:var(--ink-2);max-width:48ch;margin:24px 0 0;line-height:1.58}
@@ -292,7 +292,7 @@ footer .fcol a:hover{color:#fff}
 </head>
 <body>
 
-<div class="announce"><div class="wrap"><span class="dot"></span> <span>EU AI Act — Annex IV technical documentation becomes <b>mandatory 2 August 2026</b> for high-risk AI systems.</span></div></div>
+<div class="announce"><div class="wrap"><span class="dot"></span> <span>From <b>2 August 2026</b>, the EU AI Act makes Annex IV documentation mandatory for high-risk AI systems.</span></div></div>
 
 <nav><div class="wrap">
   <a class="brand" href="#top" aria-label="Glassbox home">
@@ -320,7 +320,7 @@ footer .fcol a:hover{color:#fff}
   <div class="reveal">
     <span class="eyebrow">Mechanistic interpretability for the EU AI Act</span>
     <h1>Prove what your model <span class="em">actually</span> did.</h1>
-    <p class="sub">Glassbox traces the exact circuit behind a decision, measures how faithful that explanation really is, and writes the Annex IV documentation — one function call, under two seconds, on open-weight models.</p>
+    <p class="sub">Glassbox traces the circuit behind a decision, measures how faithful that explanation is, and writes the Annex IV documentation for you. One function call, under two seconds, on open-weight models.</p>
     <div class="cta">
       <button class="pill-cmd" id="copycmd" aria-label="Copy install command">
         <span><span class="pf">$</span>&nbsp;pip install glassbox-mech-interp</span>
@@ -364,28 +364,28 @@ footer .fcol a:hover{color:#fff}
   <div class="section-head reveal">
     <span class="eyebrow">The method</span>
     <h2 class="h">Proof from the model's own wiring,<br>not a story told afterward</h2>
-    <p class="lead">Most explainability tools describe a model from the outside. Glassbox reads the inside — ranking every attention head by the effect it actually has on the output, then keeping only the heads the decision truly depends on.</p>
+    <p class="lead">Most explainability tools describe a model from the outside. Glassbox reads the inside. It ranks every attention head by the effect it has on the output, then keeps only the heads the decision depends on.</p>
   </div>
   <div class="pillars">
     <div class="pcard reveal">
       <span class="pnum">01</span>
       <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5" stroke-linecap="round"/></svg></div>
       <h3>Discover</h3>
-      <p>Attribution patching scores each attention head by its causal effect on the prediction — three forward passes, no correlation guesswork.</p>
+      <p>Attribution patching scores each attention head by its causal effect on the prediction. Three forward passes, no correlation guesswork.</p>
       <div class="stat"><b>37× faster</b> than ACDC · <b>1.2s</b> on CPU</div>
     </div>
     <div class="pcard reveal">
       <span class="pnum">02</span>
       <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <h3>Verify</h3>
-      <p>Sufficiency and comprehensiveness isolate the smallest circuit that still reproduces the behaviour, scored against full ablation — so the explanation is measured, not asserted.</p>
+      <p>Sufficiency and comprehensiveness isolate the smallest circuit that still reproduces the behaviour, scored against full ablation. The explanation is measured, not asserted.</p>
       <div class="stat">GPT-2 IOI · <b>suff 1.00</b> · <b>comp 0.22</b> · <b>F1 0.64</b></div>
     </div>
     <div class="pcard reveal">
       <span class="pnum">03</span>
       <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5" stroke-linejoin="round"/></svg></div>
       <h3>Document</h3>
-      <p>Eight of the nine Annex IV sections are written straight from the model and content-hashed, so nothing can be edited quietly. The ninth — the Declaration of Conformity — stays in your hands.</p>
+      <p>Eight of the nine Annex IV sections are written straight from the model and content-hashed, so nothing can be edited quietly. The ninth, the Declaration of Conformity, stays in your hands.</p>
       <div class="stat"><b>9-section</b> Annex IV vault · hashed</div>
     </div>
   </div>
@@ -441,7 +441,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     <p class="lead">From 2 August 2026, every high-risk AI system placed on the EU market must keep Annex IV technical documentation. Glassbox fills eight of the nine sections directly from the model's measured behaviour.</p>
   </div>
   <div class="risk">
-    <div class="rc reveal"><div class="rn"><em>€35M</em></div><div class="rl">or 7% of global annual turnover — the maximum penalty under Article 99 for the worst violations.</div></div>
+    <div class="rc reveal"><div class="rn"><em>€35M</em></div><div class="rl">or 7% of global annual turnover, whichever is larger. That is the maximum penalty under Article 99.</div></div>
     <div class="rc reveal"><div class="rn"><em>2 Aug</em> 2026</div><div class="rl">enforcement date for high-risk obligations, including Annex IV documentation.</div></div>
     <div class="rc reveal"><div class="rn"><em>8</em> of 9</div><div class="rl">Annex IV sections generated automatically; the Declaration of Conformity stays a human sign-off.</div></div>
   </div>
@@ -449,9 +449,9 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   <div class="vaultwrap">
     <div class="vaultcopy reveal">
       <h3>What you actually hand over</h3>
-      <p>Every run produces a structured Annex IV record — the nine sections mapped to the regulation, each grounded in the measured circuit, and a SHA-256 content hash so the evidence can't be edited after the fact.</p>
+      <p>Every run produces a structured Annex IV record. The nine sections map to the regulation, each one grounded in the measured circuit, with a SHA-256 hash so the evidence can't be edited after the fact.</p>
       <ul>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Reproducible — same input, same vault, same hash</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Reproducible: the same input gives the same vault and hash</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Faithfulness scores carried into §4, not just asserted</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Exportable as JSON or PDF for your technical file</li>
       </ul>
@@ -466,7 +466,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
       <div class="rowsec"><span class="sg">§2</span><span class="stt">Development process and design</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec"><span class="sg">§3</span><span class="stt">Monitoring, functioning and control</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec"><span class="sg">§4</span><span class="stt">Performance &amp; faithfulness metrics</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
-      <div class="rowsec"><span class="sg">§5</span><span class="stt">Risk management — Article 9</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
+      <div class="rowsec"><span class="sg">§5</span><span class="stt">Risk management (Article 9)</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec signrow"><span class="sg">§8</span><span class="stt">Declaration of conformity</span><span class="sx">human sign-off</span></div>
       <div class="dfoot"><span>F1 <b>0.64</b></span><span>suff <b>1.00</b></span><span>comp <b>0.22</b></span><span>grade <b>B</b></span><span>circuit <b>4 heads</b></span></div>
     </div>
@@ -477,20 +477,20 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   <div class="section-head reveal">
     <span class="eyebrow">How Glassbox compares</span>
     <h2 class="h">Faithfulness is the line<br>most tools can't cross</h2>
-    <p class="lead">Black-box explainers describe a model from the outside and can't tell you whether the explanation is true. Circuit tools can — but they're slow. Glassbox keeps the rigour and drops the cost.</p>
+    <p class="lead">Black-box explainers describe a model from the outside and can't tell you whether the explanation is true. Circuit tools can, but they're slow. Glassbox keeps the rigour and drops the cost.</p>
   </div>
   <div class="tablewrap reveal">
     <table class="cmp">
       <thead><tr><th>Approach</th><th>Faithfulness measured?</th><th>Needs open weights?</th><th>Speed (GPT-2)</th></tr></thead>
       <tbody>
-        <tr class="me"><td>Glassbox <span class="tag">attribution patching</span></td><td><span class="yes">Yes — suff / comp / F1</span></td><td>Yes</td><td><b>1.2s</b></td></tr>
+        <tr class="me"><td>Glassbox <span class="tag">attribution patching</span></td><td><span class="yes">Yes (suff / comp / F1)</span></td><td>Yes</td><td><b>1.2s</b></td></tr>
         <tr><td>ACDC <span style="color:var(--ink-3);font-size:12.5px">(Conmy 2023)</span></td><td><span class="yes">Yes</span></td><td>Yes</td><td>43.2s <span class="no">· 37× slower</span></td></tr>
-        <tr><td>SHAP / LIME <span style="color:var(--ink-3);font-size:12.5px">(black-box)</span></td><td><span class="no">No guarantee</span></td><td>No — works on APIs</td><td>varies</td></tr>
-        <tr><td>Confidence scores</td><td><span class="no">No — r = 0.009</span></td><td>No</td><td>instant</td></tr>
+        <tr><td>SHAP / LIME <span style="color:var(--ink-3);font-size:12.5px">(black-box)</span></td><td><span class="no">No guarantee</span></td><td>No (works on APIs)</td><td>varies</td></tr>
+        <tr><td>Confidence scores</td><td><span class="no">No (r = 0.009)</span></td><td>No</td><td>instant</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="disc">Each row reflects a different trade-off, not a verdict. Black-box methods are the right tool when you only have API access; Glassbox needs open weights because faithfulness cannot be measured without reading the circuit. Where weights are available, it gives you ACDC-grade circuits at a fraction of the runtime — and, unlike a confidence score, an explanation whose faithfulness is actually quantified.</p>
+  <p class="disc">Each row is a different trade-off, not a verdict. Black-box methods are the right tool when you only have API access. Glassbox needs open weights, because faithfulness can't be measured without reading the circuit. Where the weights are available, it gives you ACDC-grade circuits at a fraction of the runtime, and unlike a confidence score, an explanation whose faithfulness is actually measured.</p>
 </div></section>
 
 <section id="models" class="alt"><div class="wrap">
@@ -503,11 +503,11 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     <thead><tr><th>Class</th><th>Parameter range</th><th>Strategy</th><th>Status</th></tr></thead>
     <tbody>
       <tr><td>small / medium</td><td class="mono">&lt; 7B</td><td class="mono">standard</td><td><span class="st live">runs today</span></td></tr>
-      <tr><td>large</td><td class="mono">7B – 70B</td><td class="mono">checkpoint</td><td><span class="st sched">verification scheduled</span></td></tr>
-      <tr><td>xlarge / xxlarge</td><td class="mono">70B – 200B+</td><td class="mono">checkpoint + offload</td><td><span class="st impl">implemented</span></td></tr>
+      <tr><td>large</td><td class="mono">7B to 70B</td><td class="mono">checkpoint</td><td><span class="st sched">verification scheduled</span></td></tr>
+      <tr><td>xlarge / xxlarge</td><td class="mono">70B to 200B+</td><td class="mono">checkpoint + offload</td><td><span class="st impl">implemented</span></td></tr>
     </tbody>
   </table>
-  <p class="disc">Circuit-level analysis requires open weights. Closed API models — Claude, GPT, Gemini — can only receive black-box documentation support, because faithfulness cannot be measured without access to the weights.</p>
+  <p class="disc">Circuit-level analysis requires open weights. Closed API models like Claude, GPT, and Gemini can only receive black-box documentation support, because faithfulness can't be measured without access to the weights.</p>
 </div></section>
 
 <section id="domains"><div class="wrap">
@@ -526,7 +526,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
 
 <section class="quote alt"><div class="wrap reveal">
   <p class="serif">A confident answer is not the same as a correct one.</p>
-  <div class="src">Across our runs, model confidence and circuit faithfulness barely correlate — <b>r = 0.009</b>. That's why a compliance auditor needs the circuit, not the score.</div>
+  <div class="src">Across our runs, model confidence and circuit faithfulness barely correlate, at <b>r = 0.009</b>. That's why a compliance auditor needs the circuit, not the score.</div>
 </div></section>
 
 <section id="research"><div class="wrap">
@@ -537,7 +537,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   <div class="feed">
     <a class="fitem reveal" href="https://arxiv.org/abs/2603.09988">
       <span class="fd">2026</span>
-      <span class="ft">Faithful circuit discovery for compliance audits<span>Attribution patching, faithfulness metrics, and the confidence–faithfulness gap. Mahale, 2026.</span></span>
+      <span class="ft">Faithful circuit discovery for compliance audits<span>Attribution patching, faithfulness metrics, and the gap between confidence and faithfulness. Mahale, 2026.</span></span>
       <span class="fk">Paper</span>
       <span class="fa" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 17L17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
@@ -558,7 +558,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
 
 <section class="ctaband"><div class="wrap reveal">
   <h2>Audit a model in two seconds</h2>
-  <p>Open-source core. Evidence your compliance team can actually defend — and a regulator can actually read.</p>
+  <p>Open-source core. Evidence your compliance team can actually defend, and a regulator can actually read.</p>
   <div class="cta">
     <a class="btn btn-primary" href="https://pypi.org/project/glassbox-mech-interp/">pip install glassbox-mech-interp</a>
     <a class="btn btn-ghost" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Open the live demo
@@ -570,7 +570,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   <div class="fgrid">
     <div class="fbrand">
       <a class="brand" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11.5" y="11.5" width="9" height="9" rx="2.5" fill="none" stroke="#b85c38" stroke-width="2"/></svg> glassbox <span class="v">v4.3.1</span></a>
-      <p>See inside the black box. Causal circuits, measured faithfulness, and EU AI Act Annex IV — from one function call.</p>
+      <p>See inside the black box. Causal circuits, measured faithfulness, and EU AI Act Annex IV, all from one function call.</p>
     </div>
     <div class="fcol"><h5>Product</h5>
       <a href="https://pypi.org/project/glassbox-mech-interp/">PyPI package</a>
@@ -649,7 +649,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     for(var r=0;r<12;r++){(function(r){tHandles.push(setTimeout(function(){
       for(var h=0;h<12;h++){var c=cells[r*12+h];c.classList.add('scan');(function(c){tHandles.push(setTimeout(function(){c.classList.remove('scan');},220));})(c);}
     },r*55));})(r);}
-    // phase 2: rank — reveal causal intensity
+    // phase 2: rank, reveal causal intensity
     tHandles.push(setTimeout(function(){
       cells.forEach(function(c){var s=parseFloat(c.dataset.score);c.style.opacity=(0.05+(s/MAX)*0.92).toFixed(3);});
     },760));
