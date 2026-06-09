@@ -86,7 +86,7 @@ dependencies = [
     "torch>=2.0,<2.11",
     "transformer_lens>=1.0,<3.0",
     "einops>=0.6",
-    "numpy>=1.24,<2.0",
+    "numpy>=1.24,<3.0",
     "scipy>=1.9",
 ]
 
