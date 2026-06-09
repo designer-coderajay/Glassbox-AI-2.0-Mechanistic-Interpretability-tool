@@ -1,5 +1,19 @@
 # Security & Privacy
 
+## Supported Versions
+
+Security fixes are provided for the current minor release line. Always run the
+latest `4.3.x` from PyPI (`pip install -U glassbox-mech-interp`), which carries
+the verified, version-pinned dependency stack (`numpy<2`, `torch<2.11`,
+`transformer_lens<3`).
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 4.3.x   | :white_check_mark: |
+| < 4.3   | :x:                |
+
+---
+
 ## API Key Handling
 
 Glassbox never stores, logs, or retains your model provider API keys.

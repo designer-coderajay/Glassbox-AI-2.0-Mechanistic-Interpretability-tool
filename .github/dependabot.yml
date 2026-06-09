@@ -1,0 +1,33 @@
+# Dependabot — automated dependency vulnerability alerts and update PRs.
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates
+#
+# Two ecosystems are watched:
+#   • pip            — the Python runtime deps declared in pyproject.toml.
+#   • github-actions — the action versions pinned in .github/workflows/.
+#
+# Note on bounds: pyproject.toml caps numpy<2, torch<2.11, transformer_lens<3
+# (the verified-compatible stack). Dependabot respects those ceilings, so it
+# will propose security/patch updates *within* the ranges, not breaking majors.
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "ci"
+    commit-message:
+      prefix: "chore(ci)"
