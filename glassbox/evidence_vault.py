@@ -796,8 +796,13 @@ class AnnexIVEvidenceVault:
 
     @staticmethod
     def _truncate_circuit(circuit: Any, max_items: int = 20) -> Any:
-        """Keep the dict to max_items entries for storage efficiency."""
-        if isinstance(circuit, dict) and len(circuit) > max_items:
+        """Keep the dict to max_items entries and stringify keys for JSON safety.
+
+        Circuit dicts are keyed by (layer, head) tuples, which json.dumps cannot
+        serialise as object keys. Stringifying here keeps to_json()/save_json()
+        working for circuits of any size, not only those long enough to truncate.
+        """
+        if isinstance(circuit, dict):
             items = sorted(
                 circuit.items(),
                 key=lambda x: abs(float(x[1])),
