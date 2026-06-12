@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Glassbox","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Windows","softwareVersion":"4.3.1","description":"Mechanistic interpretability and EU AI Act Annex IV compliance documentation toolkit for transformer models.","url":"https://repo-ashen-psi.vercel.app","downloadUrl":"https://pypi.org/project/glassbox-mech-interp/","author":{"@type":"Person","name":"Ajay Pravin Mahale"},"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR","description":"Open-source core under MIT license"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Glassbox","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Windows","softwareVersion":"4.4.0","description":"Mechanistic interpretability and EU AI Act Annex IV compliance documentation toolkit for transformer models.","url":"https://repo-ashen-psi.vercel.app","downloadUrl":"https://pypi.org/project/glassbox-mech-interp/","author":{"@type":"Person","name":"Ajay Pravin Mahale"},"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR","description":"Open-source core under MIT license"}}
 </script>
 <style>
 :root{
@@ -345,7 +345,7 @@ footer .fcol a:hover{color:#fff}
 <nav><div class="wrap">
   <a class="brand" href="#top" aria-label="Glassbox home">
     <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11.5" y="11.5" width="9" height="9" rx="2.5" fill="none" stroke="#b85c38" stroke-width="2"/></svg>
-    glassbox <span class="v">v4.3.1</span>
+    glassbox <span class="v">v4.4.0</span>
   </a>
   <div class="navlinks">
     <a href="#method">Method</a><a href="#results">Results</a><a href="#compliance">Compliance</a><a href="#pricing">Pricing</a><a href="#models">Models</a>
@@ -482,16 +482,17 @@ footer .fcol a:hover{color:#fff}
 gb = <span class="f">GlassboxV2</span>(model)
 result = gb.<span class="f">analyze</span>(
     prompt=<span class="s">"Credit score 620. Decision:"</span>,
-    correct=<span class="s">" approved"</span>,
-    incorrect=<span class="s">" denied"</span>,
-    corruption_strategy=<span class="s">"auto"</span>,
+    correct=[<span class="s">" approved"</span>, <span class="s">" approve"</span>, <span class="s">" yes"</span>],
+    incorrect=[<span class="s">" denied"</span>, <span class="s">" deny"</span>, <span class="s">" no"</span>],
+    certify=<span class="s">"hessian"</span>,
 )
 <span class="hl">result[<span class="s">"faithfulness"</span>][<span class="s">"f1"</span>]   <span class="c"># 0.61</span></span>
+result[<span class="s">"evidence_tier"</span>][<span class="s">"tier"</span>]  <span class="c"># self-graded</span>
 vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     </div>
     <div class="steps reveal">
       <div class="step"><span class="sn">1</span><div><h4>Point it at a model</h4><p>Load any open-weight transformer. No fine-tuning, no labels, no setup.</p></div></div>
-      <div class="step"><span class="sn">2</span><div><h4>Run one call</h4><p>It finds the circuit and scores how faithful that circuit is to the decision.</p></div></div>
+      <div class="step"><span class="sn">2</span><div><h4>Run one call</h4><p>It finds the circuit, verifies the counterfactual actually moved the decision, and scores how faithful the explanation is — then grades its own evidence tier.</p></div></div>
       <div class="step"><span class="sn">3</span><div><h4>Get the vault</h4><p>A regulator-ready Annex IV record, content-hashed and ready to hand over.</p></div></div>
     </div>
   </div>
@@ -655,8 +656,8 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
       <span class="fa" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 17L17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
     <a class="fitem reveal" href="https://pypi.org/project/glassbox-mech-interp/">
-      <span class="fd">v4.3.1</span>
-      <span class="ft">Multi-architecture adapter<span>Llama-3, Mistral and Phi-3 support with grouped-query attention and RMSNorm folding.</span></span>
+      <span class="fd">v4.4.0</span>
+      <span class="ft">Verbalizer sets + evidence tiers<span>Any-decision audits via logsumexp pooling, counterfactual verification on every run at zero extra cost, self-graded evidence tiers A–D.</span></span>
       <span class="fk">Release</span>
       <span class="fa" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 17L17 7M9 7h8v8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
@@ -695,7 +696,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
 <footer><div class="wrap">
   <div class="fgrid">
     <div class="fbrand">
-      <a class="brand" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11.5" y="11.5" width="9" height="9" rx="2.5" fill="none" stroke="#b85c38" stroke-width="2"/></svg> glassbox <span class="v">v4.3.1</span></a>
+      <a class="brand" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="11.5" y="11.5" width="9" height="9" rx="2.5" fill="none" stroke="#b85c38" stroke-width="2"/></svg> glassbox <span class="v">v4.4.0</span></a>
       <p>See inside the black box. Causal circuits, measured faithfulness, and EU AI Act Annex IV, all from one function call.</p>
     </div>
     <div class="fcol"><h5>Product</h5>

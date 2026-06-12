@@ -2158,6 +2158,7 @@ class GlassboxV2:
         n_steps:            int  = 10,
         include_logit_lens: bool = False,
         corruption_strategy: str = "auto",
+        certify:            Optional[str] = None,
     ) -> Dict:
         """
         One-call circuit discovery + faithfulness metrics.
@@ -2182,6 +2183,13 @@ class GlassboxV2:
         n_steps            : Interpolation steps for integrated_gradients (default 10)
         include_logit_lens : If True, also run logit_lens() and include result
                              in output under key 'logit_lens' (adds 1 forward pass)
+        certify   : Optional evidence-tier certification to run inline.
+                    None (default)  — no certificate; result self-labels tier C.
+                    "hessian"       — run HessianErrorBounds on the circuit
+                    heads (Pearlmutter HVP; adds backward passes). If the
+                    first-order approximation is certified reliable, the
+                    result earns tier B. Singleton decisions only in v1 —
+                    multi-variant verbalizer sets raise ValueError.
         corruption_strategy: How to generate the corrupted counterfactual prompt.
                              "auto"             — auto-select best strategy (default)
                              "name_swap"        — IOI-style bidirectional swap (Wang 2022)
@@ -2227,6 +2235,10 @@ class GlassboxV2:
         # Input validation
         if not prompt or not correct or not incorrect:
             raise ValueError("prompt, correct, and incorrect must be non-empty")
+        if certify not in (None, "hessian"):
+            raise ValueError(
+                f"certify must be None or 'hessian', got {certify!r}"
+            )
 
         # V5: verbalizer-set resolution (sequences of single-token strings).
         # Legacy str/str inputs take the original path below, byte-identical.
@@ -2330,6 +2342,34 @@ class GlassboxV2:
                 if cf_validation["discarded"] else "unknown",
             )
 
+        # ── V5: optional Hessian certification — the path to tier B ───────
+        hessian_reliable: Optional[bool] = None
+        hessian_certificate: Optional[Dict] = None
+        if certify == "hessian":
+            if decision_meta is not None and (
+                len(t_tok) > 1 or len(d_tok) > 1
+            ):
+                raise ValueError(
+                    "certify='hessian' supports singleton decisions only in "
+                    "v1; multi-variant verbalizer sets are not yet certified."
+                )
+            from glassbox.hessian import HessianErrorBounds
+            _ht = t_tok[0] if isinstance(t_tok, list) else t_tok
+            _hd = d_tok[0] if isinstance(d_tok, list) else d_tok
+            circuit_attrs = {h: attrs[h] for h in circuit if h in attrs}
+            _bounds = HessianErrorBounds(self.model).compute(
+                attributions=circuit_attrs,
+                clean_tokens=tokens_c,
+                corr_tokens=tokens_corr,
+                target_tok=_ht,
+                distract_tok=_hd,
+            )
+            hessian_reliable = bool(_bounds.approximation_reliable)
+            hessian_certificate = _bounds.to_dict()
+            logger.info(
+                "Hessian certificate: %s", _bounds.summary_line()
+            )
+
         # ── V5: evidence-tier self-assessment (ROADMAP_V5 Part 6) ─────────
         # Honest by default: a single analyze() run has no Hessian
         # certificate and no exact-patching verification, so it self-labels
@@ -2340,7 +2380,7 @@ class GlassboxV2:
         tier_assessment = TierEngine().assess(TierSignals(
             has_weights=True,
             counterfactual_valid=bool(cf_validation["sufficient"]),
-            hessian_reliable=None,
+            hessian_reliable=hessian_reliable,
             exact_patch_verified=False,
             causal_abstraction_tested=False,
             sample_n=None,
@@ -2375,6 +2415,8 @@ class GlassboxV2:
             **({"decision": decision_meta} if decision_meta is not None else {}),
             "counterfactual_validation": cf_validation,
             "evidence_tier": tier_assessment,
+            **({"hessian_certificate": hessian_certificate}
+               if hessian_certificate is not None else {}),
             "faithfulness": {
                 "sufficiency":       suff,
                 "comprehensiveness": comp,

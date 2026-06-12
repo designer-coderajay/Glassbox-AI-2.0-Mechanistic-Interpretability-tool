@@ -2,7 +2,7 @@
 
 <img src="docs/assets/og-image.png" alt="Glassbox AI — see inside the black box" width="820" style="max-width:100%;margin-bottom:8px;border-radius:12px"/>
 
-# Glassbox 4.3.1
+# Glassbox 4.4.0
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 **21 mathematical frameworks. ACDC + GQA/RMSNorm multi-arch + cross-model comparison. Production-ready.**
@@ -36,6 +36,7 @@
 - [Live Services](#live-services)
 - [Quickstart](#quickstart)
 - [**How to Get Your EU AI Act Annex IV Compliance Proof**](#how-to-get-your-eu-ai-act-annex-iv-compliance-proof)
+- [What's New in v4.4.0](#whats-new-in-v440)
 - [What's New in v4.2.0](#whats-new-in-v420)
 - [What's New in v4.1.0](#whats-new-in-v410)
 - [What's New in v4.0.0](#whats-new-in-v400)
@@ -349,6 +350,64 @@ For organisations that need:
 - Dedicated compliance engineering support
 
 Contact: **mahale.ajay01@gmail.com** | Enterprise pricing from **€24,000/year**
+
+---
+
+## What's New in v4.4.0
+
+V5 Phase A — the decision layer. Four connected upgrades, every one test-covered:
+
+### 1. Verbalizer sets — any decision, not just two tokens
+
+`analyze()` now accepts a *set* of surface forms per outcome. Evidence is
+pooled via `logsumexp(A) − logsumexp(B)` through the entire pipeline —
+attribution gradients included. Singleton sets reproduce the legacy
+two-token result exactly (the softmax normalizer cancels), so existing
+calls are untouched.
+
+```python
+result = gb.analyze(
+    "Loan application. Credit score 620. The decision is",
+    correct   = [" approved", " approve", " yes"],
+    incorrect = [" denied", " deny", " no"],
+)
+result["decision"]   # documents both sets for the evidence vault
+```
+
+### 2. Counterfactual verification — on every run, zero extra passes
+
+The corrupted decision value is captured from attribution's existing
+second pass (its logits were previously discarded), so every audit now
+verifies that its counterfactual actually moved the decision — at no
+additional cost. Failures are reported, never absorbed:
+
+```python
+result["counterfactual_validation"]
+# {'n_candidates': 1, 'n_valid': 1, 'sufficient': True,
+#  'discarded_by_reason': {}, 'discarded': []}
+```
+
+### 3. Evidence tiers — every result grades itself honestly
+
+A bare `analyze()` self-labels **tier C** (no Hessian certificate, no
+exact-patching verification — stated, not hidden). The label flows into
+`AnnexIVReport` automatically. Earn **tier B** inline:
+
+```python
+result = gb.analyze(prompt, " approved", " denied", certify="hessian")
+result["evidence_tier"]["tier"]        # "B" if the certificate holds
+result["hessian_certificate"]          # the proof, in the result
+```
+
+Tier A additionally requires exact-patching verification and
+causal-abstraction testing (`CausalScrubbing` / `DistributedAlignmentSearch`).
+
+### 4. New building blocks (importable directly)
+
+`DecisionFunctional` / `VerbalizerSet` (glassbox.decision),
+`CounterfactualGate` (glassbox.cf_gate),
+`TierEngine` / `TierSignals` (glassbox.evidence_tier) — all dependency-free,
+all documented in [ROADMAP_V5_FOUNDATIONS.md](ROADMAP_V5_FOUNDATIONS.md).
 
 ---
 

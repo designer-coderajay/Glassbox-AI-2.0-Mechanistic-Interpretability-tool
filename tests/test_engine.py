@@ -1178,3 +1178,43 @@ class TestAnalyzeCFGateAndTier:
     def test_corr_ld_stash_exists_after_analyze(self, engine, ioi_result):
         assert hasattr(engine, "_last_corr_ld")
         assert isinstance(engine._last_corr_ld, float)
+
+
+# ---------------------------------------------------------------------------
+# V5 — certify="hessian": the upgrade path from tier C to tier B
+# ---------------------------------------------------------------------------
+
+class TestAnalyzeCertifyHessian:
+    def test_certificate_present_and_tier_consistent(self, engine):
+        r = engine.analyze(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT,
+                           certify="hessian")
+        cert = r["hessian_certificate"]
+        assert "approximation_reliable" in cert
+        expected = "B" if cert["approximation_reliable"] else "C"
+        assert r["evidence_tier"]["tier"] == expected, (
+            f"tier {r['evidence_tier']['tier']} inconsistent with "
+            f"certificate reliable={cert['approximation_reliable']}"
+        )
+
+    def test_bare_run_has_no_certificate(self, ioi_result):
+        assert "hessian_certificate" not in ioi_result
+
+    def test_invalid_certify_value_rejected(self, engine):
+        with pytest.raises(ValueError, match="certify"):
+            engine.analyze(IOI_PROMPT, IOI_CORRECT, IOI_INCORRECT,
+                           certify="magic")
+
+    def test_certify_with_multi_variant_sets_rejected(self, engine):
+        pos = TestAnalyzeVerbalizerSets._single_token_variants(
+            engine, [" Mary", " Sarah", " Anna"])
+        neg = TestAnalyzeVerbalizerSets._single_token_variants(
+            engine, [" John", " Tom", " Mike"])
+        if len(pos) < 2 or len(neg) < 2:
+            pytest.skip("tokenizer lacks 2 single-token variants per side")
+        with pytest.raises(ValueError, match="singleton"):
+            engine.analyze(IOI_PROMPT, pos[:2], neg[:2], certify="hessian")
+
+    def test_certify_with_singleton_set_allowed(self, engine):
+        r = engine.analyze(IOI_PROMPT, [" Mary"], [" John"],
+                           certify="hessian")
+        assert "hessian_certificate" in r
