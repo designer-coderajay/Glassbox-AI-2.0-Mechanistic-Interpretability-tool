@@ -79,7 +79,6 @@ try:
     )
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
-    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
     _FASTAPI_AVAILABLE = True
 except ImportError:
@@ -311,6 +310,48 @@ def create_app() -> "FastAPI":
                 ),
             )
 
+    # ------------------------------------------------------------------
+    # Model LRU cache (V5-A4) — loading GPT-2 takes ~5-30s; reloading it
+    # on every request was the API's dominant latency cost. Cache the most
+    # recent N models (default 2; tune to host RAM via env). Thread-safe:
+    # FastAPI runs sync endpoints in a threadpool.
+    # ------------------------------------------------------------------
+    import threading
+    from collections import OrderedDict
+
+    _MODEL_CACHE: "OrderedDict[str, Any]" = OrderedDict()
+    _MODEL_CACHE_LOCK = threading.Lock()
+    _MODEL_CACHE_SIZE = max(1, int(os.environ.get("GLASSBOX_MODEL_CACHE_SIZE", "2")))
+
+    def _get_model(model_name: str):
+        """Return a cached HookedTransformer, loading and evicting LRU-style."""
+        with _MODEL_CACHE_LOCK:
+            if model_name in _MODEL_CACHE:
+                _MODEL_CACHE.move_to_end(model_name)
+                logger.info("Model cache HIT: %s", model_name)
+                return _MODEL_CACHE[model_name]
+
+        # Load outside the lock would risk duplicate loads; loading inside
+        # serializes cold starts, which is the safer failure mode on a
+        # memory-constrained host.
+        with _MODEL_CACHE_LOCK:
+            if model_name in _MODEL_CACHE:  # raced: another thread loaded it
+                _MODEL_CACHE.move_to_end(model_name)
+                return _MODEL_CACHE[model_name]
+            import torch
+            from transformer_lens import HookedTransformer
+
+            logger.info("Model cache MISS: loading %s", model_name)
+            model = HookedTransformer.from_pretrained(model_name)
+            model.eval()
+            if torch.cuda.is_available():
+                model = model.cuda()
+            _MODEL_CACHE[model_name] = model
+            while len(_MODEL_CACHE) > _MODEL_CACHE_SIZE:
+                evicted, _ = _MODEL_CACHE.popitem(last=False)
+                logger.info("Model cache EVICT: %s", evicted)
+            return model
+
     # Rate limiting middleware (20 requests per minute per IP)
     @app.middleware("http")
     async def rate_limit(request: Request, call_next):
@@ -417,17 +458,11 @@ def create_app() -> "FastAPI":
         _check_model_allowed(req.model_name)
 
         try:
-            import torch
-            from transformer_lens import HookedTransformer
-
             from glassbox import GlassboxV2
-            from glassbox.compliance import AnnexIVReport, DeploymentContext
+            from glassbox.compliance import AnnexIVReport
 
-            logger.info("[%s] Loading model: %s", report_id, req.model_name)
-            model = HookedTransformer.from_pretrained(req.model_name)
-            model.eval()
-            if torch.cuda.is_available():
-                model = model.cuda()
+            logger.info("[%s] Getting model: %s", report_id, req.model_name)
+            model = _get_model(req.model_name)
 
             gb = GlassboxV2(model)
             logger.info("[%s] Running analysis...", report_id)
@@ -890,6 +925,11 @@ def create_app() -> "FastAPI":
 
             from glassbox import GlassboxV2
 
+            # NOTE: deliberately NOT served from _MODEL_CACHE — this endpoint
+            # loads with different preprocessing (fold_ln, centered weights,
+            # refactored attn matrices); caching it under the same key as the
+            # plain load would silently serve the wrong model variant. If this
+            # endpoint sees real traffic, add a config-keyed cache entry.
             model = transformer_lens.HookedTransformer.from_pretrained(
                 req.model_name,
                 center_unembed=True,

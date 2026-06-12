@@ -220,6 +220,22 @@ from glassbox.compliance import (
 )
 from glassbox.composition import HeadCompositionAnalyzer
 
+# V5 — decision functional, counterfactual gate, evidence tiers (Phase A)
+from glassbox.decision import DecisionFunctional, ResolvedDecision, VerbalizerSet
+from glassbox.cf_gate import (
+    CandidateCF,
+    CounterfactualGate,
+    DiscardReason,
+    GateConfig,
+    GateResult,
+)
+from glassbox.evidence_tier import (
+    EvidenceTier,
+    TierAssessment,
+    TierEngine,
+    TierSignals,
+)
+
 # ---------------------------------------------------------------------------
 # Cross-Model Circuit Comparison — robustness across architectures (v4.2.0)
 # ---------------------------------------------------------------------------
@@ -496,6 +512,10 @@ from glassbox.validation import (
 GlassboxEngine = GlassboxV2   # deprecated — use GlassboxV2
 
 __all__ = [
+    # V5 — decision functional, CF gate, evidence tiers
+    "DecisionFunctional", "VerbalizerSet", "ResolvedDecision",
+    "CounterfactualGate", "CandidateCF", "GateConfig", "GateResult", "DiscardReason",
+    "TierEngine", "TierSignals", "TierAssessment", "EvidenceTier",
     # Primary classes
     "GlassboxV2",
     "SAEFeatureAttributor",          # requires sae-lens

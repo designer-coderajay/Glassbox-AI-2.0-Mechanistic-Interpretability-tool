@@ -31,6 +31,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **V5 Phase A — decision functional, CF gate, evidence tiers (ROADMAP_V5 Parts 2.1, 3.3, 6).** Three new dependency-free modules, built test-first (47 new unit tests, pure logic, no torch required):
+  - `glassbox/decision.py` — `DecisionFunctional` / `VerbalizerSet`: generalizes the two-token logit diff to disjoint verbalizer *sets* via `D = logsumexp(logits_A) − logsumexp(logits_B)`; for singleton sets this reduces exactly to the legacy logit diff (softmax normalizer cancels), so backward compatibility is mathematical, not approximate. Multi-token variants supported through injected sequence scores; tokenizer overlap between sets is rejected as ill-defined.
+  - `glassbox/cf_gate.py` — `CounterfactualGate`: admits a counterfactual into attribution only if it preserves task shape, aligns with the clean prompt, and moves the decision value above a noise floor; everything rejected is **discarded and reported** (counts by reason go to the technical file). Measurement failures are recorded, never raised.
+  - `glassbox/evidence_tier.py` — `TierEngine`: the A/B/C/D degradation ladder with downgrade-with-stated-reason semantics and report disclosure text; physically contradictory capability claims (e.g. exact patching without weights) are rejected outright.
+- **`api/main.py`** — thread-safe LRU model cache (`GLASSBOX_MODEL_CACHE_SIZE`, default 2) for `/v1/audit/analyze`; eliminates the per-request model reload that dominated API latency. The attention-patterns endpoint is deliberately uncached (different preprocessing flags would poison a name-keyed cache; documented inline).
+
 - **`api/waitlist.js`** — waitlist signups now deliver a real email notification via Resend (`RESEND_API_KEY` env var; recipient defaults to the founder, override with `NOTIFY_EMAIL`) with `reply_to` set to the registrant for one-click replies, and persist to Vercel KV automatically when a store is attached (`KV_REST_API_URL`/`KV_REST_API_TOKEN`). Both paths are best-effort: failure never blocks the signup, everything still logs under `[waitlist]`. New optional `name`/`company`/`message` fields accepted and length-capped; HTML-escaped in the notification.
 
 ### Changed
