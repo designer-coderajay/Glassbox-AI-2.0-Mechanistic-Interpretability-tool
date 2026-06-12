@@ -1081,3 +1081,63 @@ class TestCLI:
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0
+
+
+# ---------------------------------------------------------------------------
+# V5 — verbalizer-set decisions through the full analyze() pipeline
+# (ROADMAP_V5 §2.1 Step 2). Singleton sets must reproduce the legacy
+# two-token result exactly (logsumexp of one element is the identity).
+# ---------------------------------------------------------------------------
+
+class TestAnalyzeVerbalizerSets:
+    @staticmethod
+    def _single_token_variants(engine, candidates):
+        """Keep only variants the tokenizer encodes as ONE token (BPE-safe)."""
+        out = []
+        for s in candidates:
+            try:
+                engine.model.to_single_token(s)
+                out.append(s)
+            except Exception:
+                pass
+        return out
+
+    def test_singleton_sets_match_legacy_exactly(self, engine):
+        """[" Mary"] vs " Mary" — same numbers, by mathematical identity."""
+        legacy = engine.analyze(IOI_PROMPT, " Mary", " John")
+        sets = engine.analyze(IOI_PROMPT, [" Mary"], [" John"])
+        assert sets["clean_ld"] == pytest.approx(legacy["clean_ld"], rel=1e-5)
+        assert sets["faithfulness"]["f1"] == pytest.approx(
+            legacy["faithfulness"]["f1"], rel=1e-5
+        )
+        assert sets["circuit"] == legacy["circuit"]
+
+    def test_singleton_result_documents_the_decision(self, engine):
+        r = engine.analyze(IOI_PROMPT, [" Mary"], [" John"])
+        assert r["decision"]["positive"]["variants"] == [" Mary"]
+        assert r["decision"]["negative"]["variants"] == [" John"]
+
+    def test_legacy_string_path_has_no_decision_key(self, ioi_result):
+        assert "decision" not in ioi_result
+
+    def test_multi_variant_set_runs_end_to_end(self, engine):
+        pos = self._single_token_variants(engine, [" Mary", " Sarah", " Anna"])
+        neg = self._single_token_variants(engine, [" John", " Tom", " Mike"])
+        if len(pos) < 2 or len(neg) < 2:
+            pytest.skip("tokenizer lacks 2 single-token variants per side")
+        r = engine.analyze(IOI_PROMPT, pos[:2], neg[:2])
+        assert r["n_heads"] > 0
+        assert "sufficiency" in r["faithfulness"]
+        assert r["decision"]["positive"]["variants"] == pos[:2]
+        import math
+        assert math.isfinite(r["clean_ld"])
+
+    def test_logit_lens_rejected_with_sets(self, engine):
+        with pytest.raises(ValueError, match="logit_lens"):
+            engine.analyze(
+                IOI_PROMPT, [" Mary"], [" John"], include_logit_lens=True
+            )
+
+    def test_overlapping_sets_rejected(self, engine):
+        with pytest.raises(ValueError, match="[Oo]verlap"):
+            engine.analyze(IOI_PROMPT, [" Mary"], [" Mary", " John"])

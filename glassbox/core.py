@@ -82,7 +82,7 @@ costs O(3 + 2p) where p is typically 0-4 on IOI prompts.
 
 import logging
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import einops  # noqa: F401 — imported for TransformerLens compat
 import numpy as np
@@ -95,6 +95,52 @@ import torch
 # Methods that need determinism accept an explicit `seed` parameter.
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_decision_tokens(
+    encode_single,
+    correct: Union[str, Sequence[str]],
+    incorrect: Union[str, Sequence[str]],
+) -> Tuple[Any, Any, Optional[Dict[str, Any]], str, str]:
+    """Resolve analyze()'s correct/incorrect inputs to decision tokens.
+
+    Args:
+        encode_single: Callable mapping a single-token string to its token id
+            (e.g. ``model.to_single_token``). Must raise if multi-token.
+        correct/incorrect: Legacy single strings, OR sequences of single-token
+            variant strings (V5 verbalizer sets).
+
+    Returns:
+        ``(t_tok, d_tok, decision_meta, primary_correct, primary_incorrect)``
+        where t_tok/d_tok are an int (legacy) or a list of ints (sets),
+        decision_meta is the vault-ready functional description (None for
+        legacy), and the primary strings drive corruption-strategy selection.
+    """
+    if isinstance(correct, str) and isinstance(incorrect, str):
+        return None, None, None, correct, incorrect  # caller uses legacy path
+
+    from glassbox.decision import DecisionFunctional, VerbalizerSet
+
+    def _as_set(value, label):
+        if isinstance(value, VerbalizerSet):
+            return value
+        if isinstance(value, str):
+            return VerbalizerSet(label, (value,))
+        return VerbalizerSet(label, tuple(value))
+
+    functional = DecisionFunctional(
+        _as_set(correct, "positive"), _as_set(incorrect, "negative")
+    )
+    resolved = functional.resolve(lambda s: [encode_single(s)])
+    t_tok = [ids[0] for ids in resolved.positive_ids]
+    d_tok = [ids[0] for ids in resolved.negative_ids]
+    return (
+        t_tok,
+        d_tok,
+        functional.to_dict(),
+        functional.positive.variants[0],
+        functional.negative.variants[0],
+    )
 
 
 def _decision_value(logits, target_token, distractor_token, *, fp32_each=False):
@@ -114,11 +160,26 @@ def _decision_value(logits, target_token, distractor_token, *, fp32_each=False):
     any call site again. Keep ALL last-position decision computations
     routed through here.
     """
-    a = logits[0, -1, target_token]
-    b = logits[0, -1, distractor_token]
+    t_single = isinstance(target_token, (int, np.integer))
+    d_single = isinstance(distractor_token, (int, np.integer))
+    if t_single and d_single:
+        # Legacy two-token path — byte-identical to the historical inline code.
+        a = logits[0, -1, target_token]
+        b = logits[0, -1, distractor_token]
+        if fp32_each:
+            return a.float() - b.float()
+        return a - b
+
+    # V5 set-aware path (ROADMAP_V5 §2.1): token-id collections pool evidence
+    # via logsumexp. For singleton collections logsumexp(x) == x exactly, so
+    # this reduces to the legacy logit diff — backward compatible by math.
+    t_ids = [int(target_token)] if t_single else [int(i) for i in target_token]
+    d_ids = [int(distractor_token)] if d_single else [int(i) for i in distractor_token]
+    pos = logits[0, -1, t_ids]
+    neg = logits[0, -1, d_ids]
     if fp32_each:
-        return a.float() - b.float()
-    return a - b
+        pos, neg = pos.float(), neg.float()
+    return torch.logsumexp(pos, dim=-1) - torch.logsumexp(neg, dim=-1)
 
 # Expose version inside the module so model_metadata can self-document results
 # without importing glassbox/__init__.py (circular import risk).
@@ -2071,8 +2132,8 @@ class GlassboxV2:
     def analyze(
         self,
         prompt:             str,
-        correct:            str,
-        incorrect:          str,
+        correct:            Union[str, Sequence[str]],
+        incorrect:          Union[str, Sequence[str]],
         method:             str  = "taylor",
         n_steps:            int  = 10,
         include_logit_lens: bool = False,
@@ -2089,8 +2150,13 @@ class GlassboxV2:
                       "Loan application. Annual income: €42,000. Decision:"         (credit)
                       "Patient presents with chest pain. Priority:"                 (medical)
                       "Candidate has 8 years Python experience. Assessment:"        (HR)
-        correct   : Correct next token (e.g. " Mary", " Approved", " Urgent")
-        incorrect : Distractor token    (e.g. " John", " Denied",  " Routine")
+        correct   : Correct next token (e.g. " Mary", " Approved", " Urgent"),
+                    OR a sequence of single-token variants forming a V5
+                    verbalizer set (e.g. [" approved", " approve", " yes"]) —
+                    evidence is pooled via logsumexp (ROADMAP_V5 §2.1) and the
+                    result includes a "decision" key documenting the set.
+        incorrect : Distractor token    (e.g. " John", " Denied",  " Routine"),
+                    OR a sequence of single-token variants (see above).
         method             : Attribution method — "taylor" (fast, default) or
                              "integrated_gradients" (accurate, 2+n_steps passes)
         n_steps            : Interpolation steps for integrated_gradients (default 10)
@@ -2140,15 +2206,27 @@ class GlassboxV2:
         """
         # Input validation
         if not prompt or not correct or not incorrect:
-            raise ValueError("prompt, correct, and incorrect must be non-empty strings")
+            raise ValueError("prompt, correct, and incorrect must be non-empty")
 
-        # Token resolution with fallback
-        try:
-            t_tok = self.model.to_single_token(correct)
-            d_tok = self.model.to_single_token(incorrect)
-        except Exception:
-            t_tok = self.model.to_tokens(correct)[0, -1].item()
-            d_tok = self.model.to_tokens(incorrect)[0, -1].item()
+        # V5: verbalizer-set resolution (sequences of single-token strings).
+        # Legacy str/str inputs take the original path below, byte-identical.
+        t_tok, d_tok, decision_meta, primary_correct, primary_incorrect = (
+            _resolve_decision_tokens(self.model.to_single_token, correct, incorrect)
+        )
+        if decision_meta is not None and include_logit_lens:
+            raise ValueError(
+                "include_logit_lens is not yet supported with verbalizer "
+                "sets; call logit_lens() separately with a single token pair."
+            )
+
+        if decision_meta is None:
+            # Token resolution with fallback (legacy path)
+            try:
+                t_tok = self.model.to_single_token(correct)
+                d_tok = self.model.to_single_token(incorrect)
+            except Exception:
+                t_tok = self.model.to_tokens(correct)[0, -1].item()
+                d_tok = self.model.to_tokens(incorrect)[0, -1].item()
 
         tokens_c    = self.model.to_tokens(prompt)
 
@@ -2161,7 +2239,7 @@ class GlassboxV2:
         # See glassbox/prompt_corruption.py for full mathematical derivation.
         from glassbox.prompt_corruption import auto_corrupt
         corr_prompt, _corruption_strategy, _corruption_rationale = auto_corrupt(
-            prompt, correct, incorrect,
+            prompt, primary_correct, primary_incorrect,
             strategy=None if corruption_strategy == "auto" else corruption_strategy,
         )
         tokens_corr = self.model.to_tokens(corr_prompt)
@@ -2181,7 +2259,7 @@ class GlassboxV2:
         # Optional: logit lens (1 additional forward pass)
         ll_result = None
         if include_logit_lens:
-            ll_result = self.logit_lens(tokens_c, correct.strip(), incorrect.strip())
+            ll_result = self.logit_lens(tokens_c, primary_correct.strip(), primary_incorrect.strip())
 
         # Warn when the model doesn't perform the task (negative logit diff means
         # the model already prefers the distractor token over the target).
@@ -2222,6 +2300,7 @@ class GlassboxV2:
             "mlp_attributions": {str(l): v for l, v in mlp_attrs.items()},
             "top_heads":        top_heads,
             "method":           method,
+            **({"decision": decision_meta} if decision_meta is not None else {}),
             "faithfulness": {
                 "sufficiency":       suff,
                 "comprehensiveness": comp,
