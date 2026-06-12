@@ -26,10 +26,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 
@@ -52,7 +50,8 @@ def _load_model(model_name: str, dtype_str: str | None):
     """Load HookedTransformer with optional dtype and memory planning."""
     import torch
     from transformer_lens import HookedTransformer
-    from glassbox.large_model import estimate_memory, classify_model_size
+
+    from glassbox.large_model import classify_model_size, estimate_memory
 
     dtype_map = {
         "float32":  torch.float32,
@@ -90,15 +89,14 @@ def _load_model(model_name: str, dtype_str: str | None):
 
 def _run_analysis(model, gb, args, strategy: str):
     """Run circuit discovery and return result dict."""
-    from glassbox.large_model import analyze_large, classify_model_size
-    from glassbox import GlassboxV2
     import torch
+
+    from glassbox.large_model import analyze_large, classify_model_size
 
     n_layers = model.cfg.n_layers
     d_model  = getattr(model.cfg, "d_model", 768)
     size_class = classify_model_size(n_layers, d_model)
 
-    import torch
     dtype_map = {"float32": torch.float32, "float16": torch.float16, "bfloat16": torch.bfloat16}
     dtype = dtype_map.get(args.dtype or "float32", torch.float32)
 
@@ -142,7 +140,7 @@ def _generate_report(result: dict, args: argparse.Namespace, output_pdf: Path) -
 
     report = AnnexIVReport(
         model_name         = args.model,
-        system_purpose     = args.purpose or f"AI system analysis via Glassbox v4.3.0",
+        system_purpose     = args.purpose or "AI system analysis via Glassbox v4.3.0",
         provider_name      = args.provider or "Organisation name not provided",
         provider_address   = args.address  or "Address not provided",
         deployment_context = context,
@@ -162,7 +160,7 @@ def _generate_report(result: dict, args: argparse.Namespace, output_pdf: Path) -
     try:
         report.to_json(str(json_path))
         print(f"  ✓ Evidence JSON : {json_path}")
-    except Exception as e:
+    except Exception:
         # Fallback: save raw result dict
         json_path.write_text(json.dumps(result, indent=2, default=str))
         print(f"  ✓ Raw JSON      : {json_path}")

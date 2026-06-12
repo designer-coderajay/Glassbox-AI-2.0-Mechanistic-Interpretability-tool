@@ -32,7 +32,9 @@ def patch_file(path: Path, patterns: list[tuple], version: str, apply: bool) -> 
     original = text
     for pattern, replacement_template in patterns:
         repl = replacement_template.format(version=version)
-        text = re.sub(pattern, repl, text)
+        # MULTILINE so ^-anchored patterns (e.g. mcp/pyproject.toml's
+        # `^version = "..."`) match mid-file, not only at byte 0.
+        text = re.sub(pattern, repl, text, flags=re.MULTILINE)
     if text == original:
         return False
     if apply:
@@ -112,6 +114,11 @@ def main() -> None:
         [
             (r"glassbox-mech-interp==\d+\.\d+\.\d+",
              "glassbox-mech-interp=={version}"),
+            # Nav + footer version badges and JSON-LD softwareVersion
+            (r'<span class="v">v\d+\.\d+\.\d+</span>',
+             '<span class="v">v{version}</span>'),
+            (r'"softwareVersion":"\d+\.\d+\.\d+"',
+             '"softwareVersion":"{version}"'),
         ],
         version, apply,
     )
@@ -119,6 +126,16 @@ def main() -> None:
     # ── mcp/server.py ────────────────────────────────────────────────────────
     changed += patch_file(
         ROOT / "mcp" / "server.py",
+        [
+            (r"glassbox-mech-interp v\d+\.\d+\.\d+",
+             "glassbox-mech-interp v{version}"),
+        ],
+        version, apply,
+    )
+
+    # ── mcp/glassbox_mcp/server.py ───────────────────────────────────────────
+    changed += patch_file(
+        ROOT / "mcp" / "glassbox_mcp" / "server.py",
         [
             (r"glassbox-mech-interp v\d+\.\d+\.\d+",
              "glassbox-mech-interp v{version}"),

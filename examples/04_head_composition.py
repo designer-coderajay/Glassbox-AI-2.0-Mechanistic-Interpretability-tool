@@ -13,6 +13,7 @@ Run:
 """
 
 from transformer_lens import HookedTransformer
+
 from glassbox import GlassboxV2, HeadCompositionAnalyzer
 
 model = HookedTransformer.from_pretrained("gpt2")
@@ -30,7 +31,7 @@ print(f"\nTop circuit heads: {circuit}")
 
 # Full Q/K/V composition for the circuit
 all_scores = comp.all_composition_scores(circuit)
-print(f"\nTop 10 composition edges (any kind):")
+print("\nTop 10 composition edges (any kind):")
 print(f"{'Sender':<14} {'Receiver':<14} {'Kind':<4} {'Score':>8}")
 print("-" * 44)
 for edge in all_scores["combined_edges"][:10]:

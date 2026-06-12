@@ -7,14 +7,11 @@ the schema produced by GlassboxV2.analyze() and REST API responses.
 
 import csv
 import json
-import os
-import tempfile
 import time
-import uuid
+
 import pytest
 
-from glassbox.audit_log import AuditRecord, AuditLog
-
+from glassbox.audit_log import AuditLog, AuditRecord
 
 # ---------------------------------------------------------------------------
 # Fixtures — synthetic result dicts and test data

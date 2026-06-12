@@ -10,6 +10,7 @@ Run:
 """
 
 from transformer_lens import HookedTransformer
+
 from glassbox import GlassboxV2
 
 model = HookedTransformer.from_pretrained("gpt2")
@@ -25,7 +26,7 @@ result = gb.token_attribution(
 )
 
 print(f"\nToken attribution for: '{prompt}'")
-print(f"  Target: ' Mary'  |  Distractor: ' John'\n")
+print("  Target: ' Mary'  |  Distractor: ' John'\n")
 print(f"{'Rank':<5} {'Token':<20} {'Attribution':>12} {'|Attribution|':>15}")
 print("-" * 56)
 for tok in result["top_tokens"]:

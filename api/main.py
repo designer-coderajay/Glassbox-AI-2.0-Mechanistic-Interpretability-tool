@@ -68,10 +68,18 @@ for h in logging.root.handlers:
     h.addFilter(_StripKeyFilter())
 
 try:
-    from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, WebSocket, WebSocketDisconnect, Request
-    from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
-    from fastapi.staticfiles import StaticFiles
+    from fastapi import (
+        BackgroundTasks,
+        FastAPI,
+        Header,
+        HTTPException,
+        Request,
+        WebSocket,
+        WebSocketDisconnect,
+    )
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
     _FASTAPI_AVAILABLE = True
 except ImportError:
@@ -250,13 +258,58 @@ def create_app() -> "FastAPI":
         license_info={"name": "Apache 2.0"},
     )
 
-    # Add CORS middleware for Vercel and local development
+    # Add CORS middleware for Vercel and local development.
+    # NOTE: explicit allowlist only — a "*" entry would make the whole list
+    # behave as a wildcard, letting any site drive the API from a browser.
+    # Extra origins can be granted via GLASSBOX_CORS_ORIGINS (comma-separated).
+    _extra_origins = [
+        o.strip()
+        for o in os.environ.get("GLASSBOX_CORS_ORIGINS", "").split(",")
+        if o.strip()
+    ]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["https://repo-ashen-psi.vercel.app", "https://project-gu05p.vercel.app", "http://localhost:3000", "*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=[
+            "https://repo-ashen-psi.vercel.app",
+            "https://project-gu05p.vercel.app",
+            "http://localhost:3000",
+            *_extra_origins,
+        ],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "X-Provider-Api-Key"],
     )
+
+    # ------------------------------------------------------------------
+    # Model allowlist — prevents arbitrary HuggingFace model ids from
+    # triggering multi-GB downloads / OOM on the API host (DoS vector).
+    # Matches the tested-models table in README.md. Extend via the
+    # GLASSBOX_MODEL_ALLOWLIST env var (comma-separated model ids).
+    # ------------------------------------------------------------------
+    _DEFAULT_MODEL_ALLOWLIST = {
+        "gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl", "distilgpt2",
+        "EleutherAI/gpt-neo-125m", "EleutherAI/gpt-neo-1.3B",
+        "EleutherAI/pythia-70m", "EleutherAI/pythia-160m",
+        "EleutherAI/pythia-410m", "EleutherAI/pythia-1.4b",
+        "facebook/opt-125m", "facebook/opt-1.3b",
+    }
+    _env_models = {
+        m.strip()
+        for m in os.environ.get("GLASSBOX_MODEL_ALLOWLIST", "").split(",")
+        if m.strip()
+    }
+    _MODEL_ALLOWLIST = _DEFAULT_MODEL_ALLOWLIST | _env_models
+
+    def _check_model_allowed(model_name: str) -> None:
+        """Raise 422 if the requested model is not on the allowlist."""
+        if model_name not in _MODEL_ALLOWLIST:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"Model '{model_name}' is not on this server's allowlist. "
+                    f"Allowed: {sorted(_MODEL_ALLOWLIST)}. Self-hosted deployments "
+                    "can extend it via the GLASSBOX_MODEL_ALLOWLIST env var."
+                ),
+            )
 
     # Rate limiting middleware (20 requests per minute per IP)
     @app.middleware("http")
@@ -361,10 +414,12 @@ def create_app() -> "FastAPI":
         """
         start = time.time()
         report_id = uuid.uuid4().hex[:8].upper()
+        _check_model_allowed(req.model_name)
 
         try:
             import torch
             from transformer_lens import HookedTransformer
+
             from glassbox import GlassboxV2
             from glassbox.compliance import AnnexIVReport, DeploymentContext
 
@@ -829,9 +884,11 @@ def create_app() -> "FastAPI":
         Requires model weights — only available on self-hosted deployments
         with sufficient RAM (≥500 MB for GPT-2 small).
         """
+        _check_model_allowed(req.model_name)
         try:
-            from glassbox import GlassboxV2
             import transformer_lens
+
+            from glassbox import GlassboxV2
 
             model = transformer_lens.HookedTransformer.from_pretrained(
                 req.model_name,

@@ -7,11 +7,10 @@ All tests use tmp_path — no network, no GPU, no model required.
 """
 
 import json
-import os
+
 import pytest
 
 from glassbox.risk_register import RiskEntry, RiskRegister
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # RiskEntry

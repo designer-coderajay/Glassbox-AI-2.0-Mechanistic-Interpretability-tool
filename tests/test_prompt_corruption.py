@@ -10,23 +10,20 @@ and mathematical invariants.
 
 from __future__ import annotations
 
-import re
 import pytest
 
 from glassbox.prompt_corruption import (
-    CorruptionStrategy,
+    _ANTONYM_TABLE,
+    _REPLACEMENT_POOL,
     CorruptionSelector,
+    CorruptionStrategy,
+    _apply_semantic_negation,
+    antonym_corruption,
     auto_corrupt,
     get_antonym,
     name_swap_corruption,
     random_token_corruption,
-    antonym_corruption,
-    _apply_semantic_negation,
-    _ANTONYM_TABLE,
-    _NEGATION_TRIGGERS,
-    _REPLACEMENT_POOL,
 )
-
 
 # ===========================================================================
 # Antonym table

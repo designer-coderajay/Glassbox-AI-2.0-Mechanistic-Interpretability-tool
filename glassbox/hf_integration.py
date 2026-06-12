@@ -74,22 +74,22 @@ def _require_hf_hub():
     try:
         import huggingface_hub
         return huggingface_hub
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
             "huggingface_hub is required for HF Hub integration.\n"
             "Install it:  pip install huggingface_hub"
-        )
+        ) from err
 
 
 def _require_tl():
     try:
         import transformer_lens
         return transformer_lens
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
             "transformer_lens is required to load models.\n"
             "Install it:  pip install transformer-lens"
-        )
+        ) from err
 
 
 # ---------------------------------------------------------------------------

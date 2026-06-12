@@ -12,6 +12,7 @@ Run:
 
 import numpy as np
 from transformer_lens import HookedTransformer
+
 from glassbox import GlassboxV2
 
 model = HookedTransformer.from_pretrained("gpt2")
@@ -37,8 +38,8 @@ patterns = gb.attention_patterns(tokens, heads=[(9, 9)])
 pat_99   = np.array(patterns["heads"][0]["pattern"])   # [seq, seq]
 tok_strs = model.to_str_tokens(tokens[0])
 
-print(f"\nAttention pattern for L9H9 (name-mover head):")
-print(f"  Rows = query positions, Cols = key positions")
+print("\nAttention pattern for L9H9 (name-mover head):")
+print("  Rows = query positions, Cols = key positions")
 print(f"  {'':20}", end="")
 for ts in tok_strs:
     print(f"{repr(ts):>8}", end="")

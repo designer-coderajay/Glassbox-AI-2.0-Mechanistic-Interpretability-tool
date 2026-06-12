@@ -13,6 +13,7 @@ Run:
 """
 
 from transformer_lens import HookedTransformer
+
 from glassbox import GlassboxV2
 
 model = HookedTransformer.from_pretrained("gpt2")
@@ -24,7 +25,7 @@ tokens = model.to_tokens(prompt)
 lens = gb.logit_lens(tokens, " Mary", " John")
 
 print(f"\nLogit Lens — '{prompt}'")
-print(f"  Target: ' Mary'  |  Distractor: ' John'\n")
+print("  Target: ' Mary'  |  Distractor: ' John'\n")
 print(f"{'Layer':<8} {'Logit Diff':>12} {'Shift':>10}")
 print("-" * 34)
 for layer_idx, (ld, shift) in enumerate(
@@ -34,7 +35,7 @@ for layer_idx, (ld, shift) in enumerate(
     print(f"  L{layer_idx:<5} {ld:>+12.3f} {shift:>+10.3f}  {bar}")
 
 print(f"\nFinal logit diff: {lens['logit_diffs'][-1]:+.3f}")
-print(f"Top head direct effects (layer, head → effect):")
+print("Top head direct effects (layer, head → effect):")
 for (l, h), eff in sorted(
     lens["head_direct_effects"].items(), key=lambda x: abs(x[1]), reverse=True
 )[:10]:

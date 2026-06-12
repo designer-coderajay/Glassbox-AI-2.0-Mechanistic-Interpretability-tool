@@ -12,7 +12,6 @@ import pytest
 
 from glassbox.explain import NaturalLanguageExplainer, explain
 
-
 # ---------------------------------------------------------------------------
 # Sample result fixtures spanning the grade bands
 # ---------------------------------------------------------------------------

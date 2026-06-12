@@ -9,7 +9,7 @@ deploying AI in finance, healthcare, employment, or critical infrastructure.
 
 - **Annex IV automation** — all 9 sections generated in under 2 seconds (§8, the EU Declaration of Conformity, is a provider-signed legal reference)
 - **Any-prompt support** — credit scoring, medical triage, HR screening, legal, dialogue
-- **Billion-parameter support** — Llama-3-70B, Mistral, Gemma with gradient checkpointing
+- **Billion-parameter support** — gradient checkpointing + activation offload implemented for Llama-3-70B-class models; benchmark verification scheduled (verified today: GPT-2 family, GPT-Neo, Pythia, OPT — see README "Supported Models")
 - **CI/CD gate** — CircuitDiff detects model behaviour changes on every deployment
 - **Air-gapped deployment** — fully self-contained Docker image, no external calls
 - **Signed evidence vaults** — tamper-evident audit trail for regulators
@@ -153,4 +153,4 @@ qualifies as high-risk under Article 6/Annex III, and whether this documentation
 satisfies all applicable obligations, must be confirmed by qualified legal counsel
 and/or a notified body (Article 43).
 
-Non-compliance fine: up to €35M or 7% of global annual turnover (Article 99).
+Non-compliance fine for documentation obligations: up to €15M or 3% of global annual turnover (Article 99(4)).

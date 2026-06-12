@@ -27,6 +27,7 @@ def _real_torch():
 class TestSteeringVector:
     def test_repr_and_norm(self):
         import torch
+
         from glassbox.steering import SteeringVector
         v = SteeringVector(direction=torch.randn(16), layer=2, concept_label="gender_bias")
         r = repr(v)
@@ -35,6 +36,7 @@ class TestSteeringVector:
 
     def test_to_dict(self):
         import torch
+
         from glassbox.steering import SteeringVector
         v = SteeringVector(direction=torch.randn(16), layer=3, concept_label="x", scale=-10.0)
         d = v.to_dict()
@@ -46,6 +48,7 @@ class TestSteeringVector:
 class TestDirectionHelpers:
     def test_mean_diff_is_unit_norm(self):
         import torch
+
         from glassbox.steering import _mean_diff_direction
         pos = torch.randn(4, 8)
         neg = torch.randn(4, 8)
@@ -55,6 +58,7 @@ class TestDirectionHelpers:
 
     def test_pca_is_unit_norm(self):
         import torch
+
         from glassbox.steering import _pca_direction
         pos = torch.randn(5, 8)
         neg = torch.randn(5, 8)
@@ -82,6 +86,7 @@ class TestExporterConstruction:
 class TestSerialization:
     def test_pt_round_trip(self, tmp_path):
         import torch
+
         from glassbox.steering import SteeringVector, SteeringVectorExporter
         v = SteeringVector(direction=torch.randn(16), layer=4, concept_label="tox", scale=-12.0)
         ex = SteeringVectorExporter()
@@ -92,7 +97,9 @@ class TestSerialization:
 
     def test_numpy_export_writes_files(self, tmp_path):
         import os
+
         import torch
+
         from glassbox.steering import SteeringVector, SteeringVectorExporter
         v = SteeringVector(direction=torch.randn(16), layer=1, concept_label="c")
         path = str(tmp_path / "v.npy")
@@ -108,6 +115,7 @@ class TestSerialization:
 class TestComplianceOutput:
     def _vector(self):
         import torch
+
         from glassbox.steering import SteeringVector
         return SteeringVector(
             direction=torch.randn(16), layer=5, concept_label="gender_bias",

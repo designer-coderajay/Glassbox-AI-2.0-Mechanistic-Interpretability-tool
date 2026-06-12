@@ -1,5 +1,4 @@
 """Tests for glassbox/fdr.py — Benjamini-Hochberg FDR control over head attributions."""
-import math
 
 import pytest
 

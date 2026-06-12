@@ -51,18 +51,20 @@ except Exception:
 # ─────────────────────────────────────────────────────────────────────────────
 
 import gradio as gr
-import torch
-import numpy as np
 import matplotlib
+import numpy as np
+import torch
+
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 from PIL import Image
 
 # ── Load model once at startup ─────────────────────────────────────────────────
 print("Loading GPT-2 small via TransformerLens …")
 from transformer_lens import HookedTransformer
-from glassbox import GlassboxV2, AuditLog, BiasAnalyzer, AnnexIVReport, DeploymentContext
+
+from glassbox import AnnexIVReport, AuditLog, BiasAnalyzer, DeploymentContext, GlassboxV2
 from glassbox.explain import NaturalLanguageExplainer
 
 _STARTUP_ERROR = None
@@ -311,8 +313,8 @@ def run_attention_tab(prompt: str, layer: int, head: int):
 
 def run_compliance_report(prompt: str, correct: str, incorrect: str,
                           model_name: str, provider: str, deployment: str):
-    import traceback as _tb
     import datetime as _dt
+    import traceback as _tb
 
     if gb is None:
         return "⚠️ Model is loading or failed to start. Please wait a moment and refresh.", ""
@@ -322,7 +324,7 @@ def run_compliance_report(prompt: str, correct: str, incorrect: str,
     # ── Step 1: run core analysis (same path as Circuit Analysis tab) ──────────
     try:
         result  = gb.analyze(prompt.strip(), correct.strip(), incorrect.strip())
-    except Exception as e:
+    except Exception:
         return f"❌ Analysis failed: {_tb.format_exc()}", ""
 
     # ── Step 2: extract raw faithfulness metrics directly from result ──────────
@@ -333,7 +335,7 @@ def run_compliance_report(prompt: str, correct: str, incorrect: str,
         suff     = float(faith.get("sufficiency", 0.0))
         comp     = float(faith.get("comprehensiveness", 0.0))
         category = faith.get("category", "unknown")
-    except Exception as e:
+    except Exception:
         return f"❌ Could not read faithfulness metrics: {_tb.format_exc()}", ""
 
     # ── Step 3: compute grade + status from raw F1 (no AnnexIVReport needed) ──
@@ -1230,8 +1232,9 @@ with gr.Blocks(
 # module-level model load only happens once. gr.mount_gradio_app() must NOT
 # be used here — it causes a second process boot and loads GPT-2 twice → OOM.
 from fastapi import Request
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 
 def _jsonable(obj):
     """Recursively convert numpy scalars / tensors to plain Python types."""

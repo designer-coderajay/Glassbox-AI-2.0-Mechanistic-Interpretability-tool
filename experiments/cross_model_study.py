@@ -38,7 +38,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -448,8 +448,9 @@ def run_model(
 
     # ── Real run ────────────────────────────────────────────────────────────
     try:
-        import glassbox
         import torch
+
+        import glassbox
     except ImportError as e:
         raise RuntimeError(f"glassbox and torch required: {e}")
 

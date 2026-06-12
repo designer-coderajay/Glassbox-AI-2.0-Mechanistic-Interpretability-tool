@@ -1,11 +1,11 @@
 """Tests for glassbox/types.py — public type aliases and validated constants."""
+import glassbox.types as gbt
 from glassbox.types import (
     ATTRIBUTION_METHODS,
     FAITHFULNESS_CATEGORIES,
     VALID_HEAD_TYPES,
     __all__,
 )
-import glassbox.types as gbt
 
 
 def test_all_exports_resolve():
@@ -40,8 +40,12 @@ def test_attribution_methods():
 def test_type_aliases_are_importable():
     # The aliases are documentation wrappers; just confirm they resolve.
     from glassbox.types import (
-        AnalyzeResult, AttributionDict, CircuitList,
-        FaithfulnessResult, HeadTuple, PromptTuple,
+        AnalyzeResult,
+        AttributionDict,
+        CircuitList,
+        FaithfulnessResult,
+        HeadTuple,
+        PromptTuple,
     )
     for alias in (HeadTuple, CircuitList, AttributionDict, PromptTuple,
                   AnalyzeResult, FaithfulnessResult):

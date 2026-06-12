@@ -28,6 +28,6 @@ __version__ = "4.3.1"
 __author__ = "Ajay Pravin Mahale"
 __email__ = "mahale.ajay01@gmail.com"
 
-from glassbox_mcp.server import mcp, main  # noqa: F401
+from glassbox_mcp.server import main, mcp  # noqa: F401
 
 __all__ = ["mcp", "main", "__version__"]

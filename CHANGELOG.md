@@ -6,6 +6,33 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **`glassbox/cross_model.py`** — **CrossModelComparison's lightweight path silently returned empty attributions.** The attention-difference heuristic cached `blocks.{l}.attn.hook_attn_weights`, which is not a TransformerLens hook name (the post-softmax pattern hook is `hook_pattern`). Every cache lookup failed, the guard skipped every head, and a bare `except Exception: pass` swallowed the evidence — the comparison "succeeded" with an empty circuit. Renamed to `hook_pattern`, hoisted caching out of the per-head loop (one `run_with_cache` per prompt instead of one per head — 144× fewer forward passes on GPT-2 Small), narrowed the exception handling, and added a warning when attribution comes back empty.
+- **`glassbox/polysemanticity.py`** — **Same-layer circuit heads were silently dropped from scoring.** Activation collection keyed a dict by `blocks.{l}.attn.hook_z`, so two heads in the same layer (e.g. IOI's L9H6 and L9H9) collided and only the last survived. Now groups heads per layer and extracts each head from the shared layer cache.
+- **`scripts/sync_versions.py`** — **mcp/pyproject.toml never synced.** The `^version` pattern was compiled without `re.MULTILINE`, so it could only match at byte 0 and the MCP package version drifted (4.2.6 vs core 4.3.1). Added the flag, synced the version, and added patterns for the site's version badges and JSON-LD `softwareVersion`.
+- **`glassbox/hf_integration.py`, `glassbox/mlflow_integration.py`** — optional-dependency `ImportError` re-raises now use `raise … from err` (B904) so the original import failure isn't masked.
+- Removed unused imports/variables and normalised import ordering across the package (`ruff --fix`, rules E/F/I).
+
+### Security
+
+- **`api/main.py`** — CORS allowlist contained a `"*"` entry alongside the explicit origins, which makes the whole list behave as a wildcard. Removed; extra origins now come from `GLASSBOX_CORS_ORIGINS`. Methods/headers narrowed to what the API actually uses.
+- **`api/main.py`** — white-box endpoints (`/v1/audit/analyze`, `/v1/attention-patterns`) now validate the requested model against an allowlist (README's tested-models table; extendable via `GLASSBOX_MODEL_ALLOWLIST`) instead of passing arbitrary HuggingFace ids to `from_pretrained` — closes a disk/memory-exhaustion vector on hosted deployments.
+
+### Added
+
+- **`api/waitlist.js`** — waitlist signups now deliver a real email notification via Resend (`RESEND_API_KEY` env var; recipient defaults to the founder, override with `NOTIFY_EMAIL`) with `reply_to` set to the registrant for one-click replies, and persist to Vercel KV automatically when a store is attached (`KV_REST_API_URL`/`KV_REST_API_TOKEN`). Both paths are best-effort: failure never blocks the signup, everything still logs under `[waitlist]`. New optional `name`/`company`/`message` fields accepted and length-capped; HTML-escaped in the notification.
+
+### Changed
+
+- **`docs/index.html`** — landing page redesign: pricing section (Community / Pro waitlist / Enterprise), working email capture wired to `/api/waitlist`, live countdown to the 2 Aug 2026 enforcement date, engineer/compliance audience fork, JSON-LD structured data. All marketing numbers reconciled to BENCHMARKS.md + CI: 710 tests, 15–37× vs ACDC, credit-task suff 0.73 / F1 0.61 / Grade B, Art. 99(4) €15M / 3% penalty (previously cited the Art. 99(3) prohibited-practices cap). Previous design preserved at `docs/_design-snapshot/index.html`.
+- **`ENTERPRISE.md`** — billion-parameter claim now states implementation status honestly (verification scheduled) instead of implying verified Llama-3-70B benchmarks.
+- **`.claude/CLAUDE.md`** — canonical metrics list reconciled to the same single source of truth.
+
+---
+
 ## [4.3.1] — 2026-06-08
 
 ### Fixed

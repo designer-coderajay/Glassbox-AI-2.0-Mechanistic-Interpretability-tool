@@ -57,11 +57,11 @@ def _require_mlflow():
     try:
         import mlflow
         return mlflow
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
             "mlflow is required for MLflow integration.\n"
             "Install it:  pip install mlflow"
-        )
+        ) from err
 
 
 # ---------------------------------------------------------------------------

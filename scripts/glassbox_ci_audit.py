@@ -60,6 +60,7 @@ print(f"[Glassbox] Loading model: {model_name}")
 
 try:
     from transformer_lens import HookedTransformer
+
     from glassbox import GlassboxV2
     from glassbox.explain import NaturalLanguageExplainer
 

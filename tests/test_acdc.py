@@ -12,7 +12,6 @@ import pytest
 
 from glassbox.acdc import ACDCCircuit, ACDCEdge, ACDCResult
 
-
 # ---------------------------------------------------------------------------
 # discover() — the real ACDC algorithm on a small 2-layer model.
 # Marked slow: it loads a model and tests every candidate edge. A 2-layer

@@ -14,7 +14,6 @@ import pytest
 from glassbox import notify
 from glassbox.notify import AlertConfig, SlackNotifier, TeamsNotifier
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

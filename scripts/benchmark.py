@@ -40,7 +40,7 @@ import json
 import os
 import sys
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 # ---------------------------------------------------------------------------
 # Task definitions
@@ -118,7 +118,7 @@ def benchmark_analyze(gb, prompt: str, correct: str, incorrect: str, n_runs: int
 
 def benchmark_multiagent(n_agents: int = 4) -> Dict:
     """Benchmark MultiAgentAudit.audit_chain() — no model inference needed."""
-    from glassbox import MultiAgentAudit, AgentCall
+    from glassbox import AgentCall, MultiAgentAudit
 
     audit = MultiAgentAudit()
 
@@ -219,6 +219,7 @@ def load_model_and_gb(model_name: str, device: str = "cpu"):
     """Load a HookedTransformer + GlassboxV2, return (model, gb)."""
     try:
         from transformer_lens import HookedTransformer
+
         from glassbox import GlassboxV2
     except ImportError as e:
         print(f"Missing dependency: {e}")
@@ -339,7 +340,7 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"\nGlassbox AI v4.2.6 Benchmark")
+    print("\nGlassbox AI v4.2.6 Benchmark")
     print(f"{'='*50}")
 
     import platform

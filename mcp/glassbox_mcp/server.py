@@ -12,12 +12,13 @@ Reference: arXiv 2603.09988 (Mahale, 2026)
 Package: glassbox-mech-interp on PyPI
 """
 
-from mcp.server.fastmcp import FastMCP
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import Optional, List, Dict, Any, Tuple
+import asyncio
 import json
 import logging
-import asyncio
+from typing import Any, Dict, List
+
+from mcp.server.fastmcp import FastMCP
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 logger = logging.getLogger("glassbox_mcp")
 
@@ -454,8 +455,8 @@ async def glassbox_compliance_report(params: ComplianceReportInput) -> str:
                 "sufficiency": params.sufficiency,
                 "comprehensiveness": params.comprehensiveness,
                 "confidence_faithfulness_correlation": 0.009,
-                "test_suite": "76 automated tests (glassbox-mech-interp v4.2.6)",
-                "benchmark": "ACDC (Conmy et al., NeurIPS 2023) — Glassbox is 37x faster",
+                "test_suite": "710 automated tests passing in CI (glassbox-mech-interp v4.3.1)",
+                "benchmark": "ACDC (Conmy et al., NeurIPS 2023) — Glassbox is 15-37x faster (GPT-2 family)",
             },
             "section_5_risk_assessment": {
                 "identified_risks": [
@@ -526,7 +527,6 @@ def _blocking_attention_patterns(params: AttentionPatternInput) -> str:
     """Blocking attention pattern worker — call via asyncio.to_thread."""
     try:
         import torch
-        from transformer_lens import HookedTransformer
 
         model = _get_model(params.model_name)
 

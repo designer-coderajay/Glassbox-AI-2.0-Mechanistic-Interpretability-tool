@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import math
 import sys
-import types
 from typing import Dict, List
 from unittest.mock import MagicMock
 
@@ -91,16 +90,15 @@ def _inject_stubs():
 _inject_stubs()
 
 # Now we can safely import the module under test
-from glassbox.multi_arch import (   # noqa: E402
+from glassbox.multi_arch import (  # noqa: E402
     ARCHITECTURE_REGISTRY,
-    SUPPORTED_ARCHITECTURES,
-    RMSNORM_ARCHITECTURES,
     GQA_ARCHITECTURES,
+    RMSNORM_ARCHITECTURES,
+    SUPPORTED_ARCHITECTURES,
     ArchitectureConfig,
     GQAAttentionMapper,
     MultiArchAdapter,
 )
-
 
 # ===========================================================================
 # Constants — the 11 expected architecture families

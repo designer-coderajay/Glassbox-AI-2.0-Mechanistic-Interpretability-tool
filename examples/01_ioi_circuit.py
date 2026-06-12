@@ -16,6 +16,7 @@ Expected output (approx):
 """
 
 from transformer_lens import HookedTransformer
+
 from glassbox import GlassboxV2
 
 # ── load model ────────────────────────────────────────────────────────────────
@@ -32,13 +33,13 @@ result = gb.analyze(
 # ── inspect circuit ───────────────────────────────────────────────────────────
 circuit = result["circuit"]   # list of (layer, head) tuples, sorted by attribution
 print(f"\nTop-10 circuit heads: {circuit[:10]}")
-print(f"\nAttributions (top-5):")
+print("\nAttributions (top-5):")
 for head, score in list(result["attributions"].items())[:5]:
     print(f"  L{head[0]}H{head[1]}: {score:.4f}")
 
 # ── faithfulness ──────────────────────────────────────────────────────────────
 faith = result["faithfulness"]
-print(f"\nFaithfulness:")
+print("\nFaithfulness:")
 print(f"  Sufficiency      = {faith['sufficiency']:.1%}")
 print(f"  Comprehensiveness= {faith['comprehensiveness']:.1%}")
 print(f"  F1               = {faith['f1']:.1%}")
@@ -54,6 +55,6 @@ bs = gb.bootstrap_metrics(
     n_boot    = 50,
     alpha     = 0.05,
 )
-print(f"\nBootstrap 95% CI (n=50):")
+print("\nBootstrap 95% CI (n=50):")
 print(f"  Sufficiency CI       = [{bs['sufficiency']['ci_lo']:.3f}, {bs['sufficiency']['ci_hi']:.3f}]")
 print(f"  Comprehensiveness CI = [{bs['comprehensiveness']['ci_lo']:.3f}, {bs['comprehensiveness']['ci_hi']:.3f}]")

@@ -5,9 +5,9 @@ Tests run WITHOUT a live model or network access — we use synthetic result dic
 that match the schema produced by GlassboxV2.analyze() and REST API responses.
 """
 
-import json
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 # Gracefully handle missing ipywidgets (will be mocked in tests)
 try:
@@ -18,12 +18,11 @@ except ImportError:
     _WIDGETS_AVAILABLE = False
 
 from glassbox.widget import (
-    HeatmapWidget,
     CircuitWidget,
+    HeatmapWidget,
     _build_heatmap_html,
     _rgb_for_score,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures — synthetic result dicts matching GlassboxV2.analyze() schema

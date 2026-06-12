@@ -3,6 +3,7 @@ import re
 import subprocess
 import sys
 import time
+
 import pytest
 
 # ---------------------------------------------------------------------------
@@ -32,6 +33,7 @@ def engine():
     pytest.importorskip("transformer_lens")
 
     from transformer_lens import HookedTransformer
+
     from glassbox import GlassboxV2
     model = HookedTransformer.from_pretrained("gpt2")
     return GlassboxV2(model)
@@ -1043,7 +1045,6 @@ class TestCLI:
 
     def test_help_exits_zero(self):
         """glassbox-ai --help must exit 0 and print usage information."""
-        import subprocess
         result = subprocess.run(
             [sys.executable, "-m", "glassbox.cli", "--help"],
             capture_output=True, text=True, timeout=30,
@@ -1053,7 +1054,6 @@ class TestCLI:
 
     def test_doctor_exits_zero(self):
         """glassbox-ai doctor must exit 0 when all required deps are present."""
-        import subprocess
         result = subprocess.run(
             [sys.executable, "-m", "glassbox.cli", "doctor"],
             capture_output=True, text=True, timeout=30,
@@ -1064,21 +1064,18 @@ class TestCLI:
 
     def test_version_exits_zero(self):
         """glassbox-ai version must exit 0 and print a version string."""
-        import subprocess
         result = subprocess.run(
             [sys.executable, "-m", "glassbox.cli", "version"],
             capture_output=True, text=True, timeout=30,
         )
         assert result.returncode == 0
         # Output must contain the version string (digits separated by dots)
-        import re
         assert re.search(r"\d+\.\d+", result.stdout), (
             f"No version number found in CLI version output: {result.stdout!r}"
         )
 
     def test_analyze_subcommand_help(self):
         """glassbox-ai analyze --help must not crash."""
-        import subprocess
         result = subprocess.run(
             [sys.executable, "-m", "glassbox.cli", "analyze", "--help"],
             capture_output=True, text=True, timeout=30,

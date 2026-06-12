@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """Run all Glassbox 2.0 benchmarks."""
 import argparse
+
 import numpy as np
 from transformer_lens import HookedTransformer
+
 from glassbox import GlassboxV2
 
 SUITES = {

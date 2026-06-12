@@ -7,19 +7,14 @@ that matches the exact structure produced by GlassboxV2.analyze().
 
 import json
 import os
-import tempfile
+
 import pytest
 
 from glassbox.compliance import (
     AnnexIVReport,
     DeploymentContext,
     RiskClassification,
-    ExplainabilityGrade,
-    ComplianceStatus,
-    Section1_GeneralDescription,
-    Section3_MonitoringControl,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures — synthetic analyze() results (match GlassboxV2.analyze() schema)

@@ -682,33 +682,52 @@ class CrossModelComparison:
         with torch.no_grad():
             model(corrupted_tokens)
 
-        # Simplified attribution: average absolute attention weight difference
+        # Simplified attribution: average absolute attention pattern difference
         # (This is a heuristic; full GlassboxV2 uses proper patching)
         attributions: Dict[Tuple[int, int], float] = {}
         max_attr = 0.0
 
+        # Cache all attention patterns in ONE forward pass per prompt.
+        # NOTE: the TransformerLens hook for post-softmax attention is
+        # ``hook_pattern`` (shape: batch, head, q_pos, k_pos). The previous
+        # name ``hook_attn_weights`` does not exist, so every lookup silently
+        # failed and this method returned empty attributions.
+        try:
+            with torch.no_grad():
+                _, clean_cache = model.run_with_cache(
+                    clean_tokens,
+                    names_filter=lambda n: n.endswith("attn.hook_pattern"),
+                )
+                _, corrupt_cache = model.run_with_cache(
+                    corrupted_tokens,
+                    names_filter=lambda n: n.endswith("attn.hook_pattern"),
+                )
+        except Exception as exc:  # pragma: no cover - model-specific failure
+            logger.warning("Lightweight attribution caching failed: %s", exc)
+            clean_cache, corrupt_cache = {}, {}
+
         for layer in range(model.cfg.n_layers):
+            hook_name = f"blocks.{layer}.attn.hook_pattern"
+            if hook_name not in clean_cache or hook_name not in corrupt_cache:
+                continue
             for head in range(model.cfg.n_heads):
-                # Simple heuristic: abs difference in attention patterns
-                hook_name = f"blocks.{layer}.attn.hook_attn_weights"
                 try:
-                    _, clean_cache = model.run_with_cache(
-                        clean_tokens,
-                        names_filter=lambda n: n == hook_name,
-                    )
-                    _, corrupt_cache = model.run_with_cache(
-                        corrupted_tokens,
-                        names_filter=lambda n: n == hook_name,
+                    clean_attn = clean_cache[hook_name][0, head, :, :].mean().item()
+                    corrupt_attn = corrupt_cache[hook_name][0, head, :, :].mean().item()
+                    attr = abs(clean_attn - corrupt_attn)
+                    attributions[(layer, head)] = attr
+                    max_attr = max(max_attr, attr)
+                except (IndexError, KeyError, RuntimeError) as exc:
+                    logger.debug(
+                        "Attribution failed for head (%d, %d): %s", layer, head, exc
                     )
 
-                    if hook_name in clean_cache and hook_name in corrupt_cache:
-                        clean_attn = clean_cache[hook_name][0, head, :, :].mean().item()
-                        corrupt_attn = corrupt_cache[hook_name][0, head, :, :].mean().item()
-                        attr = abs(clean_attn - corrupt_attn)
-                        attributions[(layer, head)] = attr
-                        max_attr = max(max_attr, attr)
-                except Exception:
-                    pass
+        if not attributions:
+            logger.warning(
+                "Lightweight attribution produced no scores for %s — "
+                "circuit will be empty. Check hook names / model support.",
+                config.model_name,
+            )
 
         # Normalise and select top-k
         if max_attr > 0:

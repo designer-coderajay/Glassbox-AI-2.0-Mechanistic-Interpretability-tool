@@ -4,9 +4,9 @@ pypistats.org does not send CORS headers, so browser JS cannot fetch it directly
 This function runs server-side on Vercel, fetches the data, and re-serves it
 with proper CORS + cache headers.
 """
-from http.server import BaseHTTPRequestHandler
 import json
 import urllib.request
+from http.server import BaseHTTPRequestHandler
 
 
 class handler(BaseHTTPRequestHandler):

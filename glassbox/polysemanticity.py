@@ -231,21 +231,28 @@ class PolysemanticityScorerSAE:
             h: [] for h in circuit
         }
 
+        # Group circuit heads by layer. A plain {hook_name: (l, h)} dict
+        # would collide when two heads share a layer (e.g. IOI's (9,6) and
+        # (9,9)) — only the last head per layer survived, silently dropping
+        # the rest from scoring.
+        layer_heads: Dict[int, List[int]] = {}
+        for l, h in circuit:
+            layer_heads.setdefault(l, []).append(h)
+        hook_names = {f"blocks.{l}.attn.hook_z" for l in layer_heads}
+
         for tokens in prompts_tokens:
             try:
-                hook_names = {
-                    f"blocks.{l}.attn.hook_z": (l, h)
-                    for l, h in circuit
-                }
-
                 with torch.no_grad():
                     _, cache = self.model.run_with_cache(
                         tokens,
                         names_filter=lambda n: n in hook_names,
                     )
 
-                for hook_name, (l, h) in hook_names.items():
-                    if hook_name in cache:
+                for l, heads in layer_heads.items():
+                    hook_name = f"blocks.{l}.attn.hook_z"
+                    if hook_name not in cache:
+                        continue
+                    for h in heads:
                         z = cache[hook_name][0, :, h, :]   # (seq, d_head)
                         head_activations[(l, h)].append(z.cpu().float())
             except Exception as e:

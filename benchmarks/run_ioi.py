@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 """Benchmark: IOI (Indirect Object Identification)"""
-import argparse, numpy as np
+import argparse
+
+import numpy as np
 from transformer_lens import HookedTransformer
+
 from glassbox import GlassboxV2
 
 IOI_PROMPTS = [
