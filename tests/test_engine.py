@@ -1141,3 +1141,40 @@ class TestAnalyzeVerbalizerSets:
     def test_overlapping_sets_rejected(self, engine):
         with pytest.raises(ValueError, match="[Oo]verlap"):
             engine.analyze(IOI_PROMPT, [" Mary"], [" Mary", " John"])
+
+
+# ---------------------------------------------------------------------------
+# V5 — counterfactual gate + evidence tier in every analyze() result
+# (ROADMAP_V5 §3.3 + Part 6, wired in Sprint 4)
+# ---------------------------------------------------------------------------
+
+class TestAnalyzeCFGateAndTier:
+    def test_counterfactual_validation_present_and_passing(self, ioi_result):
+        v = ioi_result["counterfactual_validation"]
+        assert v["n_candidates"] == 1
+        assert v["n_valid"] == 1, f"IOI name-swap failed the gate: {v}"
+        assert v["sufficient"] is True
+
+    def test_evidence_tier_present_and_honest(self, ioi_result):
+        tier = ioi_result["evidence_tier"]
+        # A single analyze() run computes no Hessian certificate and no
+        # exact-patching verification — it must self-label C, not flatter.
+        assert tier["tier"] == "C"
+        assert any("Hessian" in r for r in tier["reasons"])
+        assert "disclosure" in tier
+
+    def test_tier_flows_into_annex_iv_report(self, ioi_result):
+        import json
+
+        from glassbox.compliance import AnnexIVReport, DeploymentContext
+        report = AnnexIVReport(
+            model_name="gpt2", system_purpose="IOI test",
+            provider_name="Test", provider_address="Test",
+            deployment_context=DeploymentContext.OTHER_HIGH_RISK,
+        ).add_analysis(ioi_result)
+        data = json.loads(report.to_json())
+        assert data["evidence_tier"]["tier"] == "C"
+
+    def test_corr_ld_stash_exists_after_analyze(self, engine, ioi_result):
+        assert hasattr(engine, "_last_corr_ld")
+        assert isinstance(engine._last_corr_ld, float)

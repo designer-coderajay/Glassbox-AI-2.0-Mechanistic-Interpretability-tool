@@ -97,6 +97,17 @@ import torch
 logger = logging.getLogger(__name__)
 
 
+def _cf_noise_floor(clean_ld: float) -> float:
+    """Noise floor for counterfactual effect verification.
+
+    A valid counterfactual must move the decision value by at least 1% of
+    the clean magnitude (relative — decision values vary in scale across
+    models and verbalizer sets), with an absolute floor of 1e-6 to avoid
+    a zero threshold when clean_ld itself is ~0.
+    """
+    return max(1e-6, 0.01 * abs(clean_ld))
+
+
 def _resolve_decision_tokens(
     encode_single,
     correct: Union[str, Sequence[str]],
@@ -549,13 +560,22 @@ class GlassboxV2:
             return hook
 
         with torch.no_grad():
-            model.run_with_hooks(
+            corr_logits = model.run_with_hooks(
                 corrupted_tokens,
                 fwd_hooks=[
                     (f"blocks.{l}.attn.hook_z", _save_corr(f"blocks.{l}.attn.hook_z"))
                     for l in range(n_layers)
                 ],
             )
+        # V5 CF-gate support: the corrupted decision value falls out of this
+        # pass for free (the logits were previously discarded). Stashed
+        # privately so analyze() can verify the counterfactual moved the
+        # decision — without adding a forward pass or changing this method's
+        # public return shape.
+        self._last_corr_ld = float(
+            _decision_value(corr_logits, target_token, distractor_token,
+                            fp32_each=True)
+        )
 
         # ── Pass 3: gradient pass (requires_grad on clean activations) ────
         grad_inputs: Dict[str, torch.Tensor] = {
@@ -2274,6 +2294,58 @@ class GlassboxV2:
                 clean_ld,
             )
 
+        # ── V5: counterfactual verification gate (ROADMAP_V5 §3.3) ────────
+        # The corrupted decision value came free from attribution's Pass 2.
+        # Structural checks + effect-above-noise; failures are REPORTED in
+        # the result, never silently absorbed.
+        from glassbox.cf_gate import CandidateCF, CounterfactualGate, GateConfig
+
+        corr_ld = getattr(self, "_last_corr_ld", None)
+        candidate = CandidateCF(
+            text=corr_prompt,
+            strategy=_corruption_strategy,
+            tokens=tokens_corr[0].tolist(),
+        )
+        gate = CounterfactualGate(GateConfig(
+            # The attribution pipeline slices last positions independently,
+            # so unequal clean/corr lengths are legitimate here.
+            require_alignment=False,
+            noise_floor=_cf_noise_floor(clean_ld),
+        ))
+        if corr_ld is None:  # pragma: no cover — non-taylor/IG future paths
+            def _measure(_c):
+                raise RuntimeError("corrupted decision value unavailable")
+        else:
+            def _measure(_c):
+                return clean_ld - corr_ld
+        cf_validation = gate.evaluate(
+            tokens_c[0].tolist(), [candidate], _measure
+        ).discard_report()
+        if not cf_validation["sufficient"]:
+            logger.warning(
+                "GlassboxV2.analyze: counterfactual FAILED verification (%s). "
+                "Attribution is ungrounded for this prompt; the result is "
+                "tier-downgraded and should not be used as causal evidence.",
+                cf_validation["discarded"][0]["reason"]
+                if cf_validation["discarded"] else "unknown",
+            )
+
+        # ── V5: evidence-tier self-assessment (ROADMAP_V5 Part 6) ─────────
+        # Honest by default: a single analyze() run has no Hessian
+        # certificate and no exact-patching verification, so it self-labels
+        # tier C (B/A require running HessianErrorBounds / exact patching).
+        # AnnexIVReport picks this up automatically (embedded form).
+        from glassbox.evidence_tier import TierEngine, TierSignals
+
+        tier_assessment = TierEngine().assess(TierSignals(
+            has_weights=True,
+            counterfactual_valid=bool(cf_validation["sufficient"]),
+            hessian_reliable=None,
+            exact_patch_verified=False,
+            causal_abstraction_tested=False,
+            sample_n=None,
+        )).to_dict()
+
         # Faithfulness metrics
         total = sum(attrs.get(h, 0.0) for h in circuit)
         suff  = float(np.clip(total / clean_ld, 0.0, 1.0)) if clean_ld != 0.0 else 0.0
@@ -2301,6 +2373,8 @@ class GlassboxV2:
             "top_heads":        top_heads,
             "method":           method,
             **({"decision": decision_meta} if decision_meta is not None else {}),
+            "counterfactual_validation": cf_validation,
+            "evidence_tier": tier_assessment,
             "faithfulness": {
                 "sufficiency":       suff,
                 "comprehensiveness": comp,

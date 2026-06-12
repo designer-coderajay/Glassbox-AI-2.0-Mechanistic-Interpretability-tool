@@ -78,3 +78,17 @@ class TestSetPath:
             encode_single, [" yes", " yes"], [" no"]
         )
         assert t == [22]
+
+
+class TestCFNoiseFloor:
+    """V5 Sprint 4: relative noise floor for counterfactual verification."""
+
+    def test_scales_with_clean_magnitude(self):
+        from glassbox.core import _cf_noise_floor
+        assert _cf_noise_floor(4.0) == pytest.approx(0.04)
+        assert _cf_noise_floor(-4.0) == pytest.approx(0.04)
+
+    def test_absolute_floor_when_clean_ld_tiny(self):
+        from glassbox.core import _cf_noise_floor
+        assert _cf_noise_floor(0.0) == pytest.approx(1e-6)
+        assert _cf_noise_floor(1e-9) == pytest.approx(1e-6)
