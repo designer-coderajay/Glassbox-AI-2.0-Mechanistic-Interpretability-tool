@@ -42,6 +42,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **`glassbox/core.py`** — V5 Step 1 of the decision-functional migration: all 8 last-position logit-diff computations centralized into one `_decision_value()` helper with byte-identical semantics (fp32 cast-each-then-subtract preserved on gradient paths; native-dtype subtract preserved on exact-patching paths). No behavior change — this isolates the single point where Step 2 swaps in the set-aware `logsumexp(A) − logsumexp(B)` objective from `glassbox.decision`.
+
 - **`docs/index.html`** — landing page redesign: pricing section (Community / Pro waitlist / Enterprise), working email capture wired to `/api/waitlist`, live countdown to the 2 Aug 2026 enforcement date, engineer/compliance audience fork, JSON-LD structured data. All marketing numbers reconciled to BENCHMARKS.md + CI: 710 tests, 15–37× vs ACDC, credit-task suff 0.73 / F1 0.61 / Grade B, Art. 99(4) €15M / 3% penalty (previously cited the Art. 99(3) prohibited-practices cap). Previous design preserved at `docs/_design-snapshot/index.html`.
 - **`ENTERPRISE.md`** — billion-parameter claim now states implementation status honestly (verification scheduled) instead of implying verified Llama-3-70B benchmarks.
 - **`.claude/CLAUDE.md`** — canonical metrics list reconciled to the same single source of truth.

@@ -202,6 +202,13 @@ from glassbox.bias import (
     DemographicParityResult,
     TokenBiasResult,
 )
+from glassbox.cf_gate import (
+    CandidateCF,
+    CounterfactualGate,
+    DiscardReason,
+    GateConfig,
+    GateResult,
+)
 
 # ---------------------------------------------------------------------------
 # Circuit Diff — mechanistic diff between model versions (v3.1.0)
@@ -220,22 +227,6 @@ from glassbox.compliance import (
 )
 from glassbox.composition import HeadCompositionAnalyzer
 
-# V5 — decision functional, counterfactual gate, evidence tiers (Phase A)
-from glassbox.decision import DecisionFunctional, ResolvedDecision, VerbalizerSet
-from glassbox.cf_gate import (
-    CandidateCF,
-    CounterfactualGate,
-    DiscardReason,
-    GateConfig,
-    GateResult,
-)
-from glassbox.evidence_tier import (
-    EvidenceTier,
-    TierAssessment,
-    TierEngine,
-    TierSignals,
-)
-
 # ---------------------------------------------------------------------------
 # Cross-Model Circuit Comparison — robustness across architectures (v4.2.0)
 # ---------------------------------------------------------------------------
@@ -246,6 +237,15 @@ from glassbox.cross_model import (
     ModelAnalysisConfig,
     SingleModelResult,
     compare_models,
+)
+
+# V5 — decision functional, counterfactual gate, evidence tiers (Phase A)
+from glassbox.decision import DecisionFunctional, ResolvedDecision, VerbalizerSet
+from glassbox.evidence_tier import (
+    EvidenceTier,
+    TierAssessment,
+    TierEngine,
+    TierSignals,
 )
 
 # ---------------------------------------------------------------------------

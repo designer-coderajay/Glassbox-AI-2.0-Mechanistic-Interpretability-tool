@@ -96,6 +96,30 @@ import torch
 
 logger = logging.getLogger(__name__)
 
+
+def _decision_value(logits, target_token, distractor_token, *, fp32_each=False):
+    """Decision value at the last position — V5 Step-1 centralization.
+
+    Today this is the two-token logit difference, with semantics
+    byte-identical to the historical inline expressions:
+
+    - ``fp32_each=True`` casts EACH logit to float32 before subtracting
+      (the gradient/accumulation paths) — deliberately not the same as
+      subtracting in fp16 and casting the result.
+    - ``fp32_each=False`` subtracts in the model's native dtype
+      (the exact-patching paths, which immediately ``.item()``).
+
+    ROADMAP_V5 §2.1 Step 2 will swap these internals for the set-aware
+    ``logsumexp(A) − logsumexp(B)`` decision functional without touching
+    any call site again. Keep ALL last-position decision computations
+    routed through here.
+    """
+    a = logits[0, -1, target_token]
+    b = logits[0, -1, distractor_token]
+    if fp32_each:
+        return a.float() - b.float()
+    return a - b
+
 # Expose version inside the module so model_metadata can self-document results
 # without importing glassbox/__init__.py (circular import risk).
 try:
@@ -494,10 +518,7 @@ class GlassboxV2:
             clean_tokens,
             fwd_hooks=[(k, _patch(k)) for k in grad_inputs],
         )
-        ld = (
-            logits[0, -1, target_token].float()
-            - logits[0, -1, distractor_token].float()
-        )
+        ld = _decision_value(logits, target_token, distractor_token, fp32_each=True)
         clean_ld = ld.item()
         ld.backward()
 
@@ -565,10 +586,7 @@ class GlassboxV2:
                         clean_tokens,
                         fwd_hooks=[(k, _patch_interp(k)) for k in interp],
                     )
-                    ld_i = (
-                        logits_i[0, -1, target_token].float()
-                        - logits_i[0, -1, distractor_token].float()
-                    )
+                    ld_i = _decision_value(logits_i, target_token, distractor_token, fp32_each=True)
                     ld_i.backward()
 
                 for k in acc_grads:
@@ -676,10 +694,7 @@ class GlassboxV2:
                 for l in range(n_layers)
             ],
         )
-        ld = (
-            logits[0, -1, target_token].float()
-            - logits[0, -1, distractor_token].float()
-        )
+        ld = _decision_value(logits, target_token, distractor_token, fp32_each=True)
         ld.backward()
 
         mlp_attrs: Dict[int, float] = {}
@@ -1031,10 +1046,7 @@ class GlassboxV2:
         # torch.enable_grad() ensures gradient tracking regardless of outer context
         with torch.enable_grad():
             logits = model.run_with_hooks(clean_tokens, fwd_hooks=fwd_hooks)
-            metric = (
-                logits[0, -1, target_token].float()
-                - logits[0, -1, distractor_token].float()
-            )
+            metric = _decision_value(logits, target_token, distractor_token, fp32_each=True)
             clean_ld = metric.item()
             metric.backward()
 
@@ -1414,10 +1426,7 @@ class GlassboxV2:
         with torch.no_grad():
             patched_logits = self.model.run_with_hooks(clean_tokens, fwd_hooks=hooks)
 
-        circuit_only_ld = (
-            patched_logits[0, -1, target_token]
-            - patched_logits[0, -1, distractor_token]
-        ).item()
+        circuit_only_ld = _decision_value(patched_logits, target_token, distractor_token).item()
 
         suff = circuit_only_ld / clean_ld
         return float(np.clip(suff, 0.0, 1.5))   # clip at 1.5 to handle amplification
@@ -1511,10 +1520,7 @@ class GlassboxV2:
         with torch.no_grad():
             patched_logits = self.model.run_with_hooks(clean_tokens, fwd_hooks=hooks)
 
-        patched_ld = (
-            patched_logits[0, -1, target_token]
-            - patched_logits[0, -1, distractor_token]
-        ).item()
+        patched_ld = _decision_value(patched_logits, target_token, distractor_token).item()
 
         comp = 1.0 - (patched_ld / clean_ld)
         return float(np.clip(comp, 0.0, 1.0))
@@ -1555,10 +1561,7 @@ class GlassboxV2:
         with torch.no_grad():
             patched_logits = self.model.run_with_hooks(clean_tokens, fwd_hooks=hooks)
 
-        patched_ld = (
-            patched_logits[0, -1, target_token]
-            - patched_logits[0, -1, distractor_token]
-        ).item()
+        patched_ld = _decision_value(patched_logits, target_token, distractor_token).item()
 
         comp = 1.0 - (patched_ld / clean_ld)
         return float(np.clip(comp, 0.0, 1.0))
@@ -2397,7 +2400,7 @@ class GlassboxV2:
                 fwd_hooks=[("hook_embed", _embed_hook)],
             )
             # logits: [1, seq_len, d_vocab]
-            ld = logits[0, -1, target_token] - logits[0, -1, distractor_token]
+            ld = _decision_value(logits, target_token, distractor_token)
             ld.backward()
 
         emb_tensor = grad_store["embed"]                       # [1, seq_len, d_model]
