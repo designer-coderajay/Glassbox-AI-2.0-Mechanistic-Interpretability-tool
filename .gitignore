@@ -71,3 +71,5 @@ README_LEAN.md
 
 # Local Desktop backups of anything we delete or change (never publish)
 _local_backups/
+AUDIT_REPORT_*.md
+deploy_site.sh

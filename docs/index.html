@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glassbox: prove what your model did</title>
-<meta name="description" content="Glassbox traces the exact circuit behind a model's decision, measures how faithful that explanation is, and writes the EU AI Act Annex IV documentation. One function call, under two seconds, on open-weight models.">
+<title>Glassbox — prove what your model did</title>
+<meta name="description" content="Glassbox traces the exact circuit behind a model's decision, measures how faithful that explanation is, and writes the EU AI Act Annex IV documentation. One function call, on open-weight models.">
 <link rel="canonical" href="https://repo-ashen-psi.vercel.app">
-<meta property="og:title" content="Glassbox: prove what your model did">
-<meta property="og:description" content="Causal circuit discovery + measured faithfulness + regulator-ready EU AI Act Annex IV, in under two seconds.">
+<meta property="og:title" content="Glassbox — prove what your model did">
+<meta property="og:description" content="Causal circuit discovery + measured faithfulness + regulator-ready EU AI Act Annex IV documentation, from one function call.">
 <meta property="og:url" content="https://repo-ashen-psi.vercel.app">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://repo-ashen-psi.vercel.app/assets/og-image.png">
@@ -17,6 +17,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Glassbox","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Windows","softwareVersion":"4.3.1","description":"Mechanistic interpretability and EU AI Act Annex IV compliance documentation toolkit for transformer models.","url":"https://repo-ashen-psi.vercel.app","downloadUrl":"https://pypi.org/project/glassbox-mech-interp/","author":{"@type":"Person","name":"Ajay Pravin Mahale"},"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR","description":"Open-source core under MIT license"}}
+</script>
 <style>
 :root{
   --bg:#fbfaf7; --surface:#f4f2ec; --card:#ffffff; --ink-dark:#1a1916;
@@ -52,7 +55,7 @@ img,svg{display:block;max-width:100%}
 h2.h{font-family:var(--display);font-size:clamp(28px,3.8vw,46px);line-height:1.08;
   letter-spacing:-.02em;font-weight:600;color:var(--ink)}
 .lead{font-size:clamp(17px,1.6vw,20px);color:var(--ink-2);max-width:62ch;margin-top:20px;line-height:1.6}
-a:focus-visible,button:focus-visible{outline:2px solid var(--clay);outline-offset:3px;border-radius:5px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--clay);outline-offset:3px;border-radius:5px}
 
 .reveal{opacity:0;transform:translateY(20px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
 .reveal.in{opacity:1;transform:none}
@@ -70,6 +73,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--clay);outline-offse
 .announce .wrap{display:flex;gap:11px;align-items:center;justify-content:center;min-height:42px;
   padding:7px var(--pad-x);font-family:var(--mono);font-size:12.5px;text-align:center;flex-wrap:wrap}
 .announce b{color:var(--clay);font-weight:500}
+.announce a{color:#f0ede4;text-decoration:underline;text-underline-offset:3px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--clay);flex:none;animation:pulse 2.6s var(--ease) infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 
@@ -80,7 +84,7 @@ nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
 .brand svg{width:25px;height:25px}
 .brand .v{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--ink-3);
   border:1px solid var(--line-2);border-radius:5px;padding:1px 6px;letter-spacing:0}
-.navlinks{display:flex;gap:28px;margin-left:auto;font-size:15px;font-weight:500}
+.navlinks{display:flex;gap:26px;margin-left:auto;font-size:15px;font-weight:500}
 .navlinks a{color:var(--ink-2);transition:color .18s}
 .navlinks a:hover{color:var(--ink)}
 .navcta{display:flex;gap:10px;align-items:center}
@@ -93,7 +97,7 @@ nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
 #m-menu{display:none;border-bottom:1px solid var(--line);background:var(--surface)}
 #m-menu a{display:block;padding:15px var(--pad-x);border-top:1px solid var(--line);color:var(--ink-2);font-size:15px}
 
-.hero{padding:clamp(52px,7vw,92px) 0 clamp(60px,8vw,100px)}
+.hero{padding:clamp(52px,7vw,92px) 0 clamp(48px,6vw,72px)}
 .hero .grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,64px);align-items:start}
 .hero h1{font-family:var(--display);font-weight:700;font-size:clamp(40px,5.6vw,68px);line-height:1.02;letter-spacing:-.035em;color:var(--ink)}
 .hero h1 .em{color:var(--clay)}
@@ -108,7 +112,6 @@ nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
 .hero .fine{margin-top:18px;font-size:13.5px;color:var(--ink-3);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .hero .fine b{color:var(--ink-2);font-weight:500}
 
-/* interactive audit panel */
 .demo{background:var(--card);border:1px solid var(--line-2);border-radius:var(--r-lg);overflow:hidden;
   box-shadow:0 30px 70px -42px rgba(23,22,20,.32)}
 .demo-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
@@ -135,8 +138,21 @@ nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
 .fbar .fill{height:100%;width:0;background:var(--clay);border-radius:99px;transition:width 1.1s var(--ease)}
 .fbar .fill.g{background:var(--ok)}
 .fbar .fv{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink);text-align:right}
-.gradechip{display:inline-flex;align-items:center;gap:6px;background:var(--clay-tint);color:var(--clay-deep);
+.gradechip{display:inline-flex;align-items:center;gap:6px;background:var(--ok-tint);color:var(--ok);
   border-radius:6px;padding:3px 9px;font-family:var(--mono);font-size:11.5px;font-weight:500}
+
+/* audience fork */
+.fork{padding:0 0 clamp(48px,6vw,72px)}
+.fork .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:26px 26px 24px;
+  display:flex;flex-direction:column;gap:8px;transition:.25s var(--ease)}
+.fcard:hover{border-color:var(--clay);transform:translateY(-2px)}
+.fcard .fk{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--clay-deep)}
+.fcard h3{font-family:var(--display);font-size:20px;font-weight:600;letter-spacing:-.01em}
+.fcard p{font-size:14.5px;color:var(--ink-2);line-height:1.6}
+.fcard .go{margin-top:10px;font-size:14px;font-weight:500;color:var(--clay-deep);display:inline-flex;align-items:center;gap:6px}
+.fcard .go svg{width:15px;height:15px;transition:transform .2s}
+.fcard:hover .go svg{transform:translateX(3px)}
 
 .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface)}
 .strip .wrap{padding:28px var(--pad-x);display:flex;align-items:center;gap:clamp(20px,4vw,48px);flex-wrap:wrap;justify-content:center}
@@ -166,6 +182,8 @@ section{padding:var(--sec-y) 0}
 .metrics .m .n em{color:var(--clay);font-style:normal}
 .metrics .m .l{font-size:13.5px;color:#a8a399;margin-top:14px;line-height:1.5}
 .metrics .m .l b{color:#e8e4da;font-weight:500}
+.metrics .src{margin-top:clamp(32px,4vw,44px);font-family:var(--mono);font-size:11.5px;color:#8b8478;line-height:1.7}
+.metrics .src a{color:#a8a399;text-decoration:underline;text-underline-offset:3px}
 
 .split{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,52px);align-items:start;margin-top:clamp(40px,5vw,58px)}
 .code{background:var(--ink-dark);border:1px solid #2a2722;border-radius:var(--r-lg);overflow:hidden;box-shadow:0 24px 60px -34px rgba(23,22,20,.4)}
@@ -189,7 +207,6 @@ section{padding:var(--sec-y) 0}
 .risk .rc .rn em{color:var(--clay);font-style:normal}
 .risk .rc .rl{font-size:14px;color:var(--ink-2);margin-top:12px;line-height:1.5}
 
-/* vault artifact */
 .vaultwrap{margin-top:clamp(34px,4vw,48px);display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,4vw,48px);align-items:center}
 .vaultcopy h3{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-.015em;margin-bottom:12px}
 .vaultcopy p{font-size:15px;color:var(--ink-2);line-height:1.6;margin-bottom:14px}
@@ -214,6 +231,23 @@ section{padding:var(--sec-y) 0}
 .doc .dfoot{display:flex;flex-wrap:wrap;gap:7px;padding:13px 16px;background:var(--surface)}
 .doc .dfoot span{font-family:var(--mono);font-size:11px;color:var(--ink-2);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
 .doc .dfoot span b{color:var(--clay-deep);font-weight:500}
+
+/* pricing */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:clamp(40px,5vw,56px)}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 28px;display:flex;flex-direction:column;gap:0;transition:.25s var(--ease)}
+.plan:hover{transform:translateY(-3px);box-shadow:0 14px 40px -20px rgba(23,22,20,.16)}
+.plan.feat{border-color:var(--clay);box-shadow:0 18px 50px -24px rgba(154,74,40,.28)}
+.plan .pl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.plan.feat .pl{color:var(--clay-deep)}
+.plan h3{font-family:var(--display);font-size:22px;font-weight:600;margin:10px 0 2px}
+.plan .pp{font-family:var(--display);font-size:34px;font-weight:600;letter-spacing:-.02em;margin:14px 0 2px}
+.plan .pp small{font-family:var(--sans);font-size:14px;font-weight:400;color:var(--ink-3)}
+.plan .pd{font-size:13.5px;color:var(--ink-3);min-height:42px}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:9px;margin:18px 0 24px;padding-top:18px;border-top:1px solid var(--line)}
+.plan li{display:flex;gap:9px;align-items:flex-start;font-size:14px;color:var(--ink-2)}
+.plan li svg{width:16px;height:16px;color:var(--ok);flex:none;margin-top:2px}
+.plan .btn{margin-top:auto;justify-content:center}
+.plan .note{margin-top:10px;font-size:12px;color:var(--ink-3);text-align:center}
 
 .tablewrap{margin-top:clamp(36px,4vw,52px);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:var(--card)}
 table.cmp{width:100%;border-collapse:collapse;font-size:14.5px}
@@ -258,27 +292,42 @@ table.mdl td.mono{font-family:var(--mono);font-size:13px;color:var(--ink-2)}
 .fitem:hover .fa{color:var(--clay);transform:translateX(3px)}
 .fitem .fa svg{width:17px;height:17px}
 
-.ctaband{text-align:center;padding:clamp(80px,11vw,132px) 0;background:var(--surface);border-top:1px solid var(--line)}
-.ctaband h2{font-family:var(--display);font-weight:700;font-size:clamp(34px,5vw,60px);line-height:1.04;letter-spacing:-.03em}
-.ctaband p{color:var(--ink-2);font-size:clamp(16px,1.5vw,19px);margin:18px auto 32px;max-width:48ch}
-.ctaband .cta{display:flex;gap:13px;justify-content:center;flex-wrap:wrap;align-items:center}
+/* waitlist band */
+.ctaband{padding:clamp(80px,11vw,132px) 0;background:var(--ink-dark);color:#f0ede4;border-top:1px solid var(--line)}
+.ctaband .inner{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(32px,5vw,64px);align-items:center}
+.ctaband h2{font-family:var(--display);font-weight:700;font-size:clamp(32px,4.6vw,54px);line-height:1.05;letter-spacing:-.03em;color:#fff}
+.ctaband .p{color:#a8a399;font-size:clamp(15px,1.5vw,18px);margin-top:16px;max-width:46ch;line-height:1.6}
+.ctaband .p b{color:#e8e4da;font-weight:500}
+.wlform{display:flex;gap:10px;margin-top:0;flex-wrap:wrap}
+.wlform input{flex:1;min-width:220px;background:#23211d;border:1px solid #3a3631;border-radius:var(--r);
+  padding:13px 16px;font-family:var(--sans);font-size:15px;color:#f0ede4}
+.wlform input::placeholder{color:#6f6a62}
+.wlform .btn-primary{background:var(--clay)}
+.wlform .btn-primary:hover{background:var(--clay-deep)}
+.wlmsg{margin-top:12px;font-size:13.5px;color:#9bb48a;min-height:20px}
+.wlmsg.err{color:#e09a9a}
+.orbook{margin-top:22px;padding-top:22px;border-top:1px solid #2a2722;font-size:14px;color:#a8a399}
+.orbook a{color:#f0ede4;text-decoration:underline;text-underline-offset:3px}
+.cbox{background:#23211d;border:1px solid #3a3631;border-radius:var(--r-lg);padding:28px}
+.cbox h3{font-family:var(--display);font-size:18px;font-weight:600;color:#fff;margin-bottom:14px}
+.cbox .wlform{margin-top:6px}
 
-footer{background:var(--ink-dark);color:#cfcabf;padding:clamp(56px,7vw,80px) 0 40px}
+footer{background:var(--ink-dark);color:#cfcabf;padding:clamp(56px,7vw,80px) 0 40px;border-top:1px solid #2a2722}
 .fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:clamp(24px,3vw,40px);padding-bottom:44px;border-bottom:1px solid #2a2722}
 .fbrand .brand{color:#fff}.fbrand .brand .v{color:#8b8478;border-color:#3a3631}
 .fbrand p{font-size:13.5px;color:#8b8478;max-width:30ch;margin-top:16px;line-height:1.6}
 footer h5{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8b8478;font-weight:500;margin-bottom:16px}
 footer .fcol a{display:block;color:#cfcabf;font-size:14px;margin-bottom:11px;transition:color .18s;width:fit-content}
 footer .fcol a:hover{color:#fff}
-.fbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;padding-top:26px;font-size:12.5px;color:#8b8478}
-.fbar .mono{font-family:var(--mono)}
+.fbar2{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;padding-top:26px;font-size:12.5px;color:#8b8478}
+.fbar2 .mono{font-family:var(--mono)}
 
 @media(max-width:960px){.fgrid{grid-template-columns:1fr 1fr 1fr;row-gap:36px}.fbrand{grid-column:1/-1}}
 @media(max-width:860px){
   .navlinks{display:none}.navcta .btn-ghost .gh-label{display:none}.iconbtn{display:flex}
-  .hero .grid,.split,.vaultwrap{grid-template-columns:1fr}
+  .hero .grid,.split,.vaultwrap,.fork .grid,.ctaband .inner{grid-template-columns:1fr}
   .demo{max-width:480px;margin:0 auto;width:100%}
-  .pillars,.metrics .grid,.risk{grid-template-columns:1fr}
+  .pillars,.metrics .grid,.risk,.plans{grid-template-columns:1fr}
   .metrics .grid{grid-template-columns:1fr 1fr;gap:32px 24px}
   .row{grid-template-columns:1fr;gap:6px}.row .ref{margin-top:4px}
   .fitem{grid-template-columns:1fr;gap:6px}.fitem .fa{display:none}
@@ -286,13 +335,12 @@ footer .fcol a:hover{color:#fff}
 @media(max-width:520px){
   .metrics .grid{grid-template-columns:1fr}
   table.cmp{font-size:13px}table.cmp th,table.cmp td{padding:13px 12px}
-  .fbar{grid-template-columns:108px 1fr 40px}
 }
 </style>
 </head>
 <body>
 
-<div class="announce"><div class="wrap"><span class="dot"></span> <span>From <b>2 August 2026</b>, the EU AI Act makes Annex IV documentation mandatory for high-risk AI systems.</span></div></div>
+<div class="announce"><div class="wrap"><span class="dot"></span> <span><b id="cdays">—</b> days until the EU AI Act makes Annex IV documentation mandatory for high-risk systems · <b>2 Aug 2026</b> · <a href="#compliance">what that means</a></span></div></div>
 
 <nav><div class="wrap">
   <a class="brand" href="#top" aria-label="Glassbox home">
@@ -300,19 +348,19 @@ footer .fcol a:hover{color:#fff}
     glassbox <span class="v">v4.3.1</span>
   </a>
   <div class="navlinks">
-    <a href="#method">Method</a><a href="#results">Results</a><a href="#compliance">Compliance</a><a href="#compare">Compare</a><a href="#models">Models</a>
+    <a href="#method">Method</a><a href="#results">Results</a><a href="#compliance">Compliance</a><a href="#pricing">Pricing</a><a href="#models">Models</a>
   </div>
   <div class="navcta">
     <a class="btn btn-ghost gh" id="ghlink" href="https://github.com/designer-coderajay/glassbox-mech">
       <span class="gh-label">GitHub</span>
       <span class="star" id="ghstar"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><span id="ghstarn"></span></span>
     </a>
-    <a class="btn btn-primary" href="https://pypi.org/project/glassbox-mech-interp/">Install</a>
+    <a class="btn btn-primary" href="#waitlist">Get started</a>
     <button class="iconbtn" id="mtoggle" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/></svg></button>
   </div>
 </div>
 <div id="m-menu">
-  <a href="#method">Method</a><a href="#results">Results</a><a href="#compliance">Compliance</a><a href="#compare">Compare</a><a href="#models">Models</a><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a>
+  <a href="#method">Method</a><a href="#results">Results</a><a href="#compliance">Compliance</a><a href="#pricing">Pricing</a><a href="#models">Models</a><a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a>
 </div>
 </nav>
 
@@ -320,7 +368,7 @@ footer .fcol a:hover{color:#fff}
   <div class="reveal">
     <span class="eyebrow">Mechanistic interpretability for the EU AI Act</span>
     <h1>Prove what your model <span class="em">actually</span> did.</h1>
-    <p class="sub">Glassbox traces the circuit behind a decision, measures how faithful that explanation is, and writes the Annex IV documentation for you. One function call, under two seconds, on open-weight models.</p>
+    <p class="sub">Glassbox traces the circuit behind a decision, measures how faithful that explanation is, and writes the Annex IV documentation for you. One function call, on open-weight models.</p>
     <div class="cta">
       <button class="pill-cmd" id="copycmd" aria-label="Copy install command">
         <span><span class="pf">$</span>&nbsp;pip install glassbox-mech-interp</span>
@@ -329,33 +377,47 @@ footer .fcol a:hover{color:#fff}
       <a class="btn btn-ghost" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
-    <div class="fine"><b>Open source</b> · MIT core · runs on <b>GPT-2 → Llama-3, Mistral, Phi-3</b></div>
+    <div class="fine"><b>Open source</b> · MIT core · built for <b>GPT-2 → Llama-3, Mistral, Phi-3</b></div>
   </div>
 
-  <div class="demo reveal" role="img" aria-label="An interactive audit panel: a 12-by-12 grid of GPT-2 attention heads ranked by causal effect, with the four-head circuit highlighted, and faithfulness scores sufficiency 1.00, comprehensiveness 0.22, F1 0.64.">
+  <div class="demo reveal" role="img" aria-label="An interactive audit panel: a 12-by-12 grid of GPT-2 attention heads ranked by causal effect, with the minimal circuit highlighted, and credit-task faithfulness scores: sufficiency 0.73, faithfulness F1 0.61, grade B.">
     <div class="demo-top">
-      <span class="pr"><b>analyze</b>(prompt="…Decision:", correct=" Approved")</span>
+      <span class="pr"><b>analyze</b>(prompt="Credit score 620. Decision:", …)</span>
       <button class="runbtn" id="runbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run audit</button>
     </div>
     <div class="demo-body">
       <div class="hgrid" id="hgrid" aria-hidden="true"></div>
-      <div class="gridcap"><span>GPT-2 Small · <b>IOI task</b> · 144 heads ranked</span><span id="phaselbl">→ minimal circuit: <b>4 heads</b></span></div>
+      <div class="gridcap"><span>GPT-2 Small · <b>credit task</b> · 144 heads ranked</span><span id="phaselbl">→ minimal circuit: <b>14 heads</b></span></div>
       <div class="fbars" id="fbars">
-        <div class="fbar"><span class="fl">sufficiency</span><div class="track"><span class="fill" data-w="100"></span></div><span class="fv">1.00</span></div>
-        <div class="fbar"><span class="fl">comprehensiveness</span><div class="track"><span class="fill" data-w="22"></span></div><span class="fv">0.22</span></div>
-        <div class="fbar"><span class="fl">faithfulness F1</span><div class="track"><span class="fill" data-w="64"></span></div><span class="fv">0.64</span></div>
-        <div style="display:flex;justify-content:flex-end"><span class="gradechip">Grade B · adequate</span></div>
+        <div class="fbar"><span class="fl">sufficiency</span><div class="track"><span class="fill" data-w="73"></span></div><span class="fv">0.73</span></div>
+        <div class="fbar"><span class="fl">faithfulness F1</span><div class="track"><span class="fill g" data-w="61"></span></div><span class="fv">0.61</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--mono);font-size:11px;color:var(--ink-3)">1.8s · Apple M1 Pro · benchmark_v340</span><span class="gradechip">Grade B · adequate</span></div>
       </div>
     </div>
   </div>
 </div></div></header>
+
+<div class="fork"><div class="wrap"><div class="grid">
+  <a class="fcard reveal" href="https://github.com/designer-coderajay/glassbox-mech#quickstart">
+    <span class="fk">I build models</span>
+    <h3>Find the circuit in three forward passes</h3>
+    <p>Attribution patching, ACDC, causal scrubbing, DAS, Hessian bounds — 21 frameworks behind one Python API. pip install and audit in minutes.</p>
+    <span class="go">Read the quickstart <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  </a>
+  <a class="fcard reveal" href="#compliance">
+    <span class="fk">I own compliance</span>
+    <h3>Get Annex IV documentation you can defend</h3>
+    <p>Eight of nine sections drafted from the model's measured behaviour, content-hashed against quiet edits. No notebook required — your engineers run it, you review it.</p>
+    <span class="go">See what you hand over <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  </a>
+</div></div></div>
 
 <div class="strip reveal"><div class="wrap">
   <span class="lab">Grounded in</span>
   <div class="items">
     <span>Built on <b>PyTorch</b> &amp; <b>TransformerLens</b></span><span class="sep"></span>
     <span>Method anchored to <b>ACDC</b> (Conmy 2023) &amp; <b>IOI</b> (Wang 2022)</span><span class="sep"></span>
-    <span><b>76</b> automated tests</span><span class="sep"></span>
+    <span><b>710</b> tests passing in CI</span><span class="sep"></span>
     <span><b>arXiv 2603.09988</b></span>
   </div>
 </div></div>
@@ -372,21 +434,21 @@ footer .fcol a:hover{color:#fff}
       <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5" stroke-linecap="round"/></svg></div>
       <h3>Discover</h3>
       <p>Attribution patching scores each attention head by its causal effect on the prediction. Three forward passes, no correlation guesswork.</p>
-      <div class="stat"><b>37× faster</b> than ACDC · <b>1.2s</b> on CPU</div>
+      <div class="stat"><b>15–37× faster</b> than ACDC · <b>1.8s</b> on a laptop</div>
     </div>
     <div class="pcard reveal">
       <span class="pnum">02</span>
       <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <h3>Verify</h3>
       <p>Sufficiency and comprehensiveness isolate the smallest circuit that still reproduces the behaviour, scored against full ablation. The explanation is measured, not asserted.</p>
-      <div class="stat">GPT-2 IOI · <b>suff 1.00</b> · <b>comp 0.22</b> · <b>F1 0.64</b></div>
+      <div class="stat">credit task · <b>suff 0.73</b> · <b>F1 0.61</b> · Grade B</div>
     </div>
     <div class="pcard reveal">
       <span class="pnum">03</span>
       <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5" stroke-linejoin="round"/></svg></div>
       <h3>Document</h3>
       <p>Eight of the nine Annex IV sections are written straight from the model and content-hashed, so nothing can be edited quietly. The ninth, the Declaration of Conformity, stays in your hands.</p>
-      <div class="stat"><b>9-section</b> Annex IV vault · hashed</div>
+      <div class="stat"><b>9 sections</b> structured · 8 auto-filled · hashed</div>
     </div>
   </div>
 </div></section>
@@ -397,11 +459,12 @@ footer .fcol a:hover{color:#fff}
     <h2 class="h" style="color:#fff">Numbers you can reproduce</h2>
   </div>
   <div class="grid">
-    <div class="m reveal"><div class="n" data-count="37" data-suffix="×">37×</div><div class="l">faster than ACDC<br><b>1.2s vs 43.2s</b>, GPT-2 Small</div></div>
-    <div class="m reveal"><div class="n" data-count="0.64" data-dp="2">0.64</div><div class="l">faithfulness <b>F1</b>, Grade B<br>vs brute-force ablation</div></div>
-    <div class="m reveal"><div class="n">9<em>/</em>9</div><div class="l">Annex IV sections<br><b>structured</b> from one run</div></div>
+    <div class="m reveal"><div class="n" data-count="37" data-suffix="×">37×</div><div class="l">faster than ACDC, up to<br><b>15–37×</b> across the GPT-2 family</div></div>
+    <div class="m reveal"><div class="n" data-count="0.61" data-dp="2">0.61</div><div class="l">faithfulness <b>F1</b>, Grade B<br>credit task, vs full ablation</div></div>
+    <div class="m reveal"><div class="n">8<em>/</em>9</div><div class="l">Annex IV sections <b>auto-filled</b><br>§8 declaration stays human</div></div>
     <div class="m reveal"><div class="n" data-count="0.009" data-dp="3">0.009</div><div class="l">confidence ↔ faithfulness<br><b>correlation</b> (r), orthogonal</div></div>
   </div>
+  <p class="src reveal">Wall-clock timings from <span class="mono">gb.analyze()</span> on Apple M1 Pro, weights pre-loaded; ACDC baseline per Conmy et al. 2023. Full methodology, hardware specs and raw data in <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/BENCHMARKS.md">BENCHMARKS.md</a> — reproduce with <span class="mono">scripts/benchmark.py</span>. Every approximation is disclosed in the result dict.</p>
 </div></section>
 
 <section id="how"><div class="wrap">
@@ -418,12 +481,12 @@ footer .fcol a:hover{color:#fff}
 
 gb = <span class="f">GlassboxV2</span>(model)
 result = gb.<span class="f">analyze</span>(
-    prompt=<span class="s">"Income €42,000. Decision:"</span>,
-    correct=<span class="s">" Approved"</span>,
-    incorrect=<span class="s">" Denied"</span>,
+    prompt=<span class="s">"Credit score 620. Decision:"</span>,
+    correct=<span class="s">" approved"</span>,
+    incorrect=<span class="s">" denied"</span>,
     corruption_strategy=<span class="s">"auto"</span>,
 )
-<span class="hl">result[<span class="s">"faithfulness"</span>][<span class="s">"f1"</span>]   <span class="c"># 0.64</span></span>
+<span class="hl">result[<span class="s">"faithfulness"</span>][<span class="s">"f1"</span>]   <span class="c"># 0.61</span></span>
 vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     </div>
     <div class="steps reveal">
@@ -441,8 +504,8 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     <p class="lead">From 2 August 2026, every high-risk AI system placed on the EU market must keep Annex IV technical documentation. Glassbox fills eight of the nine sections directly from the model's measured behaviour.</p>
   </div>
   <div class="risk">
-    <div class="rc reveal"><div class="rn"><em>€35M</em></div><div class="rl">or 7% of global annual turnover, whichever is larger. That is the maximum penalty under Article 99.</div></div>
-    <div class="rc reveal"><div class="rn"><em>2 Aug</em> 2026</div><div class="rl">enforcement date for high-risk obligations, including Annex IV documentation.</div></div>
+    <div class="rc reveal"><div class="rn"><em>€15M</em></div><div class="rl">or 3% of global annual turnover, whichever is higher — the penalty ceiling for documentation obligations under Article 99(4).</div></div>
+    <div class="rc reveal"><div class="rn"><em id="cdays2">—</em> days</div><div class="rl">until 2 August 2026 — enforcement of high-risk obligations, including Annex IV documentation.</div></div>
     <div class="rc reveal"><div class="rn"><em>8</em> of 9</div><div class="rl">Annex IV sections generated automatically; the Declaration of Conformity stays a human sign-off.</div></div>
   </div>
 
@@ -461,19 +524,69 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     </div>
     <div class="doc reveal">
       <div class="dh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5" stroke-linejoin="round"/></svg><span class="dn">annex_iv_vault.json</span><span class="ex">example output</span></div>
-      <div class="dhash"><b>sha256</b> 3f9a0c7e…1d4be7c1 · model gpt2-small · 1.2s</div>
+      <div class="dhash"><b>sha256</b> 3f9a0c7e…1d4be7c1 · model gpt2-small · 1.8s</div>
       <div class="rowsec"><span class="sg">§1</span><span class="stt">General description of the system</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec"><span class="sg">§2</span><span class="stt">Development process and design</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec"><span class="sg">§3</span><span class="stt">Monitoring, functioning and control</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec"><span class="sg">§4</span><span class="stt">Performance &amp; faithfulness metrics</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec"><span class="sg">§5</span><span class="stt">Risk management (Article 9)</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec signrow"><span class="sg">§8</span><span class="stt">Declaration of conformity</span><span class="sx">human sign-off</span></div>
-      <div class="dfoot"><span>F1 <b>0.64</b></span><span>suff <b>1.00</b></span><span>comp <b>0.22</b></span><span>grade <b>B</b></span><span>circuit <b>4 heads</b></span></div>
+      <div class="dfoot"><span>F1 <b>0.61</b></span><span>suff <b>0.73</b></span><span>grade <b>B</b></span><span>circuit <b>14 heads</b></span></div>
     </div>
   </div>
 </div></section>
 
-<section id="compare"><div class="wrap">
+<section id="pricing"><div class="wrap">
+  <div class="section-head reveal">
+    <span class="eyebrow">Pricing</span>
+    <h2 class="h">The core is free, forever.<br>Pay when compliance is on the line.</h2>
+    <p class="lead">Circuit discovery and faithfulness metrics stay MIT-licensed and open. Commercial plans cover the compliance engine, hosted infrastructure, and the guarantees an audit demands.</p>
+  </div>
+  <div class="plans">
+    <div class="plan reveal">
+      <span class="pl">Open source</span>
+      <h3>Community</h3>
+      <div class="pp">€0 <small>forever</small></div>
+      <p class="pd">For researchers and engineers exploring circuits.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Full circuit discovery — all 21 frameworks</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Faithfulness metrics &amp; CLI</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> MIT core · community support on GitHub</li>
+      </ul>
+      <a class="btn btn-ghost" href="https://pypi.org/project/glassbox-mech-interp/">pip install glassbox-mech-interp</a>
+    </div>
+    <div class="plan feat reveal">
+      <span class="pl">For teams shipping to the EU</span>
+      <h3>Pro</h3>
+      <div class="pp">€499 <small>/ month · launch pricing</small></div>
+      <p class="pd">Hosted audits and signed evidence, without running infrastructure.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Hosted audit API — white-box and black-box</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Signed Annex IV vaults (PDF + JSON)</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> CircuitDiff CI gate for every deploy</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Email support, 2-business-day SLA</li>
+      </ul>
+      <a class="btn btn-primary" href="#waitlist">Join the waitlist</a>
+      <div class="note">Launching before August 2026 · early members lock launch pricing</div>
+    </div>
+    <div class="plan reveal">
+      <span class="pl">Regulated industries</span>
+      <h3>Enterprise</h3>
+      <div class="pp">Custom</div>
+      <p class="pd">For banks, insurers, health and HR platforms under Annex III.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> On-prem / air-gapped Docker deployment</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Tamper-evident audit log, SHA-256 chained</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Onboarding with your compliance team</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg> Priority support &amp; custom SLA</li>
+      </ul>
+      <a class="btn btn-ghost" href="mailto:mahale.ajay01@gmail.com?subject=Glassbox%20Enterprise%20—%20walkthrough%20request&body=Company%3A%0AAI%20system%20%2F%20use%20case%3A%0ADeployment%20(cloud%20%2F%20on-prem)%3A%0A">Book a walkthrough</a>
+    </div>
+  </div>
+  <p class="disc">Pro launch pricing is introductory and may change at general availability; early waitlist members keep it. The open-source core (MIT) is never feature-gated — commercial plans add packaging, hosting, signing, and support, not capability.</p>
+</div></section>
+
+<section id="compare" class="alt"><div class="wrap">
   <div class="section-head reveal">
     <span class="eyebrow">How Glassbox compares</span>
     <h2 class="h">Faithfulness is the line<br>most tools can't cross</h2>
@@ -483,17 +596,17 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     <table class="cmp">
       <thead><tr><th>Approach</th><th>Faithfulness measured?</th><th>Needs open weights?</th><th>Speed (GPT-2)</th></tr></thead>
       <tbody>
-        <tr class="me"><td>Glassbox <span class="tag">attribution patching</span></td><td><span class="yes">Yes (suff / comp / F1)</span></td><td>Yes</td><td><b>1.2s</b></td></tr>
-        <tr><td>ACDC <span style="color:var(--ink-3);font-size:12.5px">(Conmy 2023)</span></td><td><span class="yes">Yes</span></td><td>Yes</td><td>43.2s <span class="no">· 37× slower</span></td></tr>
+        <tr class="me"><td>Glassbox <span class="tag">attribution patching</span></td><td><span class="yes">Yes (suff / comp / F1)</span></td><td>Yes</td><td><b>1.8s</b></td></tr>
+        <tr><td>ACDC <span style="color:var(--ink-3);font-size:12.5px">(Conmy 2023)</span></td><td><span class="yes">Yes</span></td><td>Yes</td><td>43.2s <span class="no">· ~24× slower</span></td></tr>
         <tr><td>SHAP / LIME <span style="color:var(--ink-3);font-size:12.5px">(black-box)</span></td><td><span class="no">No guarantee</span></td><td>No (works on APIs)</td><td>varies</td></tr>
         <tr><td>Confidence scores</td><td><span class="no">No (r = 0.009)</span></td><td>No</td><td>instant</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="disc">Each row is a different trade-off, not a verdict. Black-box methods are the right tool when you only have API access. Glassbox needs open weights, because faithfulness can't be measured without reading the circuit. Where the weights are available, it gives you ACDC-grade circuits at a fraction of the runtime, and unlike a confidence score, an explanation whose faithfulness is actually measured.</p>
+  <p class="disc">Each row is a different trade-off, not a verdict. Black-box methods are the right tool when you only have API access — Glassbox ships a black-box auditor for exactly that case. Where the weights are available, it gives you ACDC-grade circuits at a fraction of the runtime, and unlike a confidence score, an explanation whose faithfulness is actually measured.</p>
 </div></section>
 
-<section id="models" class="alt"><div class="wrap">
+<section id="models"><div class="wrap">
   <div class="section-head reveal">
     <span class="eyebrow">Model coverage</span>
     <h2 class="h">Open weights, GPT-2 to 200B+</h2>
@@ -510,7 +623,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   <p class="disc">Circuit-level analysis requires open weights. Closed API models like Claude, GPT, and Gemini can only receive black-box documentation support, because faithfulness can't be measured without access to the weights.</p>
 </div></section>
 
-<section id="domains"><div class="wrap">
+<section id="domains" class="alt"><div class="wrap">
   <div class="section-head reveal">
     <span class="eyebrow">Any prompt, any domain</span>
     <h2 class="h">Not just toy tasks</h2>
@@ -524,12 +637,12 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   </div>
 </div></section>
 
-<section class="quote alt"><div class="wrap reveal">
+<section class="quote"><div class="wrap reveal">
   <p class="serif">A confident answer is not the same as a correct one.</p>
   <div class="src">Across our runs, model confidence and circuit faithfulness barely correlate, at <b>r = 0.009</b>. That's why a compliance auditor needs the circuit, not the score.</div>
 </div></section>
 
-<section id="research"><div class="wrap">
+<section id="research" class="alt"><div class="wrap">
   <div class="section-head reveal">
     <span class="eyebrow">Research &amp; releases</span>
     <h2 class="h">The work behind the tool</h2>
@@ -556,15 +669,21 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   </div>
 </div></section>
 
-<section class="ctaband"><div class="wrap reveal">
-  <h2>Audit a model in two seconds</h2>
-  <p>Open-source core. Evidence your compliance team can actually defend, and a regulator can actually read.</p>
-  <div class="cta">
-    <a class="btn btn-primary" href="https://pypi.org/project/glassbox-mech-interp/">pip install glassbox-mech-interp</a>
-    <a class="btn btn-ghost" href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Open the live demo
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<section class="ctaband" id="waitlist"><div class="wrap"><div class="inner">
+  <div class="reveal">
+    <h2>Be audit-ready before <span style="color:var(--clay)">August 2</span>.</h2>
+    <p class="p">The open-source core is on PyPI today. <b>Pro</b> — hosted audits, signed vaults, and the CI gate — opens before enforcement. Waitlist members get onboarded first and keep launch pricing.</p>
+    <div class="orbook">Prefer to talk first? <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox%20—%20walkthrough%20request&body=Company%3A%0AAI%20system%20%2F%20use%20case%3A%0ATimeline%3A%0A">Book a 20-minute walkthrough</a> — we'll classify your system against Annex III and show a live audit on a comparable model.</div>
   </div>
-</div></section>
+  <div class="cbox reveal">
+    <h3>Join the Pro waitlist</h3>
+    <form class="wlform" id="wlform" novalidate>
+      <input type="email" id="wlemail" name="email" placeholder="work email" autocomplete="email" required aria-label="Work email">
+      <button class="btn btn-primary" type="submit" id="wlbtn">Request access</button>
+    </form>
+    <div class="wlmsg" id="wlmsg" role="status" aria-live="polite"></div>
+  </div>
+</div></div></section>
 
 <footer><div class="wrap">
   <div class="fgrid">
@@ -575,6 +694,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     <div class="fcol"><h5>Product</h5>
       <a href="https://pypi.org/project/glassbox-mech-interp/">PyPI package</a>
       <a href="https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool">Live demo</a>
+      <a href="#pricing">Pricing</a>
       <a href="#how">How it works</a>
     </div>
     <div class="fcol"><h5>For engineers</h5>
@@ -585,15 +705,15 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     <div class="fcol"><h5>For compliance</h5>
       <a href="#compliance">Annex IV</a>
       <a href="#compare">How it compares</a>
-      <a href="#results">Faithfulness</a>
+      <a href="#waitlist">Book a walkthrough</a>
     </div>
     <div class="fcol"><h5>Research</h5>
       <a href="https://arxiv.org/abs/2603.09988">Paper</a>
       <a href="#research">Releases</a>
-      <a href="#compliance">EU AI Act</a>
+      <a href="https://github.com/designer-coderajay/glassbox-mech/blob/main/BENCHMARKS.md">Benchmarks</a>
     </div>
   </div>
-  <div class="fbar">
+  <div class="fbar2">
     <span>© 2026 Ajay Pravin Mahale · MIT core, BSL 1.1 compliance engine</span>
     <span class="mono">Outputs are documentation aids, not legal advice or a conformity declaration.</span>
   </div>
@@ -604,6 +724,13 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   var mt=document.getElementById('mtoggle'),mo=document.getElementById('m-menu');
   if(mt){mt.addEventListener('click',function(){var o=mo.style.display==='block';mo.style.display=o?'none':'block';mt.setAttribute('aria-expanded',String(!o));});
     mo.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){mo.style.display='none';mt.setAttribute('aria-expanded','false');});});}
+
+  // countdown to enforcement
+  var deadline=Date.UTC(2026,7,2),now=Date.now();
+  var days=Math.max(0,Math.ceil((deadline-now)/86400000));
+  var c1=document.getElementById('cdays'),c2=document.getElementById('cdays2');
+  if(c1)c1.textContent=days;
+  if(c2)c2.textContent=days;
 
   var cmd=document.getElementById('copycmd'),ci=document.getElementById('cpicon');
   if(cmd){cmd.addEventListener('click',function(){
@@ -624,9 +751,9 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     if(rm){el.textContent=(el.dataset.dp?parseFloat(el.dataset.count).toFixed(el.dataset.dp):el.dataset.count)+(el.dataset.suffix||'');return;}
     var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){countUp(el);o.unobserve(el);}});},{threshold:.6});o.observe(el);});
 
-  // ---- interactive attention-head audit (real GPT-2 IOI attribution scores) ----
+  // ---- interactive attention-head audit (illustrative GPT-2 attribution pattern) ----
   var SCORES={'9-6':.584,'9-9':.431,'10-0':.312,'3-0':.0671,'8-6':.0534,'8-10':.0421,'7-3':.0367,'7-9':.0312,'5-5':.0298,'6-9':.0267,'4-4':.0198,'5-8':.0187,'10-7':.0156,'11-2':.0134,'2-2':.0123,'1-4':.0098,'0-1':.0067,'3-6':.0054,'6-3':.0048,'4-11':.0034};
-  var CIRCUIT={'9-6':1,'9-9':1,'10-0':1,'3-0':1}, MAX=.584;
+  var CIRCUIT={'9-6':1,'9-9':1,'10-0':1,'3-0':1,'8-6':1,'8-10':1,'7-3':1,'7-9':1,'5-5':1,'6-9':1,'4-4':1,'5-8':1,'10-7':1,'11-2':1}, MAX=.584;
   var grid=document.getElementById('hgrid'),cells=[];
   if(grid){
     for(var l=0;l<12;l++){for(var h=0;h<12;h++){
@@ -637,7 +764,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   var fills=Array.prototype.slice.call(document.querySelectorAll('#fbars .fill'));
   var runbtn=document.getElementById('runbtn'),tHandles=[];
   function clearT(){tHandles.forEach(clearTimeout);tHandles=[];}
-  function settle(){ // final state, no animation
+  function settle(){
     cells.forEach(function(c){var s=parseFloat(c.dataset.score);c.style.opacity=(0.05+(s/MAX)*0.92).toFixed(3);c.classList.toggle('circ',!!CIRCUIT[c.dataset.key]);c.classList.remove('scan');});
     fills.forEach(function(f){f.style.width=f.dataset.w+'%';});
   }
@@ -645,19 +772,15 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   function run(){
     if(rm){settle();return;}
     reset();if(runbtn){runbtn.disabled=true;}
-    // phase 1: scan sweep row by row
     for(var r=0;r<12;r++){(function(r){tHandles.push(setTimeout(function(){
       for(var h=0;h<12;h++){var c=cells[r*12+h];c.classList.add('scan');(function(c){tHandles.push(setTimeout(function(){c.classList.remove('scan');},220));})(c);}
     },r*55));})(r);}
-    // phase 2: rank, reveal causal intensity
     tHandles.push(setTimeout(function(){
       cells.forEach(function(c){var s=parseFloat(c.dataset.score);c.style.opacity=(0.05+(s/MAX)*0.92).toFixed(3);});
     },760));
-    // phase 3: highlight the minimal circuit
     tHandles.push(setTimeout(function(){
       cells.forEach(function(c){if(CIRCUIT[c.dataset.key])c.classList.add('circ');});
     },1280));
-    // phase 4: faithfulness bars
     tHandles.push(setTimeout(function(){
       fills.forEach(function(f){f.style.width=f.dataset.w+'%';});
       if(runbtn){runbtn.disabled=false;}
@@ -671,6 +794,23 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
       go.observe(grid);
     }
   }
+
+  // ---- waitlist form → /api/waitlist (Vercel edge function) ----
+  var wlf=document.getElementById('wlform'),wle=document.getElementById('wlemail'),wlb=document.getElementById('wlbtn'),wlm=document.getElementById('wlmsg');
+  if(wlf){wlf.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var email=(wle.value||'').trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){wlm.textContent='Please enter a valid work email.';wlm.className='wlmsg err';return;}
+    wlb.disabled=true;wlm.textContent='Submitting…';wlm.className='wlmsg';
+    fetch('/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,plan:'pro'})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d&&d.success){wlm.textContent=d.message||"You're on the list — we'll reach out before August.";wlm.className='wlmsg';wle.value='';}
+        else{wlm.textContent=(d&&d.error)||'Something went wrong — email us instead: mahale.ajay01@gmail.com';wlm.className='wlmsg err';}
+        wlb.disabled=false;
+      })
+      .catch(function(){wlm.textContent='Network error — email us instead: mahale.ajay01@gmail.com';wlm.className='wlmsg err';wlb.disabled=false;});
+  });}
 
   // ---- live GitHub stars (gated: only shows once earned >= 10; never fabricated) ----
   try{
