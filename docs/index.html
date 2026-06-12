@@ -340,7 +340,7 @@ footer .fcol a:hover{color:#fff}
 </head>
 <body>
 
-<div class="announce"><div class="wrap"><span class="dot"></span> <span><b id="cdays">—</b> days until the EU AI Act makes Annex IV documentation mandatory for high-risk systems · <b>2 Aug 2026</b> · <a href="#compliance">what that means</a></span></div></div>
+<div class="announce"><div class="wrap"><span class="dot"></span> <span>Timeline update: the Digital Omnibus (agreed 7 May 2026, pending adoption) defers Annex III obligations to <b>2 Dec 2027</b> — current law still says 2 Aug 2026 · <a href="#compliance">what that means</a></span></div></div>
 
 <nav><div class="wrap">
   <a class="brand" href="#top" aria-label="Glassbox home">
@@ -501,11 +501,11 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   <div class="section-head reveal">
     <span class="eyebrow">EU AI Act · Annex IV</span>
     <h2 class="h">The documentation, written<br>from the model itself</h2>
-    <p class="lead">From 2 August 2026, every high-risk AI system placed on the EU market must keep Annex IV technical documentation. Glassbox fills eight of the nine sections directly from the model's measured behaviour.</p>
+    <p class="lead">Every high-risk AI system placed on the EU market must keep Annex IV technical documentation (Article 11). Under current law that applies from 2 August 2026; the Digital Omnibus agreement of 7 May 2026 — pending formal adoption — defers Annex III systems to 2 December 2027. Either way the work is months, not weeks: Glassbox fills eight of the nine sections directly from the model's measured behaviour.</p>
   </div>
   <div class="risk">
     <div class="rc reveal"><div class="rn"><em>€15M</em></div><div class="rl">or 3% of global annual turnover, whichever is higher — the penalty ceiling for documentation obligations under Article 99(4).</div></div>
-    <div class="rc reveal"><div class="rn"><em id="cdays2">—</em> days</div><div class="rl">until 2 August 2026 — enforcement of high-risk obligations, including Annex IV documentation.</div></div>
+    <div class="rc reveal"><div class="rn"><em id="cdays2">—</em> days</div><div class="rl">until 2 December 2027 — the expected Annex III enforcement date under the Digital Omnibus (pending formal adoption; 2 Aug 2026 under current law).</div></div>
     <div class="rc reveal"><div class="rn"><em>8</em> of 9</div><div class="rl">Annex IV sections generated automatically; the Declaration of Conformity stays a human sign-off.</div></div>
   </div>
 
@@ -671,8 +671,8 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
 
 <section class="ctaband" id="waitlist"><div class="wrap"><div class="inner">
   <div class="reveal">
-    <h2>Be audit-ready before <span style="color:var(--clay)">August 2</span>.</h2>
-    <p class="p">The open-source core is on PyPI today. <b>Pro</b> — hosted audits, signed vaults, and the CI gate — opens before enforcement. Waitlist members get onboarded first and keep launch pricing.</p>
+    <h2>Be audit-ready <span style="color:var(--clay)">before everyone else</span>.</h2>
+    <p class="p">The deadline may move; the work doesn't shrink. The open-source core is on PyPI today. <b>Pro</b> — hosted audits, signed vaults, and the CI gate — opens before enforcement. Waitlist members get onboarded first and keep launch pricing.</p>
     <div class="orbook">Prefer to talk first? <a href="mailto:mahale.ajay01@gmail.com?subject=Glassbox%20—%20walkthrough%20request&body=Company%3A%0AAI%20system%20%2F%20use%20case%3A%0ATimeline%3A%0A">Book a 20-minute walkthrough</a> — we'll classify your system against Annex III and show a live audit on a comparable model.</div>
   </div>
   <div class="cbox reveal">
@@ -684,6 +684,13 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     <div class="wlmsg" id="wlmsg" role="status" aria-live="polite"></div>
   </div>
 </div></div></section>
+
+<section id="privacy" style="padding:clamp(40px,5vw,64px) 0;border-top:1px solid var(--line)"><div class="wrap">
+  <span class="eyebrow">Privacy notice</span>
+  <p style="font-size:13.5px;color:var(--ink-3);max-width:80ch;line-height:1.7;margin-top:8px">
+    The waitlist form collects your email address (and anything you choose to add) so we can contact you about Glassbox access and onboarding — that's the only purpose. Data controller: Ajay Pravin Mahale (contact: mahale.ajay01@gmail.com). Processing happens on Vercel (hosting) and Resend (email delivery) acting as processors. We don't sell or share your address, don't use it for third-party marketing, and delete it on request or once it's no longer needed. You can ask for access, correction, or deletion at any time by emailing the address above (GDPR Arts. 15–17). This site sets no tracking cookies.
+  </p>
+</div></section>
 
 <footer><div class="wrap">
   <div class="fgrid">
@@ -714,7 +721,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     </div>
   </div>
   <div class="fbar2">
-    <span>© 2026 Ajay Pravin Mahale · MIT core, BSL 1.1 compliance engine</span>
+    <span>© 2026 Ajay Pravin Mahale · MIT core, BSL 1.1 compliance engine · <a href="#privacy" style="text-decoration:underline;text-underline-offset:3px">Privacy</a></span>
     <span class="mono">Outputs are documentation aids, not legal advice or a conformity declaration.</span>
   </div>
 </div></footer>
@@ -725,11 +732,10 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   if(mt){mt.addEventListener('click',function(){var o=mo.style.display==='block';mo.style.display=o?'none':'block';mt.setAttribute('aria-expanded',String(!o));});
     mo.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){mo.style.display='none';mt.setAttribute('aria-expanded','false');});});}
 
-  // countdown to enforcement
-  var deadline=Date.UTC(2026,7,2),now=Date.now();
+  // countdown to expected Annex III enforcement (Digital Omnibus, pending adoption)
+  var deadline=Date.UTC(2027,11,2),now=Date.now();
   var days=Math.max(0,Math.ceil((deadline-now)/86400000));
-  var c1=document.getElementById('cdays'),c2=document.getElementById('cdays2');
-  if(c1)c1.textContent=days;
+  var c2=document.getElementById('cdays2');
   if(c2)c2.textContent=days;
 
   var cmd=document.getElementById('copycmd'),ci=document.getElementById('cpicon');

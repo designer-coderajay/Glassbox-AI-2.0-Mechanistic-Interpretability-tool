@@ -8,6 +8,12 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Regulatory accuracy
+
+- **All public surfaces** (site, README, compliance guide, CLAUDE.md): enforcement-date claims updated to dual framing after verifying the **Digital Omnibus provisional agreement of 7 May 2026** — Annex III high-risk obligations expected to defer from 2 Aug 2026 to **2 Dec 2027** (pending formal adoption; 2 Aug 2026 remains the date under current law). Site countdown now targets the expected date with the caveat shown.
+- **`docs/EU_AI_ACT_COMPLIANCE_GUIDE.md`** — corrected penalty citation: documentation failures fall under Art. 99(4) (€15M / 3%), not the Art. 99(3) prohibited-practices ceiling (€35M / 7%).
+- **`docs/index.html`** — added GDPR Art. 13 privacy notice for the waitlist form (controller, purpose, processors, rights) + footer link; no tracking cookies.
+
 ### Fixed
 
 - **`glassbox/cross_model.py`** — **CrossModelComparison's lightweight path silently returned empty attributions.** The attention-difference heuristic cached `blocks.{l}.attn.hook_attn_weights`, which is not a TransformerLens hook name (the post-softmax pattern hook is `hook_pattern`). Every cache lookup failed, the guard skipped every head, and a bare `except Exception: pass` swallowed the evidence — the comparison "succeeded" with an empty circuit. Renamed to `hook_pattern`, hoisted caching out of the per-head loop (one `run_with_cache` per prompt instead of one per head — 144× fewer forward passes on GPT-2 Small), narrowed the exception handling, and added a warning when attribution comes back empty.

@@ -189,7 +189,7 @@ export default async function handler(request) {
   return jsonResponse(
     {
       success: true,
-      message: "You're on the list! We'll reach out before August 2026.",
+      message: "You're on the list! We'll reach out before Pro opens.",
     },
     200,
     cors,

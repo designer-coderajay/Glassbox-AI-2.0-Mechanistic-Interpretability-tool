@@ -25,7 +25,7 @@
 
 ---
 
-**For compliance teams:** Regulation (EU) 2024/1689 (AI Act) requires Annex IV technical documentation for every high-risk AI system (Article 11). Enforcement begins August 2026. Glassbox automates generation of the full 9-section Annex IV draft — from open-source models (white-box) or any proprietary API like GPT-4 and Claude (black-box). Outputs are structured documentation aids; they do not constitute legal advice, a declaration of conformity, or a guarantee of regulatory compliance. See [Legal Notices](#legal-notices--regulatory-disclaimer).
+**For compliance teams:** Regulation (EU) 2024/1689 (AI Act) requires Annex IV technical documentation for every high-risk AI system (Article 11). Under current law these obligations apply from 2 August 2026; the Digital Omnibus agreement of 7 May 2026 (pending formal adoption) defers Annex III high-risk obligations to 2 December 2027 — verify the current date with counsel. Glassbox automates generation of the full 9-section Annex IV draft — from open-source models (white-box) or any proprietary API like GPT-4 and Claude (black-box). Outputs are structured documentation aids; they do not constitute legal advice, a declaration of conformity, or a guarantee of regulatory compliance. See [Legal Notices](#legal-notices--regulatory-disclaimer).
 
 **For researchers:** one function call discovers the minimum faithful circuit in a transformer — the smallest subgraph of attention heads causally responsible for a prediction. Preliminary benchmarks show 15–37× faster than ACDC on GPT-2 (single-run, Apple M2 Pro — see [Benchmarks](#benchmarks)). Every approximation is disclosed.
 
@@ -124,7 +124,7 @@ This is the most common question we receive. Here is the complete answer, step b
 
 ### Who this applies to
 
-EU AI Act Article 6 + Annex III defines **high-risk AI systems** that require Annex IV technical documentation before August 2, 2026. You are almost certainly in scope if your LLM is used in:
+EU AI Act Article 6 + Annex III defines **high-risk AI systems** that require Annex IV technical documentation (applies 2 Aug 2026 under current law; expected deferral to 2 Dec 2027 under the Digital Omnibus, pending adoption). You are almost certainly in scope if your LLM is used in:
 
 - **Finance** — credit scoring, loan decisions, fraud detection, insurance underwriting
 - **Healthcare** — medical triage, clinical decision support, diagnosis assistance
@@ -734,7 +734,7 @@ print(val.generalises)   # True
 
 ## What's New in v3.4.0
 
-Glassbox v3.4.0 is the **strategic monopoly release** — three features that no other open-source interpretability tool ships, purpose-built for the August 2026 EU AI Act enforcement deadline.
+Glassbox v3.4.0 is the **strategic monopoly release** — three features that no other open-source interpretability tool ships, purpose-built for the EU AI Act high-risk enforcement deadline.
 
 ### 1. MultiAgentAudit — Causal Handoff Tracing (Article 9 system-level risk)
 
@@ -1248,7 +1248,7 @@ print(attn["headTypes"])    # {'L9H9': 'focused', ...}
 
 ## EU AI Act Compliance — Annex IV Reports
 
-[Regulation (EU) 2024/1689](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) requires Annex IV technical documentation (Article 11) for high-risk AI systems in finance, healthcare, HR, legal, and critical infrastructure. Enforcement begins August 2026. Non-compliance penalties: up to €15 million or 3% of global annual turnover, whichever is higher (Article 99(4)).
+[Regulation (EU) 2024/1689](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) requires Annex IV technical documentation (Article 11) for high-risk AI systems in finance, healthcare, HR, legal, and critical infrastructure. Under current law these obligations apply from 2 August 2026; the Digital Omnibus agreement of 7 May 2026 (pending formal adoption) defers Annex III high-risk obligations to 2 December 2027 — verify the current date with counsel. Non-compliance penalties: up to €15 million or 3% of global annual turnover, whichever is higher (Article 99(4)).
 
 > **Documentation aid, not legal certification.** Glassbox-generated reports are structured documentation drafts intended to support — not replace — the legal and technical review process required under EU AI Act Article 11. Whether your system qualifies as high-risk under Article 6 and Annex III, and whether generated documentation satisfies applicable obligations, must be determined by qualified legal counsel and/or a notified body (Article 43). See [Legal Notices](#legal-notices--regulatory-disclaimer).
 
@@ -2193,7 +2193,7 @@ All regulation references in this codebase and documentation cite the following 
 | GDPR | Regulation (EU) 2016/679 | Personal data processed through or about the AI system |
 | EU AI Act Implementing Acts | To be adopted by European Commission | Technical harmonised standards (Art. 40), common specifications (Art. 41) — **not yet finalised as of March 2026** |
 
-> **Important:** The EU AI Act entered into force 1 August 2024. Most obligations for high-risk AI providers apply from **2 August 2026**. Implementing acts, harmonised standards, and guidance from the European AI Office are still being developed. The regulatory landscape will evolve before enforcement. Regulatory interpretations in Glassbox's output reflect publicly available text as of the tool's release date and may not reflect subsequent guidance. Always consult the [EU AI Act official text](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) and current European AI Office guidance.
+> **Important:** The EU AI Act entered into force 1 August 2024. Most obligations for high-risk AI providers apply from **2 August 2026** under current law; the Digital Omnibus agreement of 7 May 2026 (pending formal adoption) is expected to defer Annex III obligations to **2 December 2027**. Implementing acts, harmonised standards, and guidance from the European AI Office are still being developed. The regulatory landscape will evolve before enforcement. Regulatory interpretations in Glassbox's output reflect publicly available text as of the tool's release date and may not reflect subsequent guidance. Always consult the [EU AI Act official text](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) and current European AI Office guidance.
 
 ### 3. No Warranty
 

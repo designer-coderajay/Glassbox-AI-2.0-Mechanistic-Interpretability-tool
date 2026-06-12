@@ -73,3 +73,4 @@ README_LEAN.md
 _local_backups/
 AUDIT_REPORT_*.md
 deploy_site.sh
+push_regulatory_update.sh

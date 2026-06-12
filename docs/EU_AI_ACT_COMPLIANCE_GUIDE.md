@@ -8,7 +8,7 @@
 
 ## Why this matters
 
-From **August 2, 2026**, providers of high-risk AI systems placed on the EU market must maintain technical documentation as set out in **Annex IV**. Non-compliance penalties under **Article 99** reach **up to €35,000,000 or 7% of total worldwide annual turnover**, whichever is higher.
+Providers of high-risk AI systems placed on the EU market must maintain technical documentation as set out in **Annex IV** (Article 11). Under current law this applies from **2 August 2026**; the Digital Omnibus agreement of 7 May 2026 (pending formal adoption) defers Annex III obligations to **2 December 2027**. Penalties for documentation non-compliance under **Article 99(4)** reach **up to €15,000,000 or 3% of total worldwide annual turnover**, whichever is higher (the €35M/7% ceiling in Article 99(3) applies to prohibited practices, not documentation).
 
 Writing Annex IV by hand takes weeks of combined ML + legal effort per model. Annex IV of Regulation (EU) 2024/1689 has **9 numbered points** ([primary source](https://artificialintelligenceact.eu/annex/4/)). Glassbox produces the full **9-section Annex IV structure** automatically from the model's own circuits — with one honest caveat: **Section 8 is the EU Declaration of Conformity (Article 47), a legal attestation the provider must sign.** Glassbox supplies the structured reference/placeholder for it, not the signed declaration itself. So the accurate claim is "generates the full 9-section structure; 8 of 9 are produced from the model, 1 is a provider-signed legal reference."
 
