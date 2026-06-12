@@ -10,6 +10,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Regulatory accuracy
 
+- **Patent claims retracted** — no patent application was ever filed; "Patents Pending" badge removed from README, PATENTS.md rewritten as a public-disclosure / defensive-publication notice, source headers and NOTICE corrected. Removes false-marking exposure (35 U.S.C. §292).
+
 - **All public surfaces** (site, README, compliance guide, CLAUDE.md): enforcement-date claims updated to dual framing after verifying the **Digital Omnibus provisional agreement of 7 May 2026** — Annex III high-risk obligations expected to defer from 2 Aug 2026 to **2 Dec 2027** (pending formal adoption; 2 Aug 2026 remains the date under current law). Site countdown now targets the expected date with the caveat shown.
 - **`docs/EU_AI_ACT_COMPLIANCE_GUIDE.md`** — corrected penalty citation: documentation failures fall under Art. 99(4) (€15M / 3%), not the Art. 99(3) prohibited-practices ceiling (€35M / 7%).
 - **`docs/index.html`** — added GDPR Art. 13 privacy notice for the waitlist form (controller, purpose, processors, rights) + footer link; no tracking cookies.

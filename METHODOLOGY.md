@@ -8,7 +8,7 @@
 > This document describes the intellectual property embodied in the Glassbox AI
 > system: the specific architectural decisions, mathematical formulations, and
 > legal-technical translation logic that constitute the novel contribution of
-> this work. It is intended to support due diligence, patent prosecution, and
+> this work. It is intended to support due diligence, prior-art reference, and
 > regulatory review.
 
 ---
@@ -296,7 +296,7 @@ of Glassbox AI and are not derived from any academic paper.
 
 ---
 
-## 6. Claims Summary (for Patent Prosecution Reference)
+## 6. Claims Summary (novel contributions, publicly disclosed)
 
 The following describe the novel concepts in Glassbox AI that may be
 protectable as software patents or trade secrets. This list is provided for
