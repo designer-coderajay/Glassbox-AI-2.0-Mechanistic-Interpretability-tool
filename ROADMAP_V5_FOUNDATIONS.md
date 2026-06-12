@@ -1,7 +1,7 @@
 # Glassbox V5 — From Research Demo to Production Compliance Engine
 ## The honest gap analysis, the mathematical foundation, and the path to any-model, any-prompt, billion-ops auditing
 
-*Drafted 2026-06-12. This document states problems plainly before solving them. Estimates are labeled. Research risks are named, not hidden.*
+*Drafted 2026-06-12, revised same day after self-review (Part 9 holds the red-team findings). This document states problems plainly before solving them. Estimates are labeled. Research risks are named, not hidden. Regulatory note: the Digital Omnibus (provisionally agreed 7 May 2026, pending adoption) defers Annex III enforcement to 2 Dec 2027 — timelines here are driven by product strategy, not the legal date.*
 
 ---
 
@@ -32,10 +32,10 @@ The wrong mental model: "we must explain a billion requests." The right one, bor
 This becomes the **two-loop architecture**:
 
 ### Loop 1 — Offline Deep Audit (slow, rigorous, per system version)
-On each model/prompt-template release: draw a stratified sample from the *real production input distribution* (n ≥ 126 per stratum, per our existing SampleSizeGate power analysis), run full circuit discovery + faithfulness + bias probes on the sample, and emit the Annex IV technical file with **population-level confidence intervals** (Part 2.3). Cost: hours, monthly or per-release. This is what Art. 11 actually requires.
+On each model/prompt-template release: draw a stratified sample from the *real production input distribution*, run full circuit discovery + faithfulness + bias probes on the sample, and emit the Annex IV technical file with **population-level confidence intervals** (Part 2.3). Sample size comes from a per-stratum power analysis via SampleSizeGate — the often-quoted n ≥ 126 is one example output (ρ_min = 0.25, power = 0.8), not a universal constant; smaller detectable effects need more. Cost: hours, monthly or per-release. This is what Art. 11 actually requires.
 
 ### Loop 2 — Online Fingerprint Monitor (fast, per request, microseconds)
-Per request, do NOT discover circuits. Instead compute a **circuit fingerprint**: the model's activations at the ~k circuit-critical locations identified by Loop 1, projected to a low-dimensional sketch (Part 5). Log fingerprint + decision functional value (Art. 12 logging). Statistical drift tests on the fingerprint stream (Part 2.5) answer one question continuously: *"is production still inside the regime the deep audit certified?"* When no → alert + automatic Loop 1 re-run (Art. 72 post-market monitoring, automated).
+Per request, do NOT discover circuits. Instead compute a **circuit fingerprint**: the model's activations at the ~k circuit-critical locations identified by Loop 1, projected to a low-dimensional sketch (Part 5). Log fingerprint + decision functional value (Art. 12 logging). *Cost reality check: 128-dim fp32 fingerprints at 10⁹ req/day ≈ 512 GB/day raw — the design therefore needs tiered retention (full fingerprints sampled at ~1%, per-window sufficient statistics for the rest), and fingerprints derived from user prompts are likely personal data under GDPR, requiring a DPIA before this loop ships (Part 9).* Statistical drift tests on the fingerprint stream (Part 2.5) answer one question continuously: *"is production still inside the regime the deep audit certified?"* When no → alert + automatic Loop 1 re-run (Art. 72 post-market monitoring, automated).
 
 ### Loop 3 — On-demand Decision Card (cheap, per contested decision)
 When a specific decision is challenged (Art. 86 / GDPR 22), generate a **decision card** for that single request: token-level input attribution (O(2) passes), the decision functional value, the fingerprint's distance from the certified regime, and a pointer to the governing deep audit. Seconds, not hours — because the heavy lifting was amortized in Loop 1.
@@ -57,7 +57,7 @@ Generalize "logit diff" to a functional over the output distribution. Let the mo
 with three canonical instantiations:
 
 - **Verbalizer sets** (classification-shaped decisions): partition answer space into semantic sets A (approve-cluster: "approved", "approve", "yes", "✓ Approved"…) and B (deny-cluster). Then D(x) = log Σ_{t∈A} p(t|x) − log Σ_{t∈B} p(t|x). This is the multi-token, multi-verbalization generalization of the current logit diff — backward compatible (singleton sets recover exactly today's metric).
-- **Sequence decisions** (the model generates a recommendation): D(x) = log p(y_decision | x) aggregated over the decision span, where the decision span is located by constrained decoding or a verifier. Attribution flows through the same gradient machinery, summed over span positions.
+- **Sequence decisions** (the model generates a recommendation): D(x) = log p(y_decision | x) aggregated over the decision span, where the decision span is located by constrained decoding or a verifier. Attribution flows through the same gradient machinery, summed over span positions. *Known weakness: the span-locating verifier is itself a model — a circularity (using a model to decide what to audit in a model) whose error rate must be measured and reported per task family, not assumed zero (see Part 9).*
 - **Score decisions** (model outputs a number): D(x) = the expected numeric value under the output distribution over digit tokens.
 
 Everything downstream (attribution, sufficiency, comprehensiveness, ACDC's KL pruning) is already defined relative to a scalar objective — swapping logit-diff for D is a *surgical* change, not a rewrite. **This single abstraction is the highest-leverage item in this document.**
@@ -152,7 +152,7 @@ Five capabilities. Anything implementing them is fully auditable — white-box t
 
 ### 4.2 Three adapter backends, in priority order
 
-1. **Native HF backend (the unlock).** Implement the protocol directly on `transformers` models with PyTorch forward hooks — no weight conversion, no duplication, works the day a model ships on HF, inherits HF's quantization/device-map/FlashAttention. TransformerLens becomes *one backend* (the most featureful for research) instead of *the* dependency. This single move takes "supported models" from ~50 to ~everything-on-HF and halves memory. (NNsight/pyvene validate the approach; we can interop or implement lean.)
+1. **Native HF backend (the unlock).** Implement the protocol directly on `transformers` models with PyTorch forward hooks — no weight conversion, no duplication, works the day a model ships on HF, inherits HF's quantization/device-map/FlashAttention. TransformerLens becomes *one backend* (the most featureful for research) instead of *the* dependency. This single move takes "supported models" from TL's ported list to ~everything-on-HF and roughly halves memory. (NNsight/pyvene validate the approach; we can interop or implement lean. Effort honesty: this is a multi-week-to-multi-month build for one person, not a sprint item.)
 2. **TL backend** — kept for research-grade features (it already works).
 3. **Black-box backend** — already shipped (audit.py); it implements the same protocol with `units() = []`, which forces behavioral-tier reports. One API, three tiers, honest labels.
 
@@ -180,8 +180,8 @@ Current: ~1.8s GPT-2 Small / CPU per audit. The path to effective 100–1000x on
 | # | Technique | Mechanism | Expected gain (estimate) |
 |---|---|---|---|
 | 1 | GPU batch path | Today's numbers are CPU. Batched audits on one A10/A100, per-sample grads via vmap | 20–50x throughput |
-| 2 | KV-prefix sharing | Clean/corrupted prompts share long prefixes; reuse KV cache, recompute only the edited suffix | 1.5–3x per audit |
-| 3 | Hierarchical screening | Layer-level attribution first (O(L) units), expand only top-q layers to heads/features — beam-search the circuit | 3–6x on big models |
+| 2 | KV-prefix sharing | Clean/corrupted prompts share long prefixes; reuse KV cache, recompute only the edited suffix | 1.5–3x per audit — *unresolved risk: gradients must flow through the shared prefix, so naive cache reuse breaks the backward pass; may apply to forward-only passes (exact patching, fingerprints) and not to gradient attribution. Prototype before counting it.* |
+| 3 | Hierarchical screening | Layer-level attribution first (O(L) units), expand only top-q layers to heads/features — beam-search the circuit | 3–6x on big models — *accuracy trade-off: screening can miss circuits distributed across many weakly-contributing layers; the false-negative rate must be measured against full search before this ships in a compliance path* |
 | 4 | Circuit caching by task-family | Same template+model ⇒ same circuit (validated by fingerprint match); discovery amortized to once per family, verification per batch | 10–100x on repeated workloads — *this is the production reality: companies run templates, not novel prompts* |
 | 5 | Sketched fingerprints | JL-projection of circuit activations to ℝ¹²⁸; Loop-2 monitoring cost → microseconds | enables per-request coverage at any scale |
 | 6 | Quantized forward, fp32 grad accumulation | 8-bit weights for forwards; full-precision only where gradients accumulate | 2–4x memory ⇒ bigger models per box |
@@ -247,3 +247,42 @@ Rules: a tier downgrade is never silent (the reason is stated in §4 of the repo
 ---
 
 *One-sentence summary: stop promising to explain every request — build the system that certifies the policy, monitors every request against the certificate, explains any challenged decision on demand, and never produces evidence it can't defend.*
+
+---
+
+## Part 9 — Red-team review & open problems (self-audit, 2026-06-12)
+
+This roadmap was reviewed against its own evidence standard the day it was written. Findings, unvarnished:
+
+### 9.1 Epistemic status of every major claim
+
+| Claim | Status |
+|---|---|
+| Five brutal truths (Part 0) | **Fact** — each verifiable in the repo or the regulation text |
+| Two-loop reframe (Part 1) | **Sound by analogy** to audit sampling / SPC; not yet validated with a single customer workload |
+| Decision functional, verbalizer form (2.1) | **Established technique** (prompt-based classification literature); integration here is engineering |
+| Decision functional, sequence form (2.1) | **Research-grade** — verifier circularity unmeasured |
+| Graph-partition attribution (2.2) | **Straightforward generalization** of existing code; MoE/SSM instantiations unbuilt |
+| Distributional faithfulness CIs (2.3) | **Statistics are standard**; the claim a regulator will accept the format is **untested — zero regulatory validation to date** |
+| Causal-abstraction certificates (2.4) | **Open research at production scale**; per-customer causal models are consulting-shaped work |
+| CUSUM drift on fingerprints (2.5) | **Classic math**; calibrating false-alarm rates on high-dim activation streams is unexplored engineering |
+| Every multiplier in Part 5 | **Unmeasured estimate** — hypotheses to benchmark, not claims to repeat |
+
+### 9.2 Known technical holes (flagged inline, collected here)
+
+1. **KV-prefix sharing vs. autograd** (5.2) — may not survive the backward pass; prototype first.
+2. **Hierarchical screening false negatives** (5.3) — distributed circuits can evade layer-level screening; quantify before use in compliance paths.
+3. **Verifier circularity** (2.1) — span-locating models auditing models; per-task error rates required.
+4. **Fingerprint economics** (Loop 2) — ~512 GB/day raw at 10⁹ req/day; tiered retention design required.
+5. **Sample-size folklore** (Loop 1) — n ≥ 126 is one power-analysis output, not a constant.
+
+### 9.3 What this document still lacks
+
+- **A DPIA / privacy design** for Loop 2 — fingerprints derived from user prompts are likely personal data; the compliance tool must not create its own GDPR problem. *Must exist before Loop 2 ships.*
+- **An evaluation benchmark for the decision functional** — a labeled suite of non-IOI tasks (credit, triage, screening) proving D-based attributions remain faithful. *Without this, Part 2.1 is theory.*
+- **A current literature & competitor scan** — this document was written by an AI whose reliable knowledge ends May 2025, thirteen months before its drafting date; the interpretability field (feature-level attribution, attribution graphs, commercial entrants) has moved in ways not reflected here. *A fresh scan is a prerequisite for Phase C commitments.*
+- **A cost model** for Loop 1 at enterprise scale (audit-hours × model size × release cadence).
+
+### 9.4 Sequencing discipline (the business constraint that outranks the math)
+
+Distribution precedes platform: Phase A ships only what launch and design partners need (tier labels and the counterfactual gate are days of work; the decision functional ships when a design partner's use case demands it). **Phase B does not start before the first paying customer.** The fastest way to falsify or validate everything in this document is five design partners running the tool on real workloads — no amount of further roadmap-writing substitutes for that.
