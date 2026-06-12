@@ -430,6 +430,7 @@ class AnnexIVReport:
         self._created_at  = datetime.now(timezone.utc)
         self._analyses:   List[Dict[str, Any]] = []  # raw analyze() results + use_case
         self._use_cases:  List[str] = []
+        self._tiers:      List[Dict[str, Any]] = []  # V5 evidence-tier assessments
 
         # Sections will be populated from analysis results
         self._s1: Optional[Section1_GeneralDescription]  = None
@@ -448,8 +449,9 @@ class AnnexIVReport:
 
     def add_analysis(
         self,
-        result:       Dict[str, Any],
-        use_case:     str = "General use case analysis",
+        result:        Dict[str, Any],
+        use_case:      str = "General use case analysis",
+        evidence_tier: Optional[Any] = None,
     ) -> AnnexIVReport:
         """
         Add a single GlassboxV2.analyze() result to the report.
@@ -459,8 +461,13 @@ class AnnexIVReport:
 
         Parameters
         ----------
-        result   : dict returned by GlassboxV2.analyze()
-        use_case : human-readable description of the decision being audited
+        result        : dict returned by GlassboxV2.analyze()
+        use_case      : human-readable description of the decision being audited
+        evidence_tier : optional V5 evidence-tier assessment for this analysis —
+                        a glassbox.evidence_tier.TierAssessment, or its to_dict()
+                        form. If omitted, ``result["evidence_tier"]`` is used
+                        when present. Across multiple analyses the WEAKEST
+                        tier governs the report (most conservative).
 
         Returns
         -------
@@ -468,8 +475,41 @@ class AnnexIVReport:
         """
         self._analyses.append(result)
         self._use_cases.append(use_case)
+        self._record_tier(evidence_tier, result)
         self._build_sections()
         return self
+
+    # ------------------------------------------------------------------
+    # V5 evidence tiers (ROADMAP_V5 Part 6)
+    # ------------------------------------------------------------------
+
+    _TIER_WEAKNESS = {"A": 0, "B": 1, "C": 2, "D": 3}
+
+    def _record_tier(self, evidence_tier: Optional[Any],
+                     result: Dict[str, Any]) -> None:
+        """Normalize and store a tier assessment, if one was provided."""
+        tier = evidence_tier
+        if tier is None:
+            tier = result.get("evidence_tier")
+        if tier is None:
+            return
+        if hasattr(tier, "to_dict"):
+            tier = tier.to_dict()
+        if not isinstance(tier, dict) or "tier" not in tier:
+            raise ValueError(
+                "evidence_tier must be a TierAssessment or its to_dict() "
+                f"form with a 'tier' key; got {type(tier).__name__}"
+            )
+        self._tiers.append(tier)
+
+    def _governing_tier(self) -> Optional[Dict[str, Any]]:
+        """The weakest recorded tier governs the whole report."""
+        if not self._tiers:
+            return None
+        return max(
+            self._tiers,
+            key=lambda d: self._TIER_WEAKNESS.get(str(d.get("tier")), 3),
+        )
 
     def add_batch_analysis(
         self,
@@ -485,6 +525,7 @@ class AnnexIVReport:
         for result, uc in zip(results, use_cases):
             self._analyses.append(result)
             self._use_cases.append(uc)
+            self._record_tier(None, result)
         self._build_sections()
         return self
 
@@ -988,6 +1029,16 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
     # ------------------------------------------------------------------
 
     def _build_json_structure(self) -> Dict[str, Any]:
+        payload = self._assemble_json()
+        tier = self._governing_tier()
+        sec3 = payload.get("sections", {}).get("3_monitoring_control")
+        if tier is not None and isinstance(sec3, dict):
+            sec3["evidence_tier_disclosure"] = tier.get(
+                "disclosure", f"Evidence tier {tier.get('tier')}."
+            )
+        return payload
+
+    def _assemble_json(self) -> Dict[str, Any]:
         return {
             "document_type":        "EU AI Act Annex IV Technical Documentation",
             "regulation":           "Regulation (EU) 2024/1689 of the European Parliament and of the Council",
@@ -998,6 +1049,10 @@ See full Annex IV Section 4 — Data Governance in the [compliance report JSON].
             "risk_classification":  self.risk_classification.value,
             "compliance_status":    self._compute_compliance_status().value,
             "n_analyses_included":  len(self._analyses),
+            **(
+                {"evidence_tier": self._governing_tier()}
+                if self._governing_tier() is not None else {}
+            ),
             "sections": {
                 "1_general_description":   self._section_to_dict(self._s1, "Annex IV, Section 1"),
                 "2_development_design":    self._section_to_dict(self._s2, "Annex IV, Section 2"),
