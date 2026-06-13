@@ -114,6 +114,22 @@ def assess_tier(
     return TierEngine().assess(sig).to_dict()
 
 
+def _other(outcome: str) -> str:
+    return "negative" if outcome == "positive" else "positive"
+
+
+def _orient(task: DecisionTask):
+    """Target/distractor variant lists oriented toward the task's EXPECTED outcome.
+
+    Faithfulness must be measured on the circuit driving the *correct* decision.
+    For expected-negative tasks (e.g. loan denial) the negative set is the target,
+    so a correct model gives clean_ld > 0 rather than a misleading clean_ld <= 0.
+    """
+    if task.expected == "positive":
+        return list(task.positive_variants), list(task.negative_variants)
+    return list(task.negative_variants), list(task.positive_variants)
+
+
 def _skipped_row(task: DecisionTask, reason: str) -> Dict[str, Any]:
     """A non-crashing placeholder row for a task that cannot be scored."""
     return {
@@ -152,18 +168,19 @@ def run_task(
     Returns one report row. Does not raise on a model that fails the task; the
     failure is recorded (``matches_expected=False``) so it is visible, not hidden.
     """
-    pos = list(task.positive_variants)
-    neg = list(task.negative_variants)
+    # Orient toward the EXPECTED outcome so clean_ld > 0 means "model agrees with
+    # the correct answer" and faithfulness is measured on the correct decision.
+    target, distractor = _orient(task)
     if single_token is not None:
-        pos = [v for v in pos if single_token(v)]
-        neg = [v for v in neg if single_token(v)]
-        if not pos or not neg:
+        target = [v for v in target if single_token(v)]
+        distractor = [v for v in distractor if single_token(v)]
+        if not target or not distractor:
             return _skipped_row(
                 task, "no single-token verbalizer variant for this tokenizer"
             )
 
     try:
-        result = engine.analyze(task.prompt, pos, neg, method=method)
+        result = engine.analyze(task.prompt, target, distractor, method=method)
     except Exception as exc:
         return _skipped_row(task, f"analyze failed: {exc}")
     faith = result.get("faithfulness", {}) or {}
@@ -172,8 +189,9 @@ def run_task(
     n_heads = int(result.get("n_heads", len(circuit)))
     attributions = result.get("attributions", {}) or {}
 
-    model_decision = "positive" if clean_ld > 0 else "negative"
-    matches_expected = model_decision == task.expected
+    # clean_ld > 0 => model prefers the oriented target (the expected outcome).
+    matches_expected = clean_ld > 0
+    model_decision = task.expected if matches_expected else _other(task.expected)
 
     conc = attribution_concentration(attributions, n_heads)
 
@@ -307,9 +325,10 @@ def run_all(
         encode_variant, forward_logits = model_scorer(hooked)
 
         def seq_value_fn(task: DecisionTask) -> float:
+            target, distractor = _orient(task)  # expected outcome is the target
             fn = DecisionFunctional(
-                VerbalizerSet(task.positive_label, task.positive_variants),
-                VerbalizerSet(task.negative_label, task.negative_variants),
+                VerbalizerSet("target", tuple(target)),
+                VerbalizerSet("distractor", tuple(distractor)),
             )
             prompt_ids = [int(i) for i in hooked.to_tokens(task.prompt)[0]]
             return sequence_decision_value(fn, encode_variant, prompt_ids, forward_logits)

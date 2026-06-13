@@ -99,6 +99,8 @@ class _StubEngine:
 
     def analyze(self, prompt, correct, incorrect, method="taylor"):
         assert isinstance(correct, list) and isinstance(incorrect, list)
+        self.last_correct = correct
+        self.last_incorrect = incorrect
         return {
             "clean_ld": self._clean_ld,
             "faithfulness": self._faith,
@@ -126,6 +128,22 @@ def test_run_task_model_correct():
     assert row["f1"] == 0.53
     assert row["concentration"]["above_random"] is True
     assert row["tier"] == "C"
+
+
+def test_run_task_orients_to_expected_negative():
+    # credit_denial: expected negative -> target must be the negative set, and a
+    # model that prefers the negative outcome (clean_ld>0) is "correct".
+    task = next(t for t in DECISION_TASKS if t.expected == "negative")
+    eng = _StubEngine(
+        clean_ld=2.5,
+        faith={"sufficiency": 0.9, "comprehensiveness": 0.5, "f1": 0.64, "category": "faithful"},
+        attrs=_canned_attrs(), circuit=[(0, 0)] * 14,
+    )
+    row = run_task(eng, task)
+    assert eng.last_correct == list(task.negative_variants)   # oriented target
+    assert eng.last_incorrect == list(task.positive_variants)
+    assert row["matches_expected"] is True
+    assert row["model_decision"] == "negative"
 
 
 def test_run_task_model_wrong_is_recorded_not_hidden():
