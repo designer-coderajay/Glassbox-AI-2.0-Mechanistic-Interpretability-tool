@@ -134,12 +134,24 @@ glassbox/
   cross_model.py        <- CrossModelComparison: run all frameworks across model
                           families; Jaccard circuit similarity, attribution correlation,
                           consensus head detection (v4.2.0)
+  --- V5 Phase B/C foundations (pure cores; torch backends flagged per-module) ---
+  auditable.py          <- AuditableModel 5-capability protocol + run_conformance
+                          gate (v5 #5); validated on real GPT-2 via
+                          scripts/validate_auditable_gpt2.py
+  scaling.py            <- hierarchical head screening + batch planning (v5 #6)
+  monitoring.py         <- CUSUM drift + JL fingerprint + circuit cache
+                          (v5 #7 — Article 72 post-market monitoring)
+  moe.py                <- Mixture-of-Experts partition + expert attribution (v5 #8)
+  distributional.py     <- bootstrap faithfulness CIs + stratified mean (v5 #9)
+  causal_abstraction.py <- interchange-accuracy causal-abstraction certificate (v5 #10)
+  features.py           <- feature-level (SAE) units + sparse attribution (v5 #11)
+  frameworks.py         <- NIST AI RMF + ISO/IEC 42001 report packs (v5 #12)
 """
 
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-__version__ = "4.4.0"
+__version__ = "4.5.0"
 __author__  = "Ajay Pravin Mahale"
 __email__   = "mahale.ajay01@gmail.com"
 

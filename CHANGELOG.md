@@ -6,6 +6,28 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [4.5.0] — 2026-06-13
+
+### Added — V5 Phase B/C foundations (pure, tested cores)
+
+- **`glassbox/auditable.py`** — Auditable Interface: a 5-capability `AuditableModel` protocol (forward / units / read / patch / optional contributions) plus the architecture-agnostic conformance suite `run_conformance` (determinism, patch-identity, reconstruction). This is the gate every backend must pass — "the conformance suite, not trust, is the gatekeeper." Validated against a real GPT-2 Small via `scripts/validate_auditable_gpt2.py` (determinism + patch-identity, 2/2). (7 tests)
+- **`glassbox/scaling.py`** — hierarchical head screening + length-aware batch planning, with an explicit false-negative-risk flag. (9 tests)
+- **`glassbox/monitoring.py`** — post-market monitoring (Art. 72): two-sided CUSUM drift detector, Johnson–Lindenstrauss fingerprint projector (distance-preserving sketch), and a task-family circuit cache validated by fingerprint match. (12 tests)
+- **`glassbox/moe.py`** — Mixture-of-Experts partition (`moe_units`, incl. router) + expert attribution (weight × contribution). (6 tests)
+- **`glassbox/distributional.py`** — distributional faithfulness via percentile bootstrap confidence intervals + stratified mean. (9 tests)
+- **`glassbox/causal_abstraction.py`** — causal-abstraction certificate computed from interchange-intervention accuracy (IIA); gates tier-A (causal-certified) eligibility. (4 tests)
+- **`glassbox/features.py`** — feature-level (SAE) units + sparsity-aware attribution (active features only). (5 tests)
+- **`glassbox/frameworks.py`** — multi-framework report packs: cross-walk Glassbox evidence to NIST AI RMF (Govern/Map/Measure/Manage) and ISO/IEC 42001 (9 Annex A objectives), with an explicit "not certification or legal advice" disclaimer. (5 tests)
+- All eight modules are re-exported from the top-level `glassbox` package API.
+- **`scripts/validate_auditable_gpt2.py`** — real-model validation harness (run locally; exercises the conformance gate + monitoring/framework cores on GPT-2 Small).
+
+### Notes
+
+- **+57 unit tests** this release across the eight new pure cores (verified). Torch-dependent production backends (native-HF, GPU / KV-sharing, real MoE/SAE hooks, SSM/Mamba adapter) ship as protocol-conforming interfaces and are **flagged in their module docstrings as not yet validated at frontier scale** — that work is design-partner-gated (Roadmap 9.4).
+- Canonical benchmark numbers are unchanged from 4.4.0 (r=0.009; credit suff 0.73 / F1 0.61, Grade B; IOI F1 0.49, Grade C; 15–37× vs ACDC; 1.8s M1 Pro / 4.2s 8-core CPU).
+
+---
+
 ## [4.4.0] — 2026-06-12
 
 ### Regulatory accuracy

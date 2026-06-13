@@ -193,6 +193,16 @@ def main() -> None:
         version, apply,
     )
 
+    # ── ENTERPRISE.md ─────────────────────────────────────────────────────────
+    changed += patch_file(
+        ROOT / "ENTERPRISE.md",
+        [
+            (r"Glassbox AI v\d+\.\d+\.\d+",
+             "Glassbox AI v{version}"),
+        ],
+        version, apply,
+    )
+
     print(f"\n{'Applied' if apply else 'Would apply'} changes to {changed} file(s).")
     if not apply and changed:
         print("Re-run with --apply to write changes.")
