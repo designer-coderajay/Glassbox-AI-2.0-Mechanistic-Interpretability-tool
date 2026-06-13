@@ -178,6 +178,39 @@ def test_report_counts_skipped_and_table_renders():
     assert format_table(report)  # does not raise on a skipped row
 
 
+def test_run_task_sequence_value_attached():
+    eng = _StubEngine(
+        clean_ld=2.0, faith={"sufficiency": 0.7, "comprehensiveness": 0.5, "f1": 0.58},
+        attrs=_canned_attrs(), circuit=[(0, 0)] * 14,
+    )
+    row = run_task(eng, DECISION_TASKS[0], seq_value_fn=lambda task: 1.2345)
+    assert row["sequence_ld"] == 1.2345
+
+
+def test_run_task_sequence_value_error_recorded():
+    eng = _StubEngine(
+        clean_ld=2.0, faith={"sufficiency": 0.7, "comprehensiveness": 0.5, "f1": 0.58},
+        attrs=_canned_attrs(), circuit=[(0, 0)] * 14,
+    )
+
+    def boom(task):
+        raise RuntimeError("teacher forcing failed")
+
+    row = run_task(eng, DECISION_TASKS[0], seq_value_fn=boom)
+    assert row["sequence_ld"] is None
+    assert "teacher forcing failed" in row["sequence_error"]
+
+
+def test_format_table_with_sequence_column():
+    eng = _StubEngine(
+        clean_ld=2.0, faith={"sufficiency": 0.7, "comprehensiveness": 0.5, "f1": 0.58},
+        attrs=_canned_attrs(), circuit=[(0, 0)] * 14,
+    )
+    rows = [run_task(eng, t, seq_value_fn=lambda task: 0.5) for t in DECISION_TASKS]
+    table = format_table(build_report(rows, model="gpt2", method="taylor"))
+    assert "seqLD" in table
+
+
 def test_build_report_and_table():
     eng = _StubEngine(
         clean_ld=2.0,

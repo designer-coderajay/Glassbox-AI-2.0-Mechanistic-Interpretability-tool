@@ -134,6 +134,7 @@ def run_task(
     method: str = "taylor",
     *,
     single_token: Optional[Callable[[str], bool]] = None,
+    seq_value_fn: Optional[Callable[[DecisionTask], float]] = None,
     ld_floor: float = 0.10,
 ) -> Dict[str, Any]:
     """Audit one decision task. ``engine`` needs an ``analyze()`` method.
@@ -143,6 +144,10 @@ def run_task(
             encodes to one token for the model's tokenizer. When given, variants
             are filtered to single-token forms (analyze()'s v1 constraint); a task
             with no usable variant on either side is skipped, not crashed.
+        seq_value_fn: Optional callable returning the teacher-forced sequence
+            decision value for the task (full multi-token verbalizer sets). When
+            given, the row gains a ``sequence_ld`` field; a per-task failure is
+            recorded, not raised.
 
     Returns one report row. Does not raise on a model that fails the task; the
     failure is recorded (``matches_expected=False``) so it is visible, not hidden.
@@ -180,7 +185,7 @@ def run_task(
         sample_n=1,
     )
 
-    return {
+    row = {
         "task": task.name,
         "domain": task.domain,
         "annex_iii": task.annex_iii_ref,
@@ -197,6 +202,17 @@ def run_task(
         "tier": tier["tier"],
         "tier_label": tier["label"],
     }
+
+    # Optional: teacher-forced sequence decision value over the FULL (possibly
+    # multi-token) verbalizer sets. Per-task failure is recorded, never raised.
+    if seq_value_fn is not None:
+        try:
+            row["sequence_ld"] = round(float(seq_value_fn(task)), 4)
+        except Exception as exc:
+            row["sequence_ld"] = None
+            row["sequence_error"] = str(exc)
+
+    return row
 
 
 def build_report(rows: List[Dict[str, Any]], *, model: str, method: str) -> Dict[str, Any]:
@@ -228,20 +244,29 @@ def build_report(rows: List[Dict[str, Any]], *, model: str, method: str) -> Dict
 
 def format_table(report: Dict[str, Any]) -> str:
     """Render a compact text table for the console."""
+    rows = report["rows"]
+    has_seq = any("sequence_ld" in r for r in rows)
+    header = f"{'task':<22} {'exp':<4} {'got':<4} {'suff':>6} {'comp':>6} {'F1':>6} {'conc×':>6} {'tier':>5}"
+    if has_seq:
+        header += f" {'seqLD':>8}"
+    width = 80 if has_seq else 72
     lines = [
         f"Decision-functional benchmark — model={report['model']} method={report['method']}",
-        f"{'task':<22} {'exp':<4} {'got':<4} {'suff':>6} {'comp':>6} {'F1':>6} {'conc×':>6} {'tier':>5}",
-        "-" * 72,
+        header,
+        "-" * width,
     ]
-    for r in report["rows"]:
+    for r in rows:
         def _f(x: Any) -> str:
             return f"{x:.3f}" if isinstance(x, (int, float)) else "  -  "
-        lines.append(
+        line = (
             f"{r['task']:<22} {r['expected'][:3]:<4} {r['model_decision'][:3]:<4} "
             f"{_f(r['sufficiency']):>6} {_f(r['comprehensiveness']):>6} {_f(r['f1']):>6} "
             f"{r['concentration']['concentration_ratio']:>5}x {r['tier']:>5}"
         )
-    lines.append("-" * 72)
+        if has_seq:
+            line += f" {_f(r.get('sequence_ld')):>8}"
+        lines.append(line)
+    lines.append("-" * width)
     lines.append(
         f"model-correct: {report['n_model_correct']}/{report['n_tasks']}  ·  "
         f"above-random: {report['n_above_random']}/{report['n_tasks']}  ·  "
@@ -257,8 +282,13 @@ def run_all(
     model: str = "gpt2",
     method: str = "taylor",
     tasks: Optional[Sequence[DecisionTask]] = None,
+    sequence: bool = False,
 ) -> Dict[str, Any]:
-    """Load the model and run the full suite. Requires torch + transformer_lens."""
+    """Load the model and run the full suite. Requires torch + transformer_lens.
+
+    When ``sequence`` is True, also computes the teacher-forced sequence decision
+    value over the full (multi-token) verbalizer sets via glassbox.sequence_decision.
+    """
     from transformer_lens import HookedTransformer  # lazy
 
     from glassbox import GlassboxV2  # lazy
@@ -273,8 +303,23 @@ def run_all(
         except Exception:
             return False
 
+    seq_value_fn = None
+    if sequence:
+        from glassbox.decision import DecisionFunctional, VerbalizerSet
+        from glassbox.sequence_decision import model_scorer, sequence_decision_value
+
+        encode_variant, forward_logits = model_scorer(hooked)
+
+        def seq_value_fn(task: DecisionTask) -> float:
+            fn = DecisionFunctional(
+                VerbalizerSet(task.positive_label, task.positive_variants),
+                VerbalizerSet(task.negative_label, task.negative_variants),
+            )
+            prompt_ids = [int(i) for i in hooked.to_tokens(task.prompt)[0]]
+            return sequence_decision_value(fn, encode_variant, prompt_ids, forward_logits)
+
     rows = [
-        run_task(engine, t, method=method, single_token=_single)
+        run_task(engine, t, method=method, single_token=_single, seq_value_fn=seq_value_fn)
         for t in (tasks or DECISION_TASKS)
     ]
     return build_report(rows, model=model, method=method)
@@ -285,9 +330,11 @@ def main() -> None:
     parser.add_argument("--model", default="gpt2")
     parser.add_argument("--method", default="taylor", choices=["taylor", "integrated_gradients"])
     parser.add_argument("--out", default=None, help="Write the JSON report to this path")
+    parser.add_argument("--sequence", action="store_true",
+                        help="Also compute the teacher-forced sequence decision value (multi-token)")
     args = parser.parse_args()
 
-    report = run_all(model=args.model, method=args.method)
+    report = run_all(model=args.model, method=args.method, sequence=args.sequence)
     print(format_table(report))
     if args.out:
         out_dir = os.path.dirname(os.path.abspath(args.out))
