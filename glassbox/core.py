@@ -2189,6 +2189,7 @@ class GlassboxV2:
         include_logit_lens: bool = False,
         corruption_strategy: str = "auto",
         certify:            Optional[str] = None,
+        sequence_decision:  bool = False,
     ) -> Dict:
         """
         One-call circuit discovery + faithfulness metrics.
@@ -2471,6 +2472,37 @@ class GlassboxV2:
         }
         if ll_result is not None:
             result["logit_lens"] = ll_result
+
+        # V5 opt-in (default OFF, purely additive): teacher-forced sequence
+        # decision value for multi-token verbalizer sets. Reporting only — it
+        # does NOT alter clean_ld, the circuit, or faithfulness (which remain
+        # last-position / representative-token). Adds forward passes. Validate
+        # on a real model; the underlying math is unit-tested.
+        if sequence_decision and decision_meta is not None:
+            from glassbox.decision import DecisionFunctional, VerbalizerSet
+            from glassbox.sequence_decision import (
+                model_scorer,
+                sequence_decision_value,
+            )
+
+            functional = DecisionFunctional(
+                VerbalizerSet(decision_meta["positive"]["label"],
+                              tuple(decision_meta["positive"]["variants"])),
+                VerbalizerSet(decision_meta["negative"]["label"],
+                              tuple(decision_meta["negative"]["variants"])),
+            )
+            encode_variant, forward_logits = model_scorer(self.model)
+            prompt_ids = [int(i) for i in self.model.to_tokens(prompt)[0]]
+            result["decision"]["sequence_decision_value"] = float(
+                sequence_decision_value(
+                    functional, encode_variant, prompt_ids, forward_logits
+                )
+            )
+            result["decision"]["sequence_note"] = (
+                "teacher-forced log p(positive) - log p(negative); reporting "
+                "only, not used for attribution (see token_resolution)."
+            )
+
         return result
 
     # ──────────────────────────────────────────────────────────────────────
