@@ -74,3 +74,7 @@ _local_backups/
 AUDIT_REPORT_*.md
 deploy_site.sh
 push_regulatory_update.sh
+
+# Local torch venv (large binaries; never commit) + generated reports
+.venv*/
+reports/
