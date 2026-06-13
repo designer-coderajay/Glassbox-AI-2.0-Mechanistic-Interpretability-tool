@@ -29,7 +29,7 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from benchmarks.decision_tasks import DECISION_TASKS, DecisionTask
 from glassbox.evidence_tier import TierEngine, TierSignals
@@ -113,24 +113,50 @@ def assess_tier(
     return TierEngine().assess(sig).to_dict()
 
 
+def _skipped_row(task: DecisionTask, reason: str) -> Dict[str, Any]:
+    """A non-crashing placeholder row for a task that cannot be scored."""
+    return {
+        "task": task.name, "domain": task.domain, "annex_iii": task.annex_iii_ref,
+        "expected": task.expected, "model_decision": "n/a", "matches_expected": False,
+        "clean_ld": None, "n_heads": 0,
+        "sufficiency": None, "comprehensiveness": None, "f1": None, "category": "skipped",
+        "concentration": {"circuit_mass_fraction": 0.0, "random_expected_fraction": 0.0,
+                          "concentration_ratio": 0.0, "above_random": False,
+                          "n_heads": 0, "n_total": 0},
+        "tier": "D", "tier_label": "descriptive", "skipped": reason,
+    }
+
+
 def run_task(
     engine: Any,
     task: DecisionTask,
     method: str = "taylor",
     *,
+    single_token: Optional[Callable[[str], bool]] = None,
     ld_floor: float = 0.10,
 ) -> Dict[str, Any]:
     """Audit one decision task. ``engine`` needs an ``analyze()`` method.
 
+    Args:
+        single_token: Optional predicate that returns True if a variant string
+            encodes to one token for the model's tokenizer. When given, variants
+            are filtered to single-token forms (analyze()'s v1 constraint); a task
+            with no usable variant on either side is skipped, not crashed.
+
     Returns one report row. Does not raise on a model that fails the task; the
     failure is recorded (``matches_expected=False``) so it is visible, not hidden.
     """
-    result = engine.analyze(
-        task.prompt,
-        list(task.positive_variants),
-        list(task.negative_variants),
-        method=method,
-    )
+    pos = list(task.positive_variants)
+    neg = list(task.negative_variants)
+    if single_token is not None:
+        pos = [v for v in pos if single_token(v)]
+        neg = [v for v in neg if single_token(v)]
+        if not pos or not neg:
+            return _skipped_row(
+                task, "no single-token verbalizer variant for this tokenizer"
+            )
+
+    result = engine.analyze(task.prompt, pos, neg, method=method)
     faith = result.get("faithfulness", {}) or {}
     clean_ld = float(result.get("clean_ld", 0.0))
     circuit = result.get("circuit", []) or []
@@ -185,6 +211,7 @@ def build_report(rows: List[Dict[str, Any]], *, model: str, method: str) -> Dict
         "model": model,
         "method": method,
         "n_tasks": len(rows),
+        "n_skipped": sum(1 for r in rows if r.get("skipped")),
         "n_model_correct": sum(1 for r in rows if r.get("matches_expected")),
         "n_above_random": sum(1 for r in rows if r["concentration"]["above_random"]),
         "mean_sufficiency": _mean("sufficiency"),
@@ -237,7 +264,18 @@ def run_all(
 
     hooked = HookedTransformer.from_pretrained(model)
     engine = GlassboxV2(hooked)
-    rows = [run_task(engine, t, method=method) for t in (tasks or DECISION_TASKS)]
+
+    def _single(s: str) -> bool:
+        try:
+            hooked.to_single_token(s)
+            return True
+        except Exception:
+            return False
+
+    rows = [
+        run_task(engine, t, method=method, single_token=_single)
+        for t in (tasks or DECISION_TASKS)
+    ]
     return build_report(rows, model=model, method=method)
 
 

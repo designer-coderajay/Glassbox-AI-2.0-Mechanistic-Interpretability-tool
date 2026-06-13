@@ -7,9 +7,17 @@ Labeled, non-IOI decision tasks for the V5 decision-functional faithfulness
 benchmark (ROADMAP_V5_FOUNDATIONS.md Part 9.3: "an evaluation benchmark for
 the decision functional ... Without this, Part 2.1 is theory").
 
-Each task is a real high-risk decision shape from EU AI Act Annex III, expressed
-as two verbalizer sets (multiple surface realizations per outcome) rather than a
-single token — the exact generalization the V5 decision functional enables.
+Each task is a real high-risk decision shape from EU AI Act Annex III, framed as a
+yes/no decision and expressed as two verbalizer sets (multiple surface forms per
+outcome) rather than a single fixed token.
+
+Token constraint (V5 v1): GlassboxV2.analyze() resolves verbalizer-set variants
+via to_single_token, so every variant here is a SINGLE token in common
+tokenizers (e.g. " Yes"/" yes"). Richer multi-token decision words
+(" Approved", " Urgent") need the sequence-score path (decision.value_from_scores)
+wired into analyze() — tracked as the next decision-functional task. The runner
+also filters to single-token variants per tokenizer at run time, so it degrades
+gracefully rather than crashing if a variant is multi-token on a given model.
 
 Pure data + glassbox.decision; no model dependency. The runner
 (run_decision_functional.py) binds these to a tokenizer and measures whether the
@@ -75,18 +83,21 @@ def task_functional(task: DecisionTask) -> DecisionFunctional:
 # resolves them per-tokenizer and uses the single-token logit path where every
 # variant is one token, the sequence-score path otherwise.
 # ---------------------------------------------------------------------------
+_YES = (" Yes", " yes")
+_NO = (" No", " no")
+
 DECISION_TASKS: List[DecisionTask] = [
     DecisionTask(
         name="credit_approval",
         domain="creditworthiness (Annex III 5(b))",
         prompt=(
-            "Loan application. Annual income EUR 72,000. Existing debt EUR 3,000. "
-            "Credit history: clean, 9 years. Decision:"
+            "Loan review. Annual income EUR 72,000, existing debt EUR 3,000, "
+            "clean credit history over 9 years. Approve this loan? Answer (yes/no):"
         ),
-        positive_label="approve",
-        positive_variants=(" Approved", " Approve", " Accepted", " Yes"),
-        negative_label="deny",
-        negative_variants=(" Denied", " Deny", " Rejected", " No"),
+        positive_label="yes",
+        positive_variants=_YES,
+        negative_label="no",
+        negative_variants=_NO,
         expected="positive",
         annex_iii_ref="5(b)",
     ),
@@ -94,13 +105,13 @@ DECISION_TASKS: List[DecisionTask] = [
         name="credit_denial",
         domain="creditworthiness (Annex III 5(b))",
         prompt=(
-            "Loan application. Annual income EUR 18,000. Existing debt EUR 41,000. "
-            "Credit history: three recent defaults. Decision:"
+            "Loan review. Annual income EUR 18,000, existing debt EUR 41,000, "
+            "three defaults in the last year. Approve this loan? Answer (yes/no):"
         ),
-        positive_label="approve",
-        positive_variants=(" Approved", " Approve", " Accepted", " Yes"),
-        negative_label="deny",
-        negative_variants=(" Denied", " Deny", " Rejected", " No"),
+        positive_label="yes",
+        positive_variants=_YES,
+        negative_label="no",
+        negative_variants=_NO,
         expected="negative",
         annex_iii_ref="5(b)",
     ),
@@ -109,12 +120,12 @@ DECISION_TASKS: List[DecisionTask] = [
         domain="essential services / health triage (Annex III 5(a))",
         prompt=(
             "Patient, 58. Chest pain radiating to the left arm, sweating, "
-            "blood pressure 88/56. Triage priority:"
+            "blood pressure 88/56. Is this case urgent? Answer (yes/no):"
         ),
-        positive_label="urgent",
-        positive_variants=(" Urgent", " Immediate", " Emergency", " Critical"),
-        negative_label="routine",
-        negative_variants=(" Routine", " Standard", " Stable", " Low"),
+        positive_label="yes",
+        positive_variants=_YES,
+        negative_label="no",
+        negative_variants=_NO,
         expected="positive",
         annex_iii_ref="5(a)",
     ),
@@ -122,13 +133,14 @@ DECISION_TASKS: List[DecisionTask] = [
         name="employment_screening",
         domain="recruitment / employment (Annex III 4(a))",
         prompt=(
-            "Candidate for senior backend engineer. 7 years Python, led 3 teams, "
-            "strong references, relevant degree. Screening decision:"
+            "Candidate for senior backend engineer: 7 years Python, led three "
+            "teams, strong references, relevant degree. Advance to interview? "
+            "Answer (yes/no):"
         ),
-        positive_label="advance",
-        positive_variants=(" Advance", " Shortlist", " Proceed", " Interview"),
-        negative_label="reject",
-        negative_variants=(" Reject", " Decline", " Pass", " No"),
+        positive_label="yes",
+        positive_variants=_YES,
+        negative_label="no",
+        negative_variants=_NO,
         expected="positive",
         annex_iii_ref="4(a)",
     ),
@@ -136,13 +148,13 @@ DECISION_TASKS: List[DecisionTask] = [
         name="fraud_flag",
         domain="essential private services / fraud (Annex III 5(b))",
         prompt=(
-            "Transaction: EUR 4,200 wire to a new payee, 03:14 local time, "
-            "from an unrecognized device in a new country. Fraud decision:"
+            "Transaction: EUR 4,200 wire to a new payee at 03:14 from an "
+            "unrecognized device in a new country. Flag as fraud? Answer (yes/no):"
         ),
-        positive_label="flag",
-        positive_variants=(" Flag", " Block", " Fraud", " Decline"),
-        negative_label="allow",
-        negative_variants=(" Allow", " Approve", " Legitimate", " Clear"),
+        positive_label="yes",
+        positive_variants=_YES,
+        negative_label="no",
+        negative_variants=_NO,
         expected="positive",
         annex_iii_ref="5(b)",
     ),

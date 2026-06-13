@@ -141,6 +141,43 @@ def test_run_task_model_wrong_is_recorded_not_hidden():
 
 
 # ── report aggregation ──────────────────────────────────────────────────────
+def test_run_task_skips_when_no_single_token_variant():
+    task = DECISION_TASKS[0]
+    eng = _StubEngine(
+        clean_ld=2.0, faith={"sufficiency": 0.7, "comprehensiveness": 0.5, "f1": 0.58},
+        attrs=_canned_attrs(), circuit=[(0, 0)] * 14,
+    )
+    row = run_task(eng, task, single_token=lambda s: False)  # nothing single-token
+    assert row.get("skipped")
+    assert row["matches_expected"] is False
+    assert row["f1"] is None
+    assert row["concentration"]["above_random"] is False
+
+
+def test_run_task_filters_to_single_token_survivors():
+    task = DECISION_TASKS[0]
+    eng = _StubEngine(
+        clean_ld=2.0, faith={"sufficiency": 0.7, "comprehensiveness": 0.5, "f1": 0.58},
+        attrs=_canned_attrs(), circuit=[(0, 0)] * 14,
+    )
+    # only the capitalized forms survive; task should still run
+    row = run_task(eng, task, single_token=lambda s: s in (" Yes", " No"))
+    assert not row.get("skipped")
+    assert row["f1"] == 0.58
+
+
+def test_report_counts_skipped_and_table_renders():
+    eng = _StubEngine(
+        clean_ld=2.0, faith={"sufficiency": 0.7, "comprehensiveness": 0.5, "f1": 0.58},
+        attrs=_canned_attrs(), circuit=[(0, 0)] * 14,
+    )
+    rows = [run_task(eng, DECISION_TASKS[0], single_token=lambda s: False)]
+    rows += [run_task(eng, t) for t in DECISION_TASKS[1:]]
+    report = build_report(rows, model="gpt2", method="taylor")
+    assert report["n_skipped"] == 1
+    assert format_table(report)  # does not raise on a skipped row
+
+
 def test_build_report_and_table():
     eng = _StubEngine(
         clean_ld=2.0,
