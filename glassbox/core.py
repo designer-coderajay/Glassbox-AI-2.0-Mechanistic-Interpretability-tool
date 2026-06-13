@@ -110,6 +110,7 @@ def _cf_noise_floor(clean_ld: float) -> float:
 
 def _resolve_decision_tokens(
     encode_single,
+    to_tokens,
     correct: Union[str, Sequence[str]],
     incorrect: Union[str, Sequence[str]],
 ) -> Tuple[Any, Any, Optional[Dict[str, Any]], str, str]:
@@ -117,9 +118,18 @@ def _resolve_decision_tokens(
 
     Args:
         encode_single: Callable mapping a single-token string to its token id
-            (e.g. ``model.to_single_token``). Must raise if multi-token.
-        correct/incorrect: Legacy single strings, OR sequences of single-token
-            variant strings (V5 verbalizer sets).
+            (e.g. ``model.to_single_token``). Raises if multi-token.
+        to_tokens: Callable mapping a string to its token-id tensor
+            (e.g. ``model.to_tokens``). Used as the multi-token fallback.
+        correct/incorrect: Legacy single strings, OR sequences of variant
+            strings (V5 verbalizer sets). Variants may be single- OR multi-token.
+
+    Multi-token variants are resolved to a representative token — the last token
+    of the encoded variant, matching the legacy single-string fallback — so rich
+    verbalizer sets (" Approved", " Denied") are accepted rather than crashed.
+    This is representative-token pooling for last-position attribution, NOT full
+    sequence log-probability; the latter (decision.value_from_scores) is a
+    separate, research-grade path.
 
     Returns:
         ``(t_tok, d_tok, decision_meta, primary_correct, primary_incorrect)``
@@ -142,13 +152,33 @@ def _resolve_decision_tokens(
     functional = DecisionFunctional(
         _as_set(correct, "positive"), _as_set(incorrect, "negative")
     )
-    resolved = functional.resolve(lambda s: [encode_single(s)])
+
+    multi_token: list = []
+
+    def _variant_token(s):
+        try:
+            return [encode_single(s)]
+        except Exception:
+            multi_token.append(s)
+            return [int(to_tokens(s)[0, -1].item())]
+
+    resolved = functional.resolve(_variant_token)
     t_tok = [ids[0] for ids in resolved.positive_ids]
     d_tok = [ids[0] for ids in resolved.negative_ids]
+
+    meta = functional.to_dict()
+    meta["token_resolution"] = "representative_token" if multi_token else "single_token"
+    if multi_token:
+        meta["multi_token_variants"] = sorted(set(multi_token))
+        meta["resolution_note"] = (
+            "multi-token variants resolved to their representative (last) token "
+            "for last-position attribution; this is not full sequence "
+            "log-probability (decision.value_from_scores)."
+        )
     return (
         t_tok,
         d_tok,
-        functional.to_dict(),
+        meta,
         functional.positive.variants[0],
         functional.negative.variants[0],
     )
@@ -2240,10 +2270,13 @@ class GlassboxV2:
                 f"certify must be None or 'hessian', got {certify!r}"
             )
 
-        # V5: verbalizer-set resolution (sequences of single-token strings).
+        # V5: verbalizer-set resolution. Variants may be single- or multi-token
+        # (multi-token resolved to a representative token, like the legacy path).
         # Legacy str/str inputs take the original path below, byte-identical.
         t_tok, d_tok, decision_meta, primary_correct, primary_incorrect = (
-            _resolve_decision_tokens(self.model.to_single_token, correct, incorrect)
+            _resolve_decision_tokens(
+                self.model.to_single_token, self.model.to_tokens, correct, incorrect
+            )
         )
         if decision_meta is not None and include_logit_lens:
             raise ValueError(

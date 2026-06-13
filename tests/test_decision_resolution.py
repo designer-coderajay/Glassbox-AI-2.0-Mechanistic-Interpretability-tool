@@ -1,9 +1,10 @@
 """
-tests/test_decision_resolution.py — V5 Step 2: analyze()'s input resolver.
+tests/test_decision_resolution.py — V5: analyze()'s input resolver.
 
 Pure-logic tests for glassbox.core._resolve_decision_tokens — the function
 that turns legacy str/str inputs or verbalizer-set sequences into decision
-tokens. No torch, no model: encode_single is a dict lookup.
+tokens. No torch, no model: encode_single is a dict lookup and to_tokens is a
+fake returning a representative last-token id for multi-token variants.
 """
 
 import pytest
@@ -23,10 +24,30 @@ def encode_single(text):
     return _VOCAB[text]
 
 
+class _Toks:
+    """Fake model.to_tokens(s): supports [0, -1].item() -> representative id."""
+
+    def __init__(self, last):
+        self._last = last
+
+    def __getitem__(self, idx):
+        return self
+
+    def item(self):
+        return self._last
+
+
+_FALLBACK = {"NotAToken": 999, " Approved": 38493, " Denied": 47557}
+
+
+def to_tokens(text):
+    return _Toks(_FALLBACK.get(text, abs(hash(text)) % 50000))
+
+
 class TestLegacyPath:
     def test_str_str_defers_to_legacy_resolution(self):
         t, d, meta, pc, pi = _resolve_decision_tokens(
-            encode_single, " Mary", " John"
+            encode_single, to_tokens, " Mary", " John"
         )
         assert t is None and d is None and meta is None
         assert (pc, pi) == (" Mary", " John")
@@ -35,27 +56,28 @@ class TestLegacyPath:
 class TestSetPath:
     def test_lists_resolve_to_id_lists(self):
         t, d, meta, pc, pi = _resolve_decision_tokens(
-            encode_single, [" approved", " yes"], [" denied"]
+            encode_single, to_tokens, [" approved", " yes"], [" denied"]
         )
         assert t == [20, 22]
         assert d == [30]
+        assert meta["token_resolution"] == "single_token"
 
     def test_metadata_documents_the_sets(self):
         _, _, meta, _, _ = _resolve_decision_tokens(
-            encode_single, [" approved", " yes"], [" denied"]
+            encode_single, to_tokens, [" approved", " yes"], [" denied"]
         )
         assert meta["positive"]["variants"] == [" approved", " yes"]
         assert meta["negative"]["variants"] == [" denied"]
 
     def test_primary_strings_are_first_variants(self):
         _, _, _, pc, pi = _resolve_decision_tokens(
-            encode_single, [" approved", " yes"], [" denied", " no"]
+            encode_single, to_tokens, [" approved", " yes"], [" denied", " no"]
         )
         assert (pc, pi) == (" approved", " denied")
 
     def test_mixed_str_and_list_supported(self):
         t, d, meta, _, _ = _resolve_decision_tokens(
-            encode_single, " approved", [" denied", " no"]
+            encode_single, to_tokens, " approved", [" denied", " no"]
         )
         assert t == [20]
         assert d == [30, 32]
@@ -64,18 +86,22 @@ class TestSetPath:
     def test_overlapping_sets_rejected(self):
         with pytest.raises(ValueError, match="[Oo]verlap"):
             _resolve_decision_tokens(
-                encode_single, [" yes"], [" yes", " no"]
+                encode_single, to_tokens, [" yes"], [" yes", " no"]
             )
 
-    def test_multi_token_variant_rejected_via_encoder(self):
-        with pytest.raises(ValueError, match="could not"):
-            _resolve_decision_tokens(
-                encode_single, [" approved", "NotAToken"], [" denied"]
-            )
+    def test_multi_token_variant_now_resolved(self):
+        # V5 safe increment: multi-token variants are resolved to a representative
+        # (last) token rather than rejected, matching the legacy string fallback.
+        t, _, meta, _, _ = _resolve_decision_tokens(
+            encode_single, to_tokens, [" approved", "NotAToken"], [" denied"]
+        )
+        assert t == [20, 999]  # " approved"->20 (single); "NotAToken"->999 (fallback)
+        assert meta["token_resolution"] == "representative_token"
+        assert "NotAToken" in meta["multi_token_variants"]
 
     def test_duplicate_variants_deduplicated(self):
         t, _, _, _, _ = _resolve_decision_tokens(
-            encode_single, [" yes", " yes"], [" no"]
+            encode_single, to_tokens, [" yes", " yes"], [" no"]
         )
         assert t == [22]
 
