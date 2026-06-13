@@ -192,6 +192,18 @@ from glassbox.audit import (
 # ---------------------------------------------------------------------------
 from glassbox.audit_log import AuditLog, AuditRecord
 
+# V5 — Phase B/C foundations (pure cores; torch backends flagged per-module).
+# auditable interface + conformance suite (#5), scaling/screening (#6),
+# post-market monitoring (#7), MoE partition (#8), distributional CIs (#9),
+# causal-abstraction certificate (#10), feature units (#11), framework packs (#12).
+from glassbox.auditable import (
+    AuditableModel,
+    ConformanceCheck,
+    ConformanceReport,
+    UnitSpec,
+    run_conformance,
+)
+
 # ---------------------------------------------------------------------------
 # Bias Analysis — demographic parity, counterfactual fairness (v3.0.0)
 # ---------------------------------------------------------------------------
@@ -202,6 +214,7 @@ from glassbox.bias import (
     DemographicParityResult,
     TokenBiasResult,
 )
+from glassbox.causal_abstraction import certify_abstraction, interchange_accuracy
 from glassbox.cf_gate import (
     CandidateCF,
     CounterfactualGate,
@@ -241,17 +254,27 @@ from glassbox.cross_model import (
 
 # V5 — decision functional, counterfactual gate, evidence tiers (Phase A)
 from glassbox.decision import DecisionFunctional, ResolvedDecision, VerbalizerSet
+from glassbox.distributional import bootstrap_ci, faithfulness_ci, stratified_mean
 from glassbox.evidence_tier import (
     EvidenceTier,
     TierAssessment,
     TierEngine,
     TierSignals,
 )
+from glassbox.features import feature_units, sparse_feature_attribution
+from glassbox.frameworks import (
+    ISO_42001_OBJECTIVES,
+    NIST_AI_RMF,
+    framework_pack,
+)
+from glassbox.moe import expert_attribution, moe_units
+from glassbox.monitoring import CircuitCache, CusumDetector, JLProjector
 
 # ---------------------------------------------------------------------------
 # Risk Register — persistent cross-audit risk tracking (v3.0.0)
 # ---------------------------------------------------------------------------
 from glassbox.risk_register import RiskEntry, RiskRegister
+from glassbox.scaling import hierarchical_screen, plan_batches
 
 # ---------------------------------------------------------------------------
 # OpenTelemetry Tracing — self-hosted deployments (v3.1.0)
@@ -516,6 +539,15 @@ __all__ = [
     "DecisionFunctional", "VerbalizerSet", "ResolvedDecision",
     "CounterfactualGate", "CandidateCF", "GateConfig", "GateResult", "DiscardReason",
     "TierEngine", "TierSignals", "TierAssessment", "EvidenceTier",
+    # V5 Phase B/C — foundations (pure cores)
+    "UnitSpec", "AuditableModel", "ConformanceCheck", "ConformanceReport", "run_conformance",
+    "plan_batches", "hierarchical_screen",
+    "CusumDetector", "JLProjector", "CircuitCache",
+    "moe_units", "expert_attribution",
+    "bootstrap_ci", "faithfulness_ci", "stratified_mean",
+    "interchange_accuracy", "certify_abstraction",
+    "feature_units", "sparse_feature_attribution",
+    "NIST_AI_RMF", "ISO_42001_OBJECTIVES", "framework_pack",
     # Primary classes
     "GlassboxV2",
     "SAEFeatureAttributor",          # requires sae-lens
