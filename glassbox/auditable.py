@@ -13,13 +13,16 @@ auditable at white-box tier. This module defines that minimal contract
 conformance, ship.
 
 Scope (honest): the protocol and the conformance *checker* are pure and unit-
-tested here against a mock adapter. The three production backends that implement
-the protocol — native HF (forward hooks on `transformers`), TransformerLens, and
-black-box (audit.py) — are torch-dependent; the native HF backend in particular
-is a multi-week build (Part 4.2) and is validated against real models, not here.
-Two conformance checks (known-circuit recovery, memory envelope) require a real
-reference model and live in the torch test suite; the three checks here
-(determinism, patch-identity, reconstruction) run on any adapter.
+tested here against a mock adapter, AND validated against a real GPT-2 Small via
+``scripts/validate_auditable_gpt2.py`` (a ~40-line TransformerLens adapter passes
+the determinism + patch-identity checks on real forward hooks). The three
+production backends that implement the protocol — native HF (forward hooks on
+`transformers`), TransformerLens, and black-box (audit.py) — are torch-dependent;
+the native HF backend in particular is a multi-week build (Part 4.2) and is not
+yet validated at frontier scale. Two conformance checks (known-circuit recovery,
+memory envelope) require a real reference circuit and live in the torch test
+suite; the three checks here (determinism, patch-identity, reconstruction) run on
+any adapter.
 """
 
 from __future__ import annotations
