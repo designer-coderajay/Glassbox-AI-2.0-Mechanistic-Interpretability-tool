@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import statistics
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
@@ -289,6 +290,8 @@ def main() -> None:
     report = run_all(model=args.model, method=args.method)
     print(format_table(report))
     if args.out:
+        out_dir = os.path.dirname(os.path.abspath(args.out))
+        os.makedirs(out_dir, exist_ok=True)
         with open(args.out, "w") as fh:
             json.dump(report, fh, indent=2)
         print(f"\nwrote {args.out}")
