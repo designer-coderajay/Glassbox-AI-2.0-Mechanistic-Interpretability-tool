@@ -162,7 +162,10 @@ def run_task(
                 task, "no single-token verbalizer variant for this tokenizer"
             )
 
-    result = engine.analyze(task.prompt, pos, neg, method=method)
+    try:
+        result = engine.analyze(task.prompt, pos, neg, method=method)
+    except Exception as exc:
+        return _skipped_row(task, f"analyze failed: {exc}")
     faith = result.get("faithfulness", {}) or {}
     clean_ld = float(result.get("clean_ld", 0.0))
     circuit = result.get("circuit", []) or []
@@ -296,13 +299,6 @@ def run_all(
     hooked = HookedTransformer.from_pretrained(model)
     engine = GlassboxV2(hooked)
 
-    def _single(s: str) -> bool:
-        try:
-            hooked.to_single_token(s)
-            return True
-        except Exception:
-            return False
-
     seq_value_fn = None
     if sequence:
         from glassbox.decision import DecisionFunctional, VerbalizerSet
@@ -319,7 +315,7 @@ def run_all(
             return sequence_decision_value(fn, encode_variant, prompt_ids, forward_logits)
 
     rows = [
-        run_task(engine, t, method=method, single_token=_single, seq_value_fn=seq_value_fn)
+        run_task(engine, t, method=method, seq_value_fn=seq_value_fn)
         for t in (tasks or DECISION_TASKS)
     ]
     return build_report(rows, model=model, method=method)

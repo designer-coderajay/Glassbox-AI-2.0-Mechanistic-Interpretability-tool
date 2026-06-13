@@ -178,6 +178,16 @@ def test_report_counts_skipped_and_table_renders():
     assert format_table(report)  # does not raise on a skipped row
 
 
+def test_run_task_analyze_error_is_skipped_not_raised():
+    class _Boom:
+        def analyze(self, *a, **k):
+            raise RuntimeError("overlap or resolution error")
+
+    row = run_task(_Boom(), DECISION_TASKS[0])
+    assert row.get("skipped")
+    assert "analyze failed" in row["skipped"]
+
+
 def test_run_task_sequence_value_attached():
     eng = _StubEngine(
         clean_ld=2.0, faith={"sufficiency": 0.7, "comprehensiveness": 0.5, "f1": 0.58},
