@@ -81,6 +81,22 @@ bf16/fp16 loading; 7B needs an A100-class card.
 
 ---
 
+## Run 3 — fp16 push on the T4 (hardware ceiling reached)
+
+- **Date:** 2026-06-14, Colab **T4 16 GB**, `--dtype float16`.
+
+| Model | Conformance | Faithfulness | Notes |
+|---|---|---|---|
+| EleutherAI/pythia-2.8b | **PASS** (50.7s) | F1 0.347 — **NOT trustworthy** | fp16: TL advises `from_pretrained_no_processing`; attribution gradients degrade in fp16. Gate passes; the F1 is a precision artifact, not a result. |
+| EleutherAI/pythia-6.9b | — | — | Loaded (~14 GB fp16) but the audit's backward pass **OOM'd on the 16 GB T4** (interrupted). 6.9B+ needs ≥24 GB (L4) / 40 GB (A100). |
+
+**Conclusion — T4 ceiling:** conformance gate validated to **2.8B**; **trustworthy
+faithfulness to ~1.4B** (fp32). fp16 buys memory but costs faithfulness accuracy,
+and 6.9B will not fit on 16 GB regardless. Going larger *and* trustworthy requires
+a bigger GPU + **bf16** (stable, unlike fp16) — an A100/L4.
+
+---
+
 ## What is NOT yet validated (no claims made here)
 
 - **GQA at larger scale / other GQA families** — validated on **Qwen2-0.5B**
