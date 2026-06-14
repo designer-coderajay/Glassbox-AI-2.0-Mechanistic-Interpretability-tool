@@ -141,11 +141,33 @@ GPU re-validation, not a tuning tweak. Tracked as the top research item.
 
 ---
 
+## Run 6 — scale-aware circuit fix (the method limitation, fixed)
+
+- **Date:** 2026-06-14, Colab **A100**, fp32, `--exact-circuit` (new
+  `exact_forward` path: grow circuit by *measured* exact sufficiency to target,
+  sufficiency-preserving backward prune).
+
+| Model | Before (1-head Taylor) | After (`--exact-circuit`) |
+|---|---|---|
+| EleutherAI/pythia-2.8b | circuit 1, **F1 0.34 (D)** | circuit **16**, **F1 1.0 (A)**, 33.3s |
+
+**The method-scaling limitation from Run 5 is fixed.** Growing the circuit by
+measured sufficiency (1 → 16 heads) recovers faithfulness at 2.8B. Confirms the
+diagnosis (Taylor over-shoot → under-sized circuit) and the fix.
+
+*Honest caveat:* the forward phase now selects *for* sufficiency, so high
+sufficiency is partly by construction; the independent signal is comprehensiveness
+(from backward pruning). The harness now prints suff/comp separately so this is
+transparent. Pending: confirm the same recovery on **6.9B and Mistral-7B (GQA)**
+to extend the trustworthy-faithfulness claim to 7B.
+
+---
+
 ## What is NOT yet validated (no claims made here)
 
-- **Trustworthy faithfulness above ~1.4B** — the gate passes to 7B, but F1 at
-  2.8B–7B (bf16) is degraded/inconclusive; fp32 comparison needed to separate
-  precision from method-scaling. No faithfulness claim is made above 1.4B.
+- **Trustworthy faithfulness at 6.9B–7B** — fixed and confirmed at **2.8B**
+  (`--exact-circuit`); the 6.9B / Mistral-7B re-run with the flag is pending. The
+  earlier 7B D-grades were the *old* 1-head path; do not cite them.
 - **Other GQA families** — validated on **Qwen2-0.5B** and **Mistral-7B** (gate).
   Llama-3 / Gemma use the same mechanism and *likely* work but were not run (need
   an HF token).

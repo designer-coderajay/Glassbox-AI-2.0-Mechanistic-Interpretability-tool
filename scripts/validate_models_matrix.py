@@ -187,17 +187,20 @@ def main() -> int:
             print(f"    FAIL — {row['error']}")
         else:
             print(f"    conformance={row['conformance']} | circuit={row['circuit_size']} "
-                  f"| F1={row['f1']} ({row['grade']}) | {row['seconds']}s")
+                  f"| suff={row['sufficiency']} comp={row['comprehensiveness']} "
+                  f"F1={row['f1']} ({row['grade']}) | {row['seconds']}s")
         rows.append(row)
 
     # Summary table
     print("\n" + "=" * 78)
-    print(f"{'model':<28}{'arch':<12}{'conf':<6}{'circ':<6}{'F1':<7}{'grade':<6}{'sec':<6}")
-    print("-" * 78)
+    print(f"{'model':<26}{'arch':<11}{'conf':<6}{'circ':<6}{'suff':<7}{'comp':<7}"
+          f"{'F1':<7}{'gr':<4}{'sec':<6}")
+    print("-" * 84)
     for r in rows:
         if r.get("ok"):
-            print(f"{r['model']:<28}{r['arch']:<12}{r['conformance']:<6}"
-                  f"{r['circuit_size']:<6}{r['f1']:<7}{r['grade']:<6}{r['seconds']:<6}")
+            print(f"{r['model']:<26}{r['arch']:<11}{r['conformance']:<6}"
+                  f"{r['circuit_size']:<6}{r['sufficiency']:<7}{r['comprehensiveness']:<7}"
+                  f"{r['f1']:<7}{r['grade']:<4}{r['seconds']:<6}")
         else:
             print(f"{r['model']:<28}{'ERROR — ' + r['error'][:40]}")
     print("=" * 78)
