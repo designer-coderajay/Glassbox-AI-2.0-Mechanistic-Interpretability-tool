@@ -2219,6 +2219,7 @@ class GlassboxV2:
         certify:            Optional[str] = None,
         sequence_decision:  bool = False,
         exact_circuit:      bool = False,
+        max_circuit_heads:  int = 30,
     ) -> Dict:
         """
         One-call circuit discovery + faithfulness metrics.
@@ -2343,6 +2344,7 @@ class GlassboxV2:
         circuit, attrs, clean_ld = self.minimum_faithful_circuit(
             tokens_c, tokens_corr, t_tok, d_tok,
             method=method, n_steps=n_steps, exact_forward=exact_circuit,
+            max_heads=max_circuit_heads,
         )
 
         # MLP attribution — 3 additional passes, completes the circuit picture

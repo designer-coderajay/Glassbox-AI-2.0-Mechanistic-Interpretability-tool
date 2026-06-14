@@ -118,7 +118,7 @@ class _TLHeadAdapter:
 
 
 def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32",
-               exact_circuit: bool = False) -> dict:
+               exact_circuit: bool = False, max_circuit_heads: int = 30) -> dict:
     import torch
     from transformer_lens import HookedTransformer
 
@@ -134,7 +134,8 @@ def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32",
         adapter = _TLHeadAdapter(model, max_units=max_units)
         conf = run_conformance(adapter, model.to_tokens(PROMPT))
 
-    result = gb.analyze(PROMPT, CORRECT, INCORRECT, exact_circuit=exact_circuit)
+    result = gb.analyze(PROMPT, CORRECT, INCORRECT, exact_circuit=exact_circuit,
+                        max_circuit_heads=max_circuit_heads)
     f = result.get("faithfulness", {})
     f1 = float(f.get("f1", 0.0))
     return {
@@ -167,6 +168,10 @@ def main() -> int:
                          "MEASURED (exact) sufficiency until truly sufficient. "
                          "Slower (2 passes/head) but fixes the 1-head under-sizing "
                          "that collapses F1 on >1.4B models (see VALIDATION_LOG Run 5).")
+    ap.add_argument("--max-circuit-heads", type=int, default=30,
+                    help="cap on circuit size for --exact-circuit. Raise it to test "
+                         "whether a circuit that hit the cap is truly that size or "
+                         "just budget-limited (saturation control).")
     args = ap.parse_args()
 
     try:
@@ -181,7 +186,7 @@ def main() -> int:
         print(f"\n>>> {name}")
         try:
             row = _audit_one(name, args.device, args.max_units, args.dtype,
-                             args.exact_circuit)
+                             args.exact_circuit, args.max_circuit_heads)
         except Exception as e:  # noqa: BLE001 - report, never abort the matrix
             row = {"model": name, "ok": False, "error": f"{type(e).__name__}: {e}"}
             print(f"    FAIL — {row['error']}")

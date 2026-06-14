@@ -163,11 +163,40 @@ to extend the trustworthy-faithfulness claim to 7B.
 
 ---
 
+## Run 7 — 7B with the fix (promising, but flagged for a control)
+
+- **Date:** 2026-06-14, Colab **A100**, bf16, `--exact-circuit` (`max_heads`=30).
+
+| Model | Conformance | Circuit | Suff | Comp | F1 |
+|---|---|---|---|---|---|
+| EleutherAI/pythia-6.9b | PASS | **30 (= cap)** | 1.0 | 1.0 | 1.0 |
+| mistralai/Mistral-7B-v0.1 (GQA) | PASS | **30 (= cap)** | 1.0 | 1.0 | 1.0 |
+
+**Read with caution — NOT yet a clean "validated at 7B" claim.** Both suff *and*
+comp are high (the fix generalizes directionally to 7B incl. GQA), and ~26–30
+heads is consistent with the known IOI circuit size (Wang et al. 2022). **But:**
+
+1. Both circuits hit **exactly 30 = the `max_heads` cap** → selection stopped on
+   budget, not on reaching minimality. True circuit size is **unbounded by this
+   run**. (2.8B stopped at 16 < cap — that one is clean.)
+2. **comp = 1.0 needs a specificity control.** Removing *any* ~30 important heads
+   can break a single task, so comp=1.0 may not be specific to this circuit. A
+   **random-circuit baseline** is required before comp=1.0 is meaningful.
+
+**Pending controls before any 7B faithfulness claim:** (a) raise `--max-circuit-heads`
+(e.g. 60) — if the circuit balloons past 30 with suff still ~1.0, it's budget
+saturation, not a minimal circuit; if it settles near ~26–30, the size is real.
+(b) compare comp against a random same-size circuit. No 7B faithfulness claim is
+made in the README/methodology until these pass.
+
+---
+
 ## What is NOT yet validated (no claims made here)
 
 - **Trustworthy faithfulness at 6.9B–7B** — fixed and confirmed at **2.8B**
-  (`--exact-circuit`); the 6.9B / Mistral-7B re-run with the flag is pending. The
-  earlier 7B D-grades were the *old* 1-head path; do not cite them.
+  (`--exact-circuit`, 16-head circuit < cap). At 6.9B–7B the circuits hit the
+  30-head cap and scored a saturated 1.0/1.0/1.0 — **promising but unconfirmed
+  pending the minimality + random-baseline controls above.**
 - **Other GQA families** — validated on **Qwen2-0.5B** and **Mistral-7B** (gate).
   Llama-3 / Gemma use the same mechanism and *likely* work but were not run (need
   an HF token).
