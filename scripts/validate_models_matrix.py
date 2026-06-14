@@ -117,7 +117,8 @@ class _TLHeadAdapter:
             yield
 
 
-def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32") -> dict:
+def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32",
+               exact_circuit: bool = False) -> dict:
     import torch
     from transformer_lens import HookedTransformer
 
@@ -133,7 +134,7 @@ def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32") -
         adapter = _TLHeadAdapter(model, max_units=max_units)
         conf = run_conformance(adapter, model.to_tokens(PROMPT))
 
-    result = gb.analyze(PROMPT, CORRECT, INCORRECT)
+    result = gb.analyze(PROMPT, CORRECT, INCORRECT, exact_circuit=exact_circuit)
     f = result.get("faithfulness", {})
     f1 = float(f.get("f1", 0.0))
     return {
@@ -161,6 +162,11 @@ def main() -> int:
                     help="load precision. float16 halves memory (use on a 16GB T4 "
                          "for 2.8B-6.9B); bfloat16 needs Ampere+ (A100/L4). "
                          "Attribution gradients are less stable in fp16 — verify.")
+    ap.add_argument("--exact-circuit", action="store_true",
+                    help="scale-aware circuit selection: grow the circuit using "
+                         "MEASURED (exact) sufficiency until truly sufficient. "
+                         "Slower (2 passes/head) but fixes the 1-head under-sizing "
+                         "that collapses F1 on >1.4B models (see VALIDATION_LOG Run 5).")
     args = ap.parse_args()
 
     try:
@@ -174,7 +180,8 @@ def main() -> int:
     for name in args.models:
         print(f"\n>>> {name}")
         try:
-            row = _audit_one(name, args.device, args.max_units, args.dtype)
+            row = _audit_one(name, args.device, args.max_units, args.dtype,
+                             args.exact_circuit)
         except Exception as e:  # noqa: BLE001 - report, never abort the matrix
             row = {"model": name, "ok": False, "error": f"{type(e).__name__}: {e}"}
             print(f"    FAIL — {row['error']}")

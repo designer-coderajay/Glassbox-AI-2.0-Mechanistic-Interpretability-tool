@@ -1691,6 +1691,8 @@ class GlassboxV2:
         target_comp:      float = 0.25,
         method:           str   = "taylor",
         n_steps:          int   = 10,
+        exact_forward:    bool  = False,
+        max_heads:        int   = 30,
     ) -> Tuple[List[Tuple[int, int]], Dict[Tuple[int, int], float], float]:
         """
         Auto-discover the Minimum Faithful Circuit (MFC).
@@ -1752,13 +1754,30 @@ class GlassboxV2:
             )[:5]
 
         candidate: List[Tuple[int, int]] = []
-        cumulative_attr = 0.0
-        for head, attr in ranked:
-            candidate.append(head)
-            cumulative_attr += attr
-            approx_suff = float(np.clip(cumulative_attr / clean_ld, 0.0, 1.0))
-            if approx_suff >= target_suff:
-                break
+        if exact_forward:
+            # Scale-accurate forward selection: grow the circuit by attribution
+            # rank, measuring EXACT (ablation) sufficiency after each head, and
+            # stop only when the circuit is *actually* sufficient (or max_heads).
+            # Costs 2 passes per head added. Needed at scale: the Taylor ratio
+            # over-shoots single-head sufficiency in large models, so the cheap
+            # path can stop at 1 head that is not exactly sufficient (see
+            # docs/VALIDATION_LOG.md, Run 5).
+            for head, _attr in ranked:
+                candidate.append(head)
+                exact_suff = self._suff_exact(
+                    candidate, clean_tokens, corrupted_tokens,
+                    clean_ld, target_token, distractor_token,
+                )
+                if exact_suff >= target_suff or len(candidate) >= max_heads:
+                    break
+        else:
+            cumulative_attr = 0.0
+            for head, attr in ranked:
+                candidate.append(head)
+                cumulative_attr += attr
+                approx_suff = float(np.clip(cumulative_attr / clean_ld, 0.0, 1.0))
+                if approx_suff >= target_suff:
+                    break
 
         # Phase 2: backward pruning (exact comprehensiveness)
         circuit = list(candidate)
@@ -1770,7 +1789,16 @@ class GlassboxV2:
                 trial, clean_tokens, corrupted_tokens,
                 clean_ld, target_token, distractor_token,
             )
-            if comp >= target_comp:
+            should_prune = comp >= target_comp
+            if should_prune and exact_forward:
+                # Don't prune below the sufficiency we built for: a head can be
+                # comp-redundant yet still needed for exact sufficiency at scale.
+                suff_trial = self._suff_exact(
+                    trial, clean_tokens, corrupted_tokens,
+                    clean_ld, target_token, distractor_token,
+                )
+                should_prune = suff_trial >= target_suff
+            if should_prune:
                 circuit = trial
                 logger.debug("Pruned L%dH%d — comp=%.3f ≥ %.3f", head[0], head[1], comp, target_comp)
 
@@ -2190,6 +2218,7 @@ class GlassboxV2:
         corruption_strategy: str = "auto",
         certify:            Optional[str] = None,
         sequence_decision:  bool = False,
+        exact_circuit:      bool = False,
     ) -> Dict:
         """
         One-call circuit discovery + faithfulness metrics.
@@ -2313,7 +2342,7 @@ class GlassboxV2:
         # Circuit discovery — pass method through for attribution
         circuit, attrs, clean_ld = self.minimum_faithful_circuit(
             tokens_c, tokens_corr, t_tok, d_tok,
-            method=method, n_steps=n_steps,
+            method=method, n_steps=n_steps, exact_forward=exact_circuit,
         )
 
         # MLP attribution — 3 additional passes, completes the circuit picture
