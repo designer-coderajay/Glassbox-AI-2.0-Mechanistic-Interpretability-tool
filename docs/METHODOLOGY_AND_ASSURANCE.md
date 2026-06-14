@@ -127,13 +127,14 @@ explanation is real.
 - **Offline / sampled, not per-request.** At ~3 passes + gradients per analysis,
   this audits representative decisions to produce documentation and periodic
   monitoring — it is not a real-time monitor on billions of production requests.
-- **Verified scope today** (see `VALIDATION_LOG.md`): conformance gate + full
-  audit pipeline **PASS across 4 open-weight architecture families** (GPT-2,
-  Pythia/GPT-NeoX, GPT-Neo, OPT) and **up to ~1B parameters**, on CPU (~22 min per
-  audit at 1B). **Not yet validated:** GQA models (Llama/Mistral), 7B+ frontier
-  scale on GPU, GPU batching / production throughput, and closed APIs. The
-  native-HF / GPU / MoE / SAE / SSM backends remain protocol-conforming interfaces
-  pending those runs — that is the design-partner step.
+- **Verified scope today** (see `VALIDATION_LOG.md`): conformance gate PASS across
+  **6 architecture families** (GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2-GQA,
+  Mistral-GQA) **up to 7B**; and **faithfulness (suff + comp, both rigor-controlled)
+  validated 82M → 7B incl. GQA** via scale-aware circuit selection — on Mistral-7B
+  the discovered circuit's comp is 1.0 vs 0.112 for a random same-size circuit.
+  **Not yet validated:** 13B–200B (needs a multi-GPU cluster + the unproven
+  distributed backend; a single 80 GB GPU tops out ~13–30B for gradient-based
+  attribution), production throughput, and closed APIs.
 
 ---
 

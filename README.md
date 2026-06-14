@@ -954,15 +954,17 @@ print(meta["grade"])   # "B"
 
 Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon — 29 architecture aliases.
 
-> **Validation status (gate vs. faithfulness — they differ).** The **conformance
-> gate** (forward-only, precision-robust) is empirically validated across **6
-> architecture families — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2 (GQA), and
-> Mistral-7B (GQA) — up to 7B parameters** (CPU + Colab GPU; see
-> [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)). **Trustworthy faithfulness**
-> (fp32, gradient-based) is validated to **~1.4B**; at 2.8B–7B the bf16
-> faithfulness F1 is **not meaningful** (an fp32 control showed method-scaling,
-> not precision — the circuit pruning keeps too few heads at scale). 13B+ unproven;
-> closed APIs (GPT-4, Claude) are out of scope (no activations/gradients).
+> **Validation status (empirical; see [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)).**
+> The **conformance gate** is validated across **6 architecture families — GPT-2,
+> Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2 (GQA), Mistral-7B (GQA) — up to 7B**.
+> **Faithfulness** (sufficiency + comprehensiveness, both rigor-controlled) is
+> validated **82M → 7B incl. GQA** via scale-aware circuit selection
+> (`exact_circuit=True`): on Mistral-7B the discovered ~32-head circuit scores
+> comp **1.0** vs **0.112** for a random same-size circuit (specificity control),
+> and the size is stable below the budget cap (minimality control). **13B–200B**
+> needs a multi-GPU cluster + the (unproven) distributed backend — a single GPU,
+> even an 80 GB H100, tops out ~13–30B for gradient-based attribution. Closed APIs
+> (GPT-4, Claude) are out of scope (no activations/gradients).
 
 ### 3. MLflow Integration
 
