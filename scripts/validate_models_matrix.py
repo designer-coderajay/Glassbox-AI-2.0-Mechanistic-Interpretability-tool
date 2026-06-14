@@ -80,6 +80,16 @@ def _grade(f1: float) -> str:
     return "D"
 
 
+def _rep_token(model: Any, s: str) -> int:
+    """Token id for `s` if it's a single token, else its representative (last)
+    token. Mirrors analyze()'s multi-token verbalizer handling, so the comp
+    baseline works on any tokenizer (e.g. Phi-3 splits ' Mary' into >1 token)."""
+    try:
+        return int(model.to_single_token(s))
+    except Exception:  # noqa: BLE001 - TL raises AssertionError for multi-token
+        return int(model.to_tokens(s)[0, -1].item())
+
+
 class _TLHeadAdapter:
     """Minimal AuditableModel over a TransformerLens model (head granularity)."""
 
@@ -148,8 +158,8 @@ def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32",
         import random as _random
         tc = model.to_tokens(PROMPT)
         corr = model.to_tokens(gb._name_swap(PROMPT, "Mary", "John"))
-        tt = model.to_single_token(CORRECT)
-        dt = model.to_single_token(INCORRECT)
+        tt = _rep_token(model, CORRECT)
+        dt = _rep_token(model, INCORRECT)
         _, clean_ld = gb.attribution_patching(tc, corr, tt, dt)
         all_heads = [(layer, head)
                      for layer in range(model.cfg.n_layers)
