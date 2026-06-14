@@ -97,14 +97,46 @@ a bigger GPU + **bf16** (stable, unlike fp16) — an A100/L4.
 
 ---
 
+## Run 4 — A100/L4 bf16: 7B + GQA (Mistral)
+
+- **Date:** 2026-06-14, Colab **A100/L4-class GPU**, `--dtype bfloat16`.
+
+| Model | Family | Arch | Conformance | F1 (bf16) | Time |
+|---|---|---|---|---|---|
+| EleutherAI/pythia-2.8b | Pythia / GPT-NeoX | 32L×32H | **PASS** | 0.313 (D)† | 41.5s |
+| EleutherAI/pythia-6.9b | Pythia / GPT-NeoX | 32L×32H | **PASS** | 0.324 (D)† | 73.4s |
+| **mistralai/Mistral-7B-v0.1** | **Mistral (GQA)** | 32L×32H | **PASS** | 0.363 (D)† | 67.8s |
+
+† **F1 not trustworthy at this precision/scale.** All three graded D, *including
+Mistral-7B which is known to perform IOI well* — a strong indicator the
+faithfulness numbers are degraded, not real. Two candidate causes, not yet
+separated: (1) **bf16** loses precision in the attribution backward pass (TL warns
+`from_pretrained_no_processing`); (2) **method scaling** — minimal-circuit pruning
+returned 1–2 heads, which may be too few to be *sufficient* in a 7B model. The
+**conformance gate is forward-only (no gradients), so its PASS is unaffected by
+precision and IS trustworthy.**
+
+**Headline:** conformance gate **validated to 7B and on a real GQA model
+(Mistral-7B)** — the previously-unproven architecture+scale claim. Faithfulness
+*quality* at 2.8B–7B remains **open** pending an fp32 comparison (below).
+
+**Decisive next test:** run `pythia-2.8b` in **fp32** on a 40 GB A100 (2.8B fp32 ≈
+11 GB weights + backward fits). If fp32 F1 jumps to ~0.5+ → the low scores were
+**bf16 precision** (fixable). If fp32 is *also* D → it's **method scaling** (MFC
+too small for big models) — a real research finding to address before claiming
+faithfulness at scale.
+
+---
+
 ## What is NOT yet validated (no claims made here)
 
-- **GQA at larger scale / other GQA families** — validated on **Qwen2-0.5B**
-  (small). Llama-3 / Mistral / Gemma use the same GQA mechanism and *likely* work,
-  but have **not been individually run** (Llama/Gemma also need an HF token).
-- **2.8B–7B scale** — exceeds a 16 GB T4 in fp32; needs an A100/L4 or bf16
-  loading. Not yet run to completion.
-- **13B+ frontier scale** — needs a GPU (40–80GB) and likely bf16; not yet run.
+- **Trustworthy faithfulness above ~1.4B** — the gate passes to 7B, but F1 at
+  2.8B–7B (bf16) is degraded/inconclusive; fp32 comparison needed to separate
+  precision from method-scaling. No faithfulness claim is made above 1.4B.
+- **Other GQA families** — validated on **Qwen2-0.5B** and **Mistral-7B** (gate).
+  Llama-3 / Gemma use the same mechanism and *likely* work but were not run (need
+  an HF token).
+- **13B+ frontier scale** — needs a GPU (40–80GB); not yet run.
 - **70B–200B** — requires multi-GPU sharding via the native-HF/distributed
   backend, which is built as an interface but **not yet validated**. No 200B run
   has been performed; no 200B claim is made.

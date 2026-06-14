@@ -954,15 +954,15 @@ print(meta["grade"])   # "B"
 
 Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon — 29 architecture aliases.
 
-> **Validation status (verified vs. supported).** The conformance gate + full
-> audit pipeline are *empirically validated* across **5 architecture families —
-> GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, and Qwen2 (grouped-query attention)** —
-> and **up to ~1.4B parameters** (CPU + Colab T4; see
-> [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)). **GQA is validated** on
-> Qwen2-0.5B; the other GQA families (Llama-2/3, Mistral, Phi-3, Gemma) use the
-> same mechanism and *likely* work but have **not been individually run**. **2.8B+
-> and 7B+ frontier scale** need an A100-class GPU and are **not yet validated**.
-> Closed APIs (GPT-4, Claude) are out of scope (no activations/gradients).
+> **Validation status (gate vs. faithfulness — they differ).** The **conformance
+> gate** (forward-only, precision-robust) is empirically validated across **6
+> architecture families — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2 (GQA), and
+> Mistral-7B (GQA) — up to 7B parameters** (CPU + Colab GPU; see
+> [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)). **Trustworthy faithfulness**
+> (fp32, gradient-based) is validated to **~1.4B**; at 2.8B–7B the bf16
+> faithfulness scores are **degraded/inconclusive** (precision vs. method-scaling,
+> under investigation — fp32 comparison pending). 13B+ frontier scale is unproven;
+> closed APIs (GPT-4, Claude) are out of scope (no activations/gradients).
 
 ### 3. MLflow Integration
 
