@@ -956,12 +956,13 @@ Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon �
 
 > **Validation status (empirical; see [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)).**
 > The **conformance gate** is validated across **6 architecture families — GPT-2,
-> Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2 (GQA), Mistral-7B (GQA) — up to 7B**.
+> Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2 (GQA), Mistral-7B (GQA) — up to 12B**.
 > **Faithfulness** (sufficiency + comprehensiveness, both rigor-controlled) is
-> validated **82M → 7B incl. GQA** via scale-aware circuit selection
-> (`exact_circuit=True`): on Mistral-7B the discovered ~32-head circuit scores
-> comp **1.0** vs **0.112** for a random same-size circuit (specificity control),
-> and the size is stable below the budget cap (minimality control). **13B–200B**
+> validated **82M → 12B**, incl. GQA at 7B (Mistral), via scale-aware circuit
+> selection (`exact_circuit=True`): e.g. on Mistral-7B the discovered ~32-head
+> circuit scores comp **1.0** vs **0.112** for a random same-size circuit
+> (specificity), with circuit size stable below the budget cap (minimality);
+> pythia-12b passes both at a 47-head circuit. **13B–200B**
 > needs a multi-GPU cluster + the (unproven) distributed backend — a single GPU,
 > even an 80 GB H100, tops out ~13–30B for gradient-based attribution. Closed APIs
 > (GPT-4, Claude) are out of scope (no activations/gradients).

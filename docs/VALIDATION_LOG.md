@@ -250,29 +250,39 @@ GQA model (Mistral)**.
 
 ---
 
+## Run 11 — 12B fully validated (both controls PASS)
+
+- **Date:** 2026-06-14, Colab A100/H100 bf16, `--exact-circuit --max-circuit-heads 80`.
+
+| Model | Circuit | Suff | Comp | Comp (random) | F1 | Time |
+|---|---|---|---|---|---|---|
+| EleutherAI/pythia-12b | **47 (< cap)** | 1.0 | 1.0 | **0.287** | 1.0 | 113s |
+
+**Both controls PASS at 12B.** Minimality: circuit 47 < 80 cap → real size.
+Specificity: comp 1.0 vs random 0.287 (~3.5× gap). This is the **single-GPU
+ceiling**, reached cleanly.
+
+---
+
 ## Validated summary (as of 2026-06-14)
 
 - **Conformance gate:** PASS across **6 architecture families** (GPT-2,
-  Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2-GQA, Mistral-GQA), **up to 7B**.
-- **Faithfulness (suff + comp, controls passed):** validated **82M → 7B**,
-  including GQA, via scale-aware circuit selection (`--exact-circuit`). Circuit
-  sizes (~16–32 heads) are consistent with the literature; comprehensiveness is
-  specificity-checked against a random baseline.
+  Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2-GQA, Mistral-GQA), **up to 12B**.
+- **Faithfulness (suff + comp, both controls passed):** validated **82M → 12B**,
+  including GQA (Mistral-7B), via scale-aware circuit selection (`--exact-circuit`).
+  Circuit sizes (~16–47 heads) are consistent with the literature; comprehensiveness
+  is specificity-checked against a random baseline at every scale.
+- **Single-GPU ceiling reached at 12B.** Larger needs multi-GPU.
 
 ## What is NOT yet validated (no claims made here)
 
-- **13B–200B scale** — needs more than a single GPU. A 200B model is ~400 GB of
-  weights + a multiple for the backward pass (~1 TB) → a **multi-GPU cluster with
-  model sharding** and the **distributed/native-HF backend (built but unproven)**.
-  Not reachable on a single Colab GPU (even an 80 GB H100 tops out ~13–30B for
-  gradient-based attribution). No claim is made above 7B.
-- **Other GQA families** — validated on **Qwen2-0.5B** and **Mistral-7B** (gate).
-  Llama-3 / Gemma use the same mechanism and *likely* work but were not run (need
-  an HF token).
-- **13B+ frontier scale** — needs a GPU (40–80GB); not yet run.
-- **70B–200B** — requires multi-GPU sharding via the native-HF/distributed
-  backend, which is built as an interface but **not yet validated**. No 200B run
-  has been performed; no 200B claim is made.
+- **13B–200B scale** — needs **more than a single GPU**. A 200B model is ~400 GB
+  of weights + a multiple for the backward pass (~1 TB) → a **multi-GPU cluster
+  with model sharding** and the **distributed/native-HF backend (built but
+  unproven)**. A single 80 GB H100 tops out ~13–30B. No claim is made above 12B.
+- **Other GQA families** — validated on **Qwen2-0.5B** and **Mistral-7B**. Llama-3
+  / Gemma use the same mechanism and *likely* work but were not run (need an HF
+  token).
 - **GPU batching / production throughput** — unproven.
 - **Closed APIs** (GPT-4, Claude, Gemini) — out of scope by construction (no
   activations/gradients available).
