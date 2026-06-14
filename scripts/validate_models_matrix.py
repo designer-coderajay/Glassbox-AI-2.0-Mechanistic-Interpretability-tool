@@ -117,14 +117,15 @@ class _TLHeadAdapter:
             yield
 
 
-def _audit_one(name: str, device: str, max_units: int) -> dict:
+def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32") -> dict:
     import torch
     from transformer_lens import HookedTransformer
 
     from glassbox import GlassboxV2
 
     t0 = time.time()
-    model = HookedTransformer.from_pretrained(name, device=device)
+    torch_dtype = getattr(torch, dtype)
+    model = HookedTransformer.from_pretrained(name, device=device, dtype=torch_dtype)
     model.eval()
     gb = GlassboxV2(model)
 
@@ -155,6 +156,11 @@ def main() -> int:
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--max-units", type=int, default=24,
                     help="heads tested by the conformance gate (lower = faster)")
+    ap.add_argument("--dtype", default="float32",
+                    choices=["float32", "float16", "bfloat16"],
+                    help="load precision. float16 halves memory (use on a 16GB T4 "
+                         "for 2.8B-6.9B); bfloat16 needs Ampere+ (A100/L4). "
+                         "Attribution gradients are less stable in fp16 — verify.")
     args = ap.parse_args()
 
     try:
@@ -168,7 +174,7 @@ def main() -> int:
     for name in args.models:
         print(f"\n>>> {name}")
         try:
-            row = _audit_one(name, args.device, args.max_units)
+            row = _audit_one(name, args.device, args.max_units, args.dtype)
         except Exception as e:  # noqa: BLE001 - report, never abort the matrix
             row = {"model": name, "ok": False, "error": f"{type(e).__name__}: {e}"}
             print(f"    FAIL — {row['error']}")

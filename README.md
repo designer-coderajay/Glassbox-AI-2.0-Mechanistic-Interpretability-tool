@@ -955,11 +955,13 @@ print(meta["grade"])   # "B"
 Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon — 29 architecture aliases.
 
 > **Validation status (verified vs. supported).** The conformance gate + full
-> audit pipeline are *empirically validated* across **4 open-weight architecture
-> families — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT — and up to ~1B parameters**, on
-> CPU (see [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)). The remaining
-> aliases (Llama-2/3, Mistral, Phi-3, Gemma — all **GQA**) and 7B+ frontier scale
-> are *supported by the adapter code but not yet validated on a real model*.
+> audit pipeline are *empirically validated* across **5 architecture families —
+> GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, and Qwen2 (grouped-query attention)** —
+> and **up to ~1.4B parameters** (CPU + Colab T4; see
+> [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)). **GQA is validated** on
+> Qwen2-0.5B; the other GQA families (Llama-2/3, Mistral, Phi-3, Gemma) use the
+> same mechanism and *likely* work but have **not been individually run**. **2.8B+
+> and 7B+ frontier scale** need an A100-class GPU and are **not yet validated**.
 > Closed APIs (GPT-4, Claude) are out of scope (no activations/gradients).
 
 ### 3. MLflow Integration
