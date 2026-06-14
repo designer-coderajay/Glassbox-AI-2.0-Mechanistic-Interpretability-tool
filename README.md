@@ -960,8 +960,8 @@ Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon �
 > Mistral-7B (GQA) — up to 7B parameters** (CPU + Colab GPU; see
 > [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)). **Trustworthy faithfulness**
 > (fp32, gradient-based) is validated to **~1.4B**; at 2.8B–7B the bf16
-> faithfulness scores are **degraded/inconclusive** (precision vs. method-scaling,
-> under investigation — fp32 comparison pending). 13B+ frontier scale is unproven;
+> faithfulness F1 is **not meaningful** (an fp32 control showed method-scaling,
+> not precision — the circuit pruning keeps too few heads at scale). 13B+ unproven;
 > closed APIs (GPT-4, Claude) are out of scope (no activations/gradients).
 
 ### 3. MLflow Integration

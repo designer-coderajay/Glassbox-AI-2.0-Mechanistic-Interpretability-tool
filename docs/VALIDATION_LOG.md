@@ -120,11 +120,24 @@ precision and IS trustworthy.**
 (Mistral-7B)** — the previously-unproven architecture+scale claim. Faithfulness
 *quality* at 2.8B–7B remains **open** pending an fp32 comparison (below).
 
-**Decisive next test:** run `pythia-2.8b` in **fp32** on a 40 GB A100 (2.8B fp32 ≈
-11 GB weights + backward fits). If fp32 F1 jumps to ~0.5+ → the low scores were
-**bf16 precision** (fixable). If fp32 is *also* D → it's **method scaling** (MFC
-too small for big models) — a real research finding to address before claiming
-faithfulness at scale.
+**Decisive test — ANSWERED (Run 5).** `pythia-2.8b` re-run in **fp32**:
+**F1 0.34 (D), circuit = 1 head** — essentially identical to bf16's 0.313.
+**Precision is ruled out.** The low faithfulness at scale is a **method-scaling
+limitation**, not numerical.
+
+Evidence (all `circuit = 1`, fp32): pythia-1b F1 **0.87 (A)** → pythia-1.4b
+**0.54 (C)** → pythia-2.8b **0.34 (D)**. The minimal-circuit pruning returns a
+**single head regardless of model size**, and one head becomes insufficient as the
+model grows (IOI spreads across more heads in larger models → sufficiency falls →
+F1 falls).
+
+**Conclusion — honest cap on the *faithfulness* claim:** with the current
+`minimum_faithful_circuit` pruning, trustworthy faithfulness holds to **~1–1.4B**;
+beyond that the circuit is under-sized and F1 is not meaningful. The
+**conformance gate is unaffected and validated to 7B + GQA.** The fix is a
+**scale-aware circuit selection** (keep adding heads until *measured* sufficiency
+reaches a target, instead of stopping at ~1 head) — a real method change requiring
+GPU re-validation, not a tuning tweak. Tracked as the top research item.
 
 ---
 
