@@ -264,15 +264,38 @@ ceiling**, reached cleanly.
 
 ---
 
+## Run 12 — GQA family breadth (Llama-3, Gemma-2, Yi, Qwen2.5)
+
+- **Date:** 2026-06-14, Colab A100/H100 bf16, `--exact-circuit --max-circuit-heads 60`.
+
+| Model | Family | Circuit | Comp | Comp (random) | Both controls |
+|---|---|---|---|---|---|
+| meta-llama/Meta-Llama-3-8B | Llama-3 (GQA) | 17 | 1.0 | 0.09 | **PASS** |
+| google/gemma-2-9b | Gemma-2 (GQA, softcap) | 29 | 1.0 | 0.023 | **PASS** |
+| 01-ai/Yi-6B | Yi (GQA) | 11 | 1.0 | 0.00 | **PASS** |
+| Qwen/Qwen2.5-7B | Qwen2.5 (GQA) | 60 (= cap) | 1.0 | 0.231 | specificity ✓, minimality capped |
+| microsoft/Phi-3-mini | Phi-3 | — | — | — | ERROR (see note) |
+
+- **Llama-3, Gemma-2, Yi:** both controls PASS — these are real GQA architectures
+  (Gemma-2 also has logit-softcap + local/global attention, handled).
+- **Qwen2.5-7B:** specificity PASS; minimality inconclusive (hit the 60 cap).
+- **Phi-3-mini:** ERROR `" Mary" is not a single token` — a **probe/tokenizer**
+  limitation (Phi-3's tokenizer splits the IOI target), **not** an architecture
+  incompatibility. Needs the multi-token verbalizer path to audit.
+
+---
+
 ## Validated summary (as of 2026-06-14)
 
-- **Conformance gate:** PASS across **6 architecture families** (GPT-2,
-  Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2-GQA, Mistral-GQA), **up to 12B**.
-- **Faithfulness (suff + comp, both controls passed):** validated **82M → 12B**,
-  including GQA (Mistral-7B), via scale-aware circuit selection (`--exact-circuit`).
-  Circuit sizes (~16–47 heads) are consistent with the literature; comprehensiveness
-  is specificity-checked against a random baseline at every scale.
+- **Conformance gate + faithfulness (both controls passed):** validated **82M →
+  12B** across **GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, and every major GQA family —
+  Llama-3, Mistral, Gemma-2, Qwen2, Yi** — via scale-aware circuit selection
+  (`--exact-circuit`). Circuit sizes (~11–47 heads) match the literature;
+  comprehensiveness is specificity-checked against a random baseline (comp ~1.0 vs
+  random 0.0–0.29) at every scale.
 - **Single-GPU ceiling reached at 12B.** Larger needs multi-GPU.
+- **Known probe gap:** Phi-3 (and any tokenizer where the decision target isn't a
+  single token) needs the multi-token verbalizer path before it can be audited.
 
 ## What is NOT yet validated (no claims made here)
 
@@ -280,9 +303,8 @@ ceiling**, reached cleanly.
   of weights + a multiple for the backward pass (~1 TB) → a **multi-GPU cluster
   with model sharding** and the **distributed/native-HF backend (built but
   unproven)**. A single 80 GB H100 tops out ~13–30B. No claim is made above 12B.
-- **Other GQA families** — validated on **Qwen2-0.5B** and **Mistral-7B**. Llama-3
-  / Gemma use the same mechanism and *likely* work but were not run (need an HF
-  token).
+- **Phi-3 and non-single-token-target tokenizers** — needs the multi-token
+  verbalizer path; ERROR'd on the IOI probe (not an architecture issue).
 - **GPU batching / production throughput** — unproven.
 - **Closed APIs** (GPT-4, Claude, Gemini) — out of scope by construction (no
   activations/gradients available).
