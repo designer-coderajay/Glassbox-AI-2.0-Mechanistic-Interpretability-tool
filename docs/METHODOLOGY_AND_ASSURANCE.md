@@ -130,9 +130,10 @@ explanation is real.
 - **Verified scope today** (see `VALIDATION_LOG.md`): conformance gate PASS across
   **6 architecture families** (GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2-GQA,
   Mistral-GQA) **up to 12B**; and **faithfulness (suff + comp, both rigor-controlled)
-  validated 82M → 12B** (incl. GQA at 7B) via scale-aware circuit selection — on
-  Mistral-7B comp is 1.0 vs 0.112 for a random same-size circuit; pythia-12b passes
-  both controls at a 47-head circuit.
+  validated 82M → 12B across 9 model families** including every major GQA family
+  (Llama-3, Mistral, Gemma-2, Qwen2/2.5, Yi, Phi-3), via scale-aware circuit
+  selection — comprehensiveness is specificity-checked against a random same-size
+  circuit at every scale (comp ~1.0 vs random 0.0–0.29).
   **Not yet validated:** 13B–200B (needs a multi-GPU cluster + the unproven
   distributed backend; a single 80 GB GPU tops out ~13–30B for gradient-based
   attribution), production throughput, and closed APIs.

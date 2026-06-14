@@ -288,14 +288,14 @@ ceiling**, reached cleanly.
 ## Validated summary (as of 2026-06-14)
 
 - **Conformance gate + faithfulness (both controls passed):** validated **82M →
-  12B** across **GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, and every major GQA family —
-  Llama-3, Mistral, Gemma-2, Qwen2, Yi** — via scale-aware circuit selection
-  (`--exact-circuit`). Circuit sizes (~11–47 heads) match the literature;
-  comprehensiveness is specificity-checked against a random baseline (comp ~1.0 vs
-  random 0.0–0.29) at every scale.
+  12B** across **9 model families — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, and every
+  major GQA family: Llama-3, Mistral, Gemma-2, Qwen2/2.5, Yi, Phi-3** — via
+  scale-aware circuit selection (`--exact-circuit`). Circuit sizes (~11–47 heads)
+  match the literature; comprehensiveness is specificity-checked against a random
+  baseline (comp ~1.0 vs random **0.0–0.29**) at every scale.
+- **Tokenizer-robust:** Phi-3 (whose tokenizer splits the probe target) passes via
+  representative-token resolution — comp 1.0 vs random 0.0.
 - **Single-GPU ceiling reached at 12B.** Larger needs multi-GPU.
-- **Known probe gap:** Phi-3 (and any tokenizer where the decision target isn't a
-  single token) needs the multi-token verbalizer path before it can be audited.
 
 ## What is NOT yet validated (no claims made here)
 
@@ -303,8 +303,6 @@ ceiling**, reached cleanly.
   of weights + a multiple for the backward pass (~1 TB) → a **multi-GPU cluster
   with model sharding** and the **distributed/native-HF backend (built but
   unproven)**. A single 80 GB H100 tops out ~13–30B. No claim is made above 12B.
-- **Phi-3 and non-single-token-target tokenizers** — needs the multi-token
-  verbalizer path; ERROR'd on the IOI probe (not an architecture issue).
 - **GPU batching / production throughput** — unproven.
 - **Closed APIs** (GPT-4, Claude, Gemini) — out of scope by construction (no
   activations/gradients available).
