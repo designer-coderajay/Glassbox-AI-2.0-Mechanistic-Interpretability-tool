@@ -127,9 +127,13 @@ explanation is real.
 - **Offline / sampled, not per-request.** At ~3 passes + gradients per analysis,
   this audits representative decisions to produce documentation and periodic
   monitoring — it is not a real-time monitor on billions of production requests.
-- **Verified scope today:** GPT-2-small, structured decisions, offline. The
-  native-HF / GPU / MoE / SAE / SSM backends are protocol-conforming interfaces,
-  **not yet validated at frontier scale** — that is the design-partner step.
+- **Verified scope today** (see `VALIDATION_LOG.md`): conformance gate + full
+  audit pipeline **PASS across 4 open-weight architecture families** (GPT-2,
+  Pythia/GPT-NeoX, GPT-Neo, OPT) and **up to ~1B parameters**, on CPU (~22 min per
+  audit at 1B). **Not yet validated:** GQA models (Llama/Mistral), 7B+ frontier
+  scale on GPU, GPU batching / production throughput, and closed APIs. The
+  native-HF / GPU / MoE / SAE / SSM backends remain protocol-conforming interfaces
+  pending those runs — that is the design-partner step.
 
 ---
 

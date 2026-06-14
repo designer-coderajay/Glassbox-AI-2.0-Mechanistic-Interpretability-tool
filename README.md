@@ -954,6 +954,14 @@ print(meta["grade"])   # "B"
 
 Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon — 29 architecture aliases.
 
+> **Validation status (verified vs. supported).** The conformance gate + full
+> audit pipeline are *empirically validated* across **4 open-weight architecture
+> families — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT — and up to ~1B parameters**, on
+> CPU (see [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)). The remaining
+> aliases (Llama-2/3, Mistral, Phi-3, Gemma — all **GQA**) and 7B+ frontier scale
+> are *supported by the adapter code but not yet validated on a real model*.
+> Closed APIs (GPT-4, Claude) are out of scope (no activations/gradients).
+
 ### 3. MLflow Integration
 
 Log every Glassbox audit run as an MLflow experiment with one call.
