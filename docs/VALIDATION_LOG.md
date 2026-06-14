@@ -191,12 +191,34 @@ made in the README/methodology until these pass.
 
 ---
 
+## Run 8 — minimality control (PASSED)
+
+- **Date:** 2026-06-14, Colab **A100**, bf16, `--exact-circuit --max-circuit-heads 60`.
+
+| Model | Cap | Circuit | Suff | Comp | F1 |
+|---|---|---|---|---|---|
+| mistralai/Mistral-7B-v0.1 (GQA) | 60 | **32** (< cap) | 1.0 | 1.0 | 1.0 |
+
+**Minimality control PASSED.** With the budget doubled to 60, the circuit settled
+at **32 heads, not 60** — so selection stopped on *sufficiency*, not budget. The
+true size (~32) matches IOI's known ~26-head circuit (Wang et al. 2022). The
+earlier "30" was the cap biting; this confirms the 7B circuit is a real, bounded
+size, not saturation.
+
+**Still outstanding — control #2 (specificity):** comp = 1.0 has *not* been
+checked against a **random same-size circuit**. Until a random 32-head circuit is
+shown to score *low* comp (while the discovered circuit scores high), comp=1.0 is
+not proven specific. This is the last gate before a clean "faithfulness validated
+at 7B" claim.
+
+---
+
 ## What is NOT yet validated (no claims made here)
 
-- **Trustworthy faithfulness at 6.9B–7B** — fixed and confirmed at **2.8B**
-  (`--exact-circuit`, 16-head circuit < cap). At 6.9B–7B the circuits hit the
-  30-head cap and scored a saturated 1.0/1.0/1.0 — **promising but unconfirmed
-  pending the minimality + random-baseline controls above.**
+- **Trustworthy faithfulness at 7B — 1 of 2 controls passed.** Confirmed at 2.8B
+  (clean, 16-head). At 7B: minimality control PASSED (circuit 32 < 60 cap), but
+  the **random-circuit specificity control for comp is still pending**. No clean
+  7B faithfulness claim until it passes.
 - **Other GQA families** — validated on **Qwen2-0.5B** and **Mistral-7B** (gate).
   Llama-3 / Gemma use the same mechanism and *likely* work but were not run (need
   an HF token).

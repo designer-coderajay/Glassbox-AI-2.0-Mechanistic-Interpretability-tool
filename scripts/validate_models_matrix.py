@@ -138,13 +138,35 @@ def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32",
                         max_circuit_heads=max_circuit_heads)
     f = result.get("faithfulness", {})
     f1 = float(f.get("f1", 0.0))
+    circuit = result.get("circuit", [])
+
+    # Control #2 — specificity: comp of a RANDOM same-size circuit. If the
+    # discovered circuit's comp is high while a random one's is low, comp is
+    # specific (meaningful). If they're similar, comp=1.0 is not discriminating.
+    comp_random = None
+    if circuit:
+        import random as _random
+        tc = model.to_tokens(PROMPT)
+        corr = model.to_tokens(gb._name_swap(PROMPT, "Mary", "John"))
+        tt = model.to_single_token(CORRECT)
+        dt = model.to_single_token(INCORRECT)
+        _, clean_ld = gb.attribution_patching(tc, corr, tt, dt)
+        all_heads = [(layer, head)
+                     for layer in range(model.cfg.n_layers)
+                     for head in range(model.cfg.n_heads)]
+        rand_circuit = _random.Random(0).sample(all_heads, len(circuit))
+        comp_random = round(float(
+            gb._comp(rand_circuit, tc, corr, clean_ld, tt, dt)
+        ), 3)
+
     return {
         "model": name,
         "arch": f"{model.cfg.n_layers}L x {model.cfg.n_heads}H",
         "conformance": "PASS" if conf.passed else "FAIL",
-        "circuit_size": len(result.get("circuit", [])),
+        "circuit_size": len(circuit),
         "sufficiency": round(float(f.get("sufficiency", 0.0)), 3),
         "comprehensiveness": round(float(f.get("comprehensiveness", 0.0)), 3),
+        "comp_random": comp_random,
         "f1": round(f1, 3),
         "grade": _grade(f1),
         "seconds": round(time.time() - t0, 1),
@@ -193,19 +215,20 @@ def main() -> int:
         else:
             print(f"    conformance={row['conformance']} | circuit={row['circuit_size']} "
                   f"| suff={row['sufficiency']} comp={row['comprehensiveness']} "
-                  f"F1={row['f1']} ({row['grade']}) | {row['seconds']}s")
+                  f"comp_random={row['comp_random']} F1={row['f1']} ({row['grade']}) "
+                  f"| {row['seconds']}s")
         rows.append(row)
 
     # Summary table
     print("\n" + "=" * 78)
     print(f"{'model':<26}{'arch':<11}{'conf':<6}{'circ':<6}{'suff':<7}{'comp':<7}"
-          f"{'F1':<7}{'gr':<4}{'sec':<6}")
-    print("-" * 84)
+          f"{'cmpRnd':<8}{'F1':<7}{'gr':<4}{'sec':<6}")
+    print("-" * 92)
     for r in rows:
         if r.get("ok"):
             print(f"{r['model']:<26}{r['arch']:<11}{r['conformance']:<6}"
                   f"{r['circuit_size']:<6}{r['sufficiency']:<7}{r['comprehensiveness']:<7}"
-                  f"{r['f1']:<7}{r['grade']:<4}{r['seconds']:<6}")
+                  f"{str(r.get('comp_random')):<8}{r['f1']:<7}{r['grade']:<4}{r['seconds']:<6}")
         else:
             print(f"{r['model']:<28}{'ERROR — ' + r['error'][:40]}")
     print("=" * 78)
