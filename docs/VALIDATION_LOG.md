@@ -234,6 +234,22 @@ GQA model (Mistral)**.
 
 ---
 
+## Run 10 — 12B (specificity PASS, minimality pending)
+
+- **Date:** 2026-06-14, Colab A100/H100 bf16, `--exact-circuit --max-circuit-heads 40`.
+
+| Model | Circuit | Suff | Comp | Comp (random) | F1 | Time |
+|---|---|---|---|---|---|---|
+| EleutherAI/pythia-12b | **40 (= cap)** | 1.0 | 1.0 | **0.245** | 1.0 | 152s |
+
+- **Specificity: PASSED** — comp 1.0 vs random 0.245 (~4× gap); the circuit is
+  necessary, not saturated.
+- **Minimality: INCONCLUSIVE** — circuit hit the 40 cap, so the true size is not
+  bounded by this run. Re-run with `--max-circuit-heads 80` to confirm it settles
+  below the cap before claiming 12B as fully validated.
+
+---
+
 ## Validated summary (as of 2026-06-14)
 
 - **Conformance gate:** PASS across **6 architecture families** (GPT-2,
