@@ -380,18 +380,18 @@ footer .fcol a:hover{color:#fff}
     <div class="fine"><b>Open source</b> · MIT core · built for <b>GPT-2 → Llama-3, Mistral, Phi-3</b></div>
   </div>
 
-  <div class="demo reveal" role="img" aria-label="An interactive audit panel: a 12-by-12 grid of GPT-2 attention heads ranked by causal effect, with the minimal circuit highlighted, and credit-task faithfulness scores: sufficiency 0.73, faithfulness F1 0.61, grade B.">
+  <div class="demo reveal" role="img" aria-label="An interactive audit panel: a 12-by-12 grid of GPT-2 attention heads ranked by causal effect. For a credit decision, GPT-2 has no faithful circuit, so sufficiency and faithfulness F1 are near zero and the audit is graded C — NON-COMPLIANT. The tool refuses to certify a decision it cannot faithfully explain.">
     <div class="demo-top">
       <span class="pr"><b>analyze</b>(prompt="Credit score 620. Decision:", …)</span>
       <button class="runbtn" id="runbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run audit</button>
     </div>
     <div class="demo-body">
       <div class="hgrid" id="hgrid" aria-hidden="true"></div>
-      <div class="gridcap"><span>GPT-2 Small · <b>144 attention heads</b> by causal effect · illustrative</span><span id="phaselbl">→ minimal circuit: <b>14 heads</b></span></div>
+      <div class="gridcap"><span>GPT-2 Small · <b>144 attention heads</b> by causal effect · illustrative</span><span id="phaselbl">→ audit verdict: <b>NON-COMPLIANT</b></span></div>
       <div class="fbars" id="fbars">
-        <div class="fbar"><span class="fl">sufficiency</span><div class="track"><span class="fill" data-w="73"></span></div><span class="fv">0.73</span></div>
-        <div class="fbar"><span class="fl">faithfulness F1</span><div class="track"><span class="fill g" data-w="61"></span></div><span class="fv">0.61</span></div>
-        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--mono);font-size:11px;color:var(--ink-3)">1.8s · Apple M1 Pro · benchmark_v340</span><span class="gradechip">Grade B · adequate</span></div>
+        <div class="fbar"><span class="fl">sufficiency</span><div class="track"><span class="fill" data-w="0"></span></div><span class="fv">0.00</span></div>
+        <div class="fbar"><span class="fl">faithfulness F1</span><div class="track"><span class="fill" data-w="0"></span></div><span class="fv">0.00</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--mono);font-size:11px;color:var(--ink-3)">GPT-2 has no faithful credit circuit</span><span class="gradechip">Grade C · NON-COMPLIANT</span></div>
       </div>
     </div>
   </div>
@@ -441,7 +441,7 @@ footer .fcol a:hover{color:#fff}
       <div class="picon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <h3>Verify</h3>
       <p>Sufficiency and comprehensiveness isolate the smallest circuit that still reproduces the behaviour, scored against full ablation. The explanation is measured, not asserted.</p>
-      <div class="stat">credit task · <b>suff 0.73</b> · <b>F1 0.61</b> · Grade B</div>
+      <div class="stat">credit task (gpt2) · <b>F1 0.00</b> · Grade C · NON-COMPLIANT — no faithful circuit</div>
     </div>
     <div class="pcard reveal">
       <span class="pnum">03</span>
@@ -460,7 +460,7 @@ footer .fcol a:hover{color:#fff}
   </div>
   <div class="grid">
     <div class="m reveal"><div class="n" data-count="37" data-suffix="×">37×</div><div class="l">faster than ACDC, up to<br><b>15–37×</b> across the GPT-2 family</div></div>
-    <div class="m reveal"><div class="n" data-count="0.61" data-dp="2">0.61</div><div class="l">faithfulness <b>F1</b>, Grade B<br>credit task, vs full ablation</div></div>
+    <div class="m reveal"><div class="n" data-count="0.704" data-dp="3">0.704</div><div class="l">faithfulness <b>F1</b>, Grade B<br>IOI task (gpt2), vs full ablation</div></div>
     <div class="m reveal"><div class="n">8<em>/</em>9</div><div class="l">Annex IV sections <b>auto-filled</b><br>§8 declaration stays human</div></div>
     <div class="m reveal"><div class="n" data-count="0.009" data-dp="3">0.009</div><div class="l">confidence ↔ faithfulness<br><b>correlation</b> (r), orthogonal</div></div>
   </div>
@@ -486,7 +486,7 @@ result = gb.<span class="f">analyze</span>(
     incorrect=[<span class="s">" denied"</span>, <span class="s">" deny"</span>, <span class="s">" no"</span>],
     certify=<span class="s">"hessian"</span>,
 )
-<span class="hl">result[<span class="s">"faithfulness"</span>][<span class="s">"f1"</span>]   <span class="c"># 0.61</span></span>
+<span class="hl">result[<span class="s">"faithfulness"</span>][<span class="s">"f1"</span>]   <span class="c"># 0.00 — gpt2 has no faithful credit circuit</span></span>
 result[<span class="s">"evidence_tier"</span>][<span class="s">"tier"</span>]  <span class="c"># self-graded</span>
 vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
     </div>
@@ -532,7 +532,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
       <div class="rowsec"><span class="sg">§4</span><span class="stt">Performance &amp; faithfulness metrics</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec"><span class="sg">§5</span><span class="stt">Risk management (Article 9)</span><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>filled</span></div>
       <div class="rowsec signrow"><span class="sg">§8</span><span class="stt">Declaration of conformity</span><span class="sx">human sign-off</span></div>
-      <div class="dfoot"><span>F1 <b>0.61</b></span><span>suff <b>0.73</b></span><span>grade <b>B</b></span><span>circuit <b>14 heads</b></span></div>
+      <div class="dfoot"><span>F1 <b>0.00</b></span><span>grade <b>C</b></span><span><b>NON-COMPLIANT</b></span><span>no faithful circuit</span></div>
     </div>
   </div>
 </div></section>

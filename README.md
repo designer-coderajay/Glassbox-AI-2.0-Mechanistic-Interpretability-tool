@@ -914,7 +914,8 @@ explainer = NaturalLanguageExplainer(verbosity="detailed", include_article_refs=
 explanation = explainer.explain(result, model_name="gpt2", use_case="credit_scoring")
 
 print(explanation["headline"])
-# "Circuit Grade: Good (F1 = 0.73) — Meets Article 15(1) accuracy threshold"
+# "Circuit Grade: C (F1 ~0.08) — gpt2 has no faithful credit circuit; audit NON-COMPLIANT"
+# (raw gpt2 is not a decision model — honest low score. A fine-tuned underwriting model is needed for a passing grade.)
 
 print(explanation["compliance_summary"])
 # "The model's decision circuit satisfies Article 11 documentation requirements..."
@@ -1559,12 +1560,20 @@ ACDC baseline: official implementation (Conmy et al. 2023, NeurIPS) on NVIDIA A1
 
 `"The loan applicant has a credit score of 620. The bank decision is"` — correct: ` approved`
 
-| Model | Sufficiency | F1_faith | Grade | n_heads | Time (M1 Pro) |
-|-------|-------------|----------|-------|---------|--------------|
-| GPT-2 Small | 73% | 0.61 | **B** | 14 | 1.8 s |
-| GPT-2 Medium | 78% | 0.65 | **B** | 18 | 4.9 s |
-| GPT-Neo-125M | 69% | 0.57 | C | 11 | 2.3 s |
-| Pythia-160M | 71% | 0.59 | C | 13 | 2.1 s |
+Measured on the current build (`benchmarks/run_decision_functional.py --model gpt2`):
+
+| Task | Model-correct? | Sufficiency | Comprehensiveness | F1_faith | Tier |
+|------|----------------|-------------|-------------------|----------|------|
+| credit_approval | no (predicts " denied") | 0.000 | 0.000 | 0.000 | C |
+| credit_denial | yes | 0.047 | 0.396 | 0.083 | C |
+
+**This is honest failure, by design.** Raw GPT-2 Small is not an underwriting
+model — it has no faithful credit circuit, so the tool returns low faithfulness,
+**Grade C, and a NON-COMPLIANT audit** instead of fabricating a clean
+explanation. A meaningful passing audit needs a model fine-tuned for the
+decision. (Earlier editions reported GPT-2 Small credit as F1 0.61 / Grade B;
+that does not reproduce on the current exact-measurement build — see
+`BENCHMARKS.md §4`.)
 
 ### Multi-Agent Audit, Steering, and Vault
 

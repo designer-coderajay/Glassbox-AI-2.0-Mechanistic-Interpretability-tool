@@ -60,20 +60,42 @@ on other tasks (e.g. credit scoring, medical triage) differ significantly.
 
 ---
 
-## 4. Multi-Model Compliance Use Case — Credit Scoring Task
+## 4. Compliance Use Case — Decision Tasks (and honest failure)
 
-**Task prompt:** `"The loan applicant has a credit score of 620. The bank decision is"`
+**Task prompt (credit):** `"The loan applicant has a credit score of 620. The bank decision is"`
 **Correct:** `" approved"` | **Incorrect:** `" denied"`
 
 This prompt is representative of high-risk AI system use cases under
 EU AI Act Annex III (credit scoring) and Article 9 risk management.
 
-| Model | Sufficiency | F1_faith | Grade | Annex IV §2 heads |
-|-------|-------------|----------|-------|------------------|
-| GPT-2 Small | 0.73 | 0.61 | B | 14 |
-| GPT-2 Medium | 0.78 | 0.65 | B | 18 |
-| GPT-Neo-125M | 0.69 | 0.57 | C | 11 |
-| Pythia-160M | 0.71 | 0.59 | C | 13 |
+**Measured on the current build** via `benchmarks/run_decision_functional.py`
+(`--model gpt2 --method taylor`, V5 verbalizer sets, exact-ablation faithfulness;
+reproduce → `reports/credit_current.json`):
+
+| Task | Model-correct? | Sufficiency | Comprehensiveness | F1_faith | Concentration | Tier |
+|------|----------------|-------------|-------------------|----------|---------------|------|
+| credit_approval | no (predicts " denied") | 0.000 | 0.000 | 0.000 | 1.63× | C |
+| credit_denial | yes | 0.047 | 0.396 | 0.083 | 7.24× | C |
+| medical_triage | yes | 0.465 | 0.318 | 0.378 | 12.37× | C |
+| employment_screening | no | 0.000 | 0.000 | 0.000 | 1.89× | C |
+| fraud_flag | yes | 0.851 | 0.077 | 0.141 | 2.26× | C |
+
+**This is the point, not a defect.** Raw GPT-2 Small (124M) is *not* a decision
+model — it has no faithful credit/underwriting circuit, so the tool correctly
+returns **low faithfulness, Grade C, and would mark the audit NON-COMPLIANT**
+rather than fabricate a clean explanation. (Concentration > 1× confirms the
+discovered heads still beat a random set — the attribution is real; the model's
+*decision competence* is what's absent.) A meaningful credit audit requires a
+model actually fine-tuned to underwrite; point the harness at one to get a
+passing grade.
+
+> **Correction (2026-06-15):** earlier editions of this file reported GPT-2 Small
+> credit as suff 0.73 / F1 0.61 / Grade B (14 heads), with similar passing rows
+> for GPT-2 Medium / GPT-Neo-125M / Pythia-160M. Those figures **do not reproduce
+> on the current exact-measurement build** (most likely an earlier build whose
+> *approximate* sufficiency over-shot — the same effect fixed for IOI). They have
+> been replaced with the measured current-build results above. The other models
+> are pending re-measurement and should not be cited until re-run.
 
 ---
 

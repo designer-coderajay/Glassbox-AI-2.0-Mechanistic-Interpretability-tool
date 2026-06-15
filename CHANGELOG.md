@@ -6,6 +6,35 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Fixed — benchmark-number reconciliation (single canonical set, measured on current build)
+
+- **IOI faithfulness corrected to the current build's measured result.** Default
+  circuit on GPT-2 Small now records suff 1.00 / comp 0.543 / **F1 0.704 / Grade B**
+  (1-head circuit; reproduced by `analyze()` and `validate_models_matrix.py`),
+  superseding the earlier F1 0.49. The **full 26-head Wang et al. circuit** is
+  stated separately as suff 1.00 / comp 0.47 / F1 0.64; the previously-circulated
+  "suff 1.00 / comp 0.22 / F1 0.64" triple was arithmetically impossible
+  (1.00 & 0.22 → 0.36) and is fixed across README, BENCHMARKS, CITATION.cff,
+  PAPER_OUTLINE, MATH_FOUNDATIONS, and the compliance/model-support docs.
+- **Credit/decision claims reframed around honest failure.** The previously-cited
+  "credit suff 0.73 / F1 0.61 / Grade B (14 heads)" does **not reproduce** on the
+  current exact-measurement build: raw GPT-2 has no faithful credit circuit, so
+  the decision-functional harness records F1 0.00–0.08, Grade C, NON-COMPLIANT
+  (`reports/credit_current.json`). All surfaces (README, BENCHMARKS §4, the
+  website hero, one-pager) now state this measured behavior — the tool correctly
+  refuses to certify a model that cannot faithfully explain its decision.
+- **Grade-threshold docs aligned to the code** (`compliance.py:_compute_grade`):
+  A = suff ≥ 0.80 ∧ comp ≥ 0.60 ∧ F1 ≥ 0.80; B = ≥ 0.65/0.40/0.65; C = F1 ≥ 0.50.
+- Code-review fixes to `core.py` (cap-exit logging, MFC docstring) and
+  `validate_models_matrix.py` (apples-to-apples random-comp baseline); CI
+  coverage note refreshed to 932 tests / 71%.
+
+> Note: the 4.5.0 entry below stated the (then-believed) numbers as canonical;
+> this section is the correction of record. Re-run the benchmarks before a tagged
+> release so a single measured set flows to all surfaces.
+
 ## [4.5.0] — 2026-06-13
 
 ### Added — V5 Phase B/C foundations (pure, tested cores)
