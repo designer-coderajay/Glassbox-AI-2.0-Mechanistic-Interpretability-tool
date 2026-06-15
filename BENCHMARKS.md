@@ -41,10 +41,19 @@ Correct token: `" Mary"` | Incorrect token: `" John"`
 
 | Model | Sufficiency | Comprehensiveness | F1_faith | Circuit (n_heads) | Grade |
 |-------|-------------|-------------------|----------|------------------|-------|
-| GPT-2 Small | 0.80 (approx) | 0.37 | 0.49 | 26 | C |
-| GPT-2 Small | ~1.00 (exact) | 0.37 | 0.54 | 26 | C |
-| GPT-2 Medium | 0.84 (approx) | 0.41 | 0.55 | 31 | C |
-| Pythia-1.4B | 0.76 (approx) | 0.44 | 0.56 | 19 | C |
+| GPT-2 Small (current build, default circuit) | 1.00 (exact) | 0.543 | 0.704 | 1 | B |
+| GPT-2 Medium † | 0.84 (approx) | 0.41 | 0.55 | 31 | C |
+| Pythia-1.4B † | 0.76 (approx) | 0.44 | 0.56 | 19 | C |
+
+GPT-2 Small is the re-measured canonical (current build): the scale-aware default
+circuit reaches **exact** sufficiency with a 1-head circuit — suff 1.00,
+comp 0.543, **F1 0.704, Grade B** (grade per the code's own thresholds, see
+"Grade thresholds" below). Reproduced by `analyze()` and
+`scripts/validate_models_matrix.py`.
+
+† Earlier-build approximate figures, **pending re-measurement** on the current
+scale-aware build — do not cite as current without a fresh run (see
+`VALIDATION_LOG.md`).
 
 Note: the IOI task was specifically designed for GPT-2. Faithfulness scores
 on other tasks (e.g. credit scoring, medical triage) differ significantly.
@@ -137,6 +146,14 @@ claims. They come directly from the MSc research paper:
 | Comprehensiveness | **22.0%** | Prediction reduction when ablating cited heads |
 | Local Faithfulness Score (F1) | **36.0%** | Harmonic mean of S and Comp |
 
+> This block is the **6-head minimal** circuit (S 1.00 · C 0.22 · F1 0.36 — self-
+> consistent). It is *not* the current canonical. The current build's **default**
+> circuit on this task is a **1-head** circuit scoring **suff 1.00 · comp 0.543 ·
+> F1 0.704 · Grade B** (see the model table at the top of this file). The
+> **full 26-head** Wang et al. circuit scores **S 1.00 · C 0.47 · F1 0.64**
+> (paper reference). Three different circuit definitions, three different F1s —
+> always state which circuit a number refers to.
+
 ### Head-Level Attribution (Global Importance)
 
 | Head | Role | Global Importance |
@@ -160,9 +177,9 @@ claims. They come directly from the MSc research paper:
 
 ```
 r = 0.009   (Pearson correlation, model confidence vs explanation faithfulness)
-S = 1.00    Sufficiency
-Comp = 0.22 Comprehensiveness
-F1 = 0.64   (full 26-head Wang et al. IOI circuit)
+S = 1.00    Sufficiency      (full 26-head Wang et al. IOI circuit)
+Comp = 0.47 Comprehensiveness (full circuit; the 6-head minimal circuit has Comp = 0.22)
+F1 = 0.64   (full 26-head circuit; harmonic mean of S=1.00 and Comp=0.47)
 ```
 
 **Interpretation:** `r = 0.009` means model confidence and explanation faithfulness are
@@ -228,6 +245,9 @@ original paper (Conmy et al. 2023, NeurIPS) on an NVIDIA A100.
 - Sufficiency (Taylor approx) uses `suff_is_approx=True` — the gradient
   approximation, not exact positive ablation.
 - Exact sufficiency uses `bootstrap_metrics(exact_suff=True)`.
-- Grade thresholds: A ≥ 0.90, B ≥ 0.75, C ≥ 0.50, D < 0.50 (F1_faith).
+- Grade thresholds (the code's own, `compliance.py:_compute_grade`, all conditions
+  must hold): **A** = suff ≥ 0.80 ∧ comp ≥ 0.60 ∧ F1 ≥ 0.80; **B** = suff ≥ 0.65
+  ∧ comp ≥ 0.40 ∧ F1 ≥ 0.65; **C** = F1 ≥ 0.50; **D** otherwise. (A grade is
+  multi-dimensional — F1 alone does not determine it.)
 - Every result carries `suff_is_approx: bool` so downstream users know
   whether the exact or approximate method was used.

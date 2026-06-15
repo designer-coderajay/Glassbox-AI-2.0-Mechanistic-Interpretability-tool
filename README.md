@@ -108,11 +108,10 @@ print(result["circuit"])
 # [(9, 9), (9, 6), (10, 0), (8, 6), ...]   <- (layer, head) tuples
 
 print(result["faithfulness"])
-# {'sufficiency': 0.80,          # Taylor approximation (fast, suff_is_approx=True)
-#  'comprehensiveness': 0.37,    # exact ablation
-#  'f1': 0.49,
-#  'category': 'backup_mechanisms',
-#  'suff_is_approx': True}       # True = approx; use bootstrap_metrics() for exact ~100%
+# {'sufficiency': 1.0,           # keep only the circuit, ablate the rest
+#  'comprehensiveness': 0.543,   # remove the circuit, keep the rest (exact ablation)
+#  'f1': 0.704,                  # harmonic mean -> Grade B
+#  'suff_is_approx': True, ...}  # measured: GPT-2 IOI, default analyze() (current build)
 ```
 
 No model weights? Use the [live HuggingFace demo](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) — no install required.
@@ -2136,7 +2135,7 @@ z = atanh(r),   SE = 1/√(n−3),   Z = z/SE  ~  N(0,1)  under H₀: ρ = 0
 ```
 
 Reference values from Mahale (2026) / arXiv:2603.09988:
-`r = 0.009`, `S = 1.00`, `Comp = 0.22`, `F1 = 0.64` (full 26-head Wang et al. IOI circuit).
+`r = 0.009`, `S = 1.00`, `Comp = 0.47`, `F1 = 0.64` (full 26-head Wang et al. IOI circuit; the 6-head minimal circuit scores Comp 0.22 / F1 0.36, and the current build's default 1-head circuit scores Comp 0.543 / F1 0.704 / Grade B).
 Circuit coverage: **61.4%** of logit difference explained by 6 identified heads.
 Full results documented in [`BENCHMARKS.md § 8`](./BENCHMARKS.md#8-peer-reviewed-results--arxiv26039988).
 

@@ -13,7 +13,7 @@ Before the solutions, the problems, stated the way a hostile reviewer would stat
 
 **Truth 2 — The scale wall.** Companies run 10⁶–10⁹ inferences/day. Circuit discovery costs ~2s on GPT-2 Small and minutes-to-hours on 70B. Per-request deep auditing is not 100x away — it is 10⁶x away, and no hardware roadmap closes that. Anyone selling per-request circuit discovery at production scale is lying. We must not be that company.
 
-**Truth 3 — Faithfulness degrades exactly where the money is.** Our own published numbers: F1 0.49 on GPT-2 Small, worse on Medium/Large. Bigger models distribute computation; head-level circuits blur; first-order Taylor approximations strain. The models enterprises actually deploy are the ones where our current unit of analysis (attention heads) is weakest.
+**Truth 3 — Faithfulness degrades exactly where the money is.** The current build's scale-aware selection scores well on GPT-2 Small (default-circuit IOI F1 0.704, Grade B; the earlier published number was F1 0.49), but the structural problem is real at scale: bigger models distribute computation; head-level circuits blur; first-order Taylor approximations strain — which is exactly why the default Taylor path under-sizes circuits on >1.4B models and we added the exact-sufficiency `exact_circuit` path (see VALIDATION_LOG.md). The models enterprises actually deploy are the ones where our current unit of analysis (attention heads) is weakest.
 
 **Truth 4 — The TransformerLens ceiling.** Our model support is TL's model list, with TL's memory overhead (weight duplication), TL's release lag on new architectures, and no MoE/SSM story. "Works on any model" is today false; "works on any model TransformerLens has ported, smaller than your RAM" is true.
 

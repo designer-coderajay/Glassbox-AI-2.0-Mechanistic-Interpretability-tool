@@ -17,7 +17,7 @@ Writing Annex IV by hand takes weeks of combined ML + legal effort per model. An
 | Annex IV sections (full structure) | 9 of 9 (§8 is a provider-signed legal reference) |
 | Time to full audit (GPT-2 Small) | < 2 seconds |
 | Circuit discovery vs. ACDC baseline | 37× faster (1.2s vs 43.2s) |
-| Faithfulness F1 | 0.64 (Grade B) |
+| Faithfulness F1 | 0.704 (Grade B) — GPT-2 IOI, default circuit, current build |
 | Confidence ↔ faithfulness correlation | r = 0.009 (orthogonal — see Step 6) |
 
 *These numbers are the locked ground truth. Do not round or embellish them in any customer-facing material.*

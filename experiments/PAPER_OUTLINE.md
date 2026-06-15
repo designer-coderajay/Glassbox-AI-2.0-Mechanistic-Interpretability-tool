@@ -158,8 +158,8 @@ F1_faith = 2 · S(C) · Comp(C) / (S(C) + Comp(C))
 ```
 
 For GPT-2 on IOI with the full 26-head Wang et al. (2022) circuit:
-S = 1.00, Comp = 0.22, F1 = 0.64. For the top-3 Name Mover heads only:
-F1 ≈ 0.36 (reduced comprehensiveness). See `MATH_FOUNDATIONS.md §4`.
+S = 1.00, Comp = 0.47, F1 = 0.64. For the top-3 Name Mover heads only:
+Comp ≈ 0.22, F1 ≈ 0.36 (reduced comprehensiveness). See `MATH_FOUNDATIONS.md §4`.
 
 ### 2.3 The IOI Task
 
@@ -335,8 +335,8 @@ CLI: `python cross_model_study.py --n-prompts 100 --output-dir results/ [--dry-r
 | Pythia-1.4B | _TBD_ | _TBD_ | _TBD_ | _TBD_ |
 | Llama-2-7B | _TBD_ | _TBD_ | _TBD_ | _TBD_ |
 
-*Reference:* Mahale (2026) GPT-2: S = 1.00, Comp = 0.22, F1 = 0.64, t = 1.2s.
-*(Note: F1 = 0.64 is for the full 26-head Wang et al. circuit; top-3 Name Movers give F1 ≈ 0.36.)*
+*Reference:* Mahale (2026) GPT-2, full 26-head circuit: S = 1.00, Comp = 0.47, F1 = 0.64, t = 1.2s.
+*(Note: F1 = 0.64 is for the full 26-head Wang et al. circuit (Comp 0.47); the top-3 Name Movers give Comp ≈ 0.22 / F1 ≈ 0.36.)*
 
 ### 4.3 Table 3: Pairwise Jaccard Circuit Similarity
 

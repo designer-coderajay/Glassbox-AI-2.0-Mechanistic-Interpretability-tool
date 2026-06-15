@@ -9,10 +9,9 @@ https://arxiv.org/abs/2211.00593
 Run:
     python examples/01_ioi_circuit.py
 
-Expected output (approx):
-    Top-5 circuit heads: [(9,9), (9,6), (10,0), (11,10), (8,10)]
-    Faithfulness → sufficiency=0.80  comprehensiveness=0.37  f1=0.49
-    Category: backup_mechanisms
+Expected output (approx, current build):
+    Faithfulness → sufficiency=1.00  comprehensiveness=0.543  f1=0.704  (Grade B)
+    (GPT-2 IOI, default circuit. Exact numbers depend on build/seed.)
 """
 
 from transformer_lens import HookedTransformer

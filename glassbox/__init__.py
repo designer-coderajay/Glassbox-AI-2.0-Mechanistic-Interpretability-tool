@@ -16,8 +16,8 @@ Quick start
         incorrect = " John",
     )
     print(result["faithfulness"])
-    # {'sufficiency': 0.80, 'comprehensiveness': 0.37, 'f1': 0.49,
-    #  'category': 'backup_mechanisms', 'suff_is_approx': True}
+    # {'sufficiency': 1.0, 'comprehensiveness': 0.543, 'f1': 0.704,
+    #  'suff_is_approx': True, ...}   # measured: GPT-2 IOI, default analyze() (Grade B)
 
     # Token-level saliency map
     tokens = model.to_tokens("When Mary and John went to the store, John gave a drink to")

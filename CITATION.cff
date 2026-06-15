@@ -31,7 +31,8 @@ abstract: >
   per EU AI Act Article 10(2)(f), a webhook system for async job delivery,
   and a multi-audit history dashboard for compliance trend analysis.
   Key finding (arXiv:2603.09988): r=0.009 structural overlap between faithful
-  circuits and attention heads, sufficiency=1.00, comprehensiveness=0.22, F1=0.64.
+  circuits and attention heads. Full 26-head IOI circuit: sufficiency=1.00,
+  comprehensiveness=0.47, F1=0.64.
 keywords:
   - mechanistic-interpretability
   - attribution-patching
