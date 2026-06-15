@@ -80,7 +80,7 @@
 |---------|-----|-------------|
 | **Website** | [repo-ashen-psi.vercel.app](https://repo-ashen-psi.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
 | **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.2.6 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.5.0 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
 ---
@@ -166,7 +166,8 @@ model = HookedTransformer.from_pretrained("gpt2")
 model = HookedTransformer.from_pretrained("meta-llama/Llama-2-7b-hf")
 model = HookedTransformer.from_pretrained("mistralai/Mistral-7B-v0.1")
 model = HookedTransformer.from_pretrained("microsoft/phi-2")
-# See supported-models table for all 11 architecture families
+# Works with any TransformerLens model; see the Supported Models table below
+# (validated end-to-end across 9 architecture families, 82M–12B)
 
 gb = GlassboxV2(model)
 ```
@@ -1550,11 +1551,13 @@ ACDC baseline: official implementation (Conmy et al. 2023, NeurIPS) on NVIDIA A1
 
 ### IOI Faithfulness — GPT-2 family
 
-| Model | Suff. (approx) | Suff. (exact) | Comp. | F1 | Grade | Circuit (heads) |
-|-------|----------------|---------------|-------|----|-------|----------------|
-| GPT-2 Small | 80.0% | **~100%** | 37.2% | 48.8% | C | 26 |
-| GPT-2 Medium | 35.1% | ~61% | 23.7% | 27.9% | D | 31 |
-| GPT-2 Large | 18.2% | ~34% | 14.2% | 15.9% | D | 38 |
+| Model | Suff. (exact) | Comp. | F1 | Grade | Circuit (heads) |
+|-------|---------------|-------|----|-------|----------------|
+| GPT-2 Small (current build, default circuit) | **100%** | 54.3% | **70.4%** | **B** | 1 |
+| GPT-2 Medium † | ~61% | 23.7% | 27.9% | D | 31 |
+| GPT-2 Large † | ~34% | 14.2% | 15.9% | D | 38 |
+
+GPT-2 Small is the re-measured canonical (suff 1.00, comp 0.543, **F1 0.704, Grade B**, 1-head circuit — grade per the code's own thresholds; reproduced by `analyze()` and `scripts/validate_models_matrix.py`). The full 26-head Wang et al. circuit scores suff 1.00 / comp 0.47 / F1 0.64 (paper reference). † GPT-2 Medium/Large are **earlier-build approximate figures pending re-measurement** on the current scale-aware build (they predate the exact-circuit fix that corrected faithfulness collapse at scale) — do not cite as current.
 
 ### EU AI Act use case — Credit Scoring (Annex III representative task)
 
@@ -1599,7 +1602,7 @@ python scripts/benchmark_v340.py --model gpt2 --task credit --seed 42
 python scripts/benchmark_v340.py --suite standard --output results/bench_v340.json
 ```
 
-See [`BENCHMARKS.md`](BENCHMARKS.md) for full methodology, hardware specs, and planned Llama-2-7B / Mistral-7B benchmarks (v4.1.0).
+See [`BENCHMARKS.md`](BENCHMARKS.md) for full methodology and hardware specs, and [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md) for the cross-family validation (82M–12B across 9 families, incl. Llama-3 / Mistral / Gemma-2 / Qwen2 / Yi / Phi-3, with minimality + specificity controls).
 
 ---
 
@@ -1760,11 +1763,11 @@ glassbox analyze \
   --incorrect " John" \
   --model gpt2
 
-# Output:
-#   Sufficiency      : 80.0%
-#   Comprehensiveness: 37.2%
-#   F1-score         : 48.8%
-#   Category         : backup_mechanisms
+# Output (current build, GPT-2 IOI, default circuit):
+#   Sufficiency      : 100.0%
+#   Comprehensiveness: 54.3%
+#   F1-score         : 70.4%   (Grade B)
+#   Circuit          : 1 head (default) — exact numbers vary by build/seed
 #   Head         Attribution
 #   ------------ ------------
 #   L09H09           0.1742

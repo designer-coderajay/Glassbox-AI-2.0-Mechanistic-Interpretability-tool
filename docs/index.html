@@ -610,18 +610,18 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
 <section id="models"><div class="wrap">
   <div class="section-head reveal">
     <span class="eyebrow">Model coverage</span>
-    <h2 class="h">Open weights, GPT-2 to 200B+</h2>
-    <p class="lead">Eleven architecture families, with grouped-query attention and RMSNorm handled correctly. Large models run through gradient checkpointing and activation offload, so you don't need a data centre to audit them.</p>
+    <h2 class="h">Validated GPT-2 → 12B.<br>Architected for more.</h2>
+    <p class="lead">Nine architecture families validated end-to-end (82M → 12B), with grouped-query attention and RMSNorm handled correctly — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, Llama-3, Mistral, Gemma-2, Qwen2/2.5, Yi and Phi-3. Beyond ~13B, gradient-based attribution needs multi-GPU memory; that path is implemented but not yet validated live.</p>
   </div>
   <table class="mdl reveal">
     <thead><tr><th>Class</th><th>Parameter range</th><th>Strategy</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td>small / medium</td><td class="mono">&lt; 7B</td><td class="mono">standard</td><td><span class="st live">runs today</span></td></tr>
-      <tr><td>large</td><td class="mono">7B to 70B</td><td class="mono">checkpoint</td><td><span class="st sched">verification scheduled</span></td></tr>
-      <tr><td>xlarge / xxlarge</td><td class="mono">70B to 200B+</td><td class="mono">checkpoint + offload</td><td><span class="st impl">implemented</span></td></tr>
+      <tr><td>small / medium</td><td class="mono">82M to 12B</td><td class="mono">standard</td><td><span class="st live">validated — 9 families</span></td></tr>
+      <tr><td>large</td><td class="mono">13B to 70B</td><td class="mono">checkpoint</td><td><span class="st sched">needs multi-GPU · pending validation</span></td></tr>
+      <tr><td>xlarge / xxlarge</td><td class="mono">70B to 200B+</td><td class="mono">checkpoint + offload</td><td><span class="st impl">implemented · unverified (cluster)</span></td></tr>
     </tbody>
   </table>
-  <p class="disc">Circuit-level analysis requires open weights. Closed API models like Claude, GPT, and Gemini can only receive black-box documentation support, because faithfulness can't be measured without access to the weights.</p>
+  <p class="disc">Reproducible in <code>VALIDATION_LOG.md</code>; comprehensiveness is specificity-checked against a random same-size circuit at every scale. Circuit-level analysis requires open weights — closed API models (Claude, GPT, Gemini) can only receive black-box documentation support, because faithfulness can't be measured without access to the weights.</p>
 </div></section>
 
 <section id="domains" class="alt"><div class="wrap">
