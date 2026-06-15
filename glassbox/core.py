@@ -1865,7 +1865,7 @@ class GlassboxV2:
                      REPRODUCIBILITY NOTE (paper: arXiv 2603.09988)
                      The ~100% sufficiency figure in the paper was computed with
                      exact_suff=True, seed=42, on GPT-2 small (12L/12H/768d),
-                     Apple M2 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
+                     Apple M1 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
                      The 0.80 figure in analyze() output uses exact_suff=False
                      (Taylor approx). Both are correct; they measure different things.
 

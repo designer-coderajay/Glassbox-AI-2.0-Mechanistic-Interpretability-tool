@@ -421,7 +421,7 @@ After v4.1.0: **18/18 mathematical frameworks implemented** (100%)
   active, corrupts all other heads, measures preserved logit difference. `bootstrap_metrics()`
   now takes `exact_suff=True` (default) to use this method. Return dict includes
   `meta.exact_suff` and `meta.suff_is_approx` fields. Reproducibility note documented in
-  docstring: seed=42, GPT-2 small, Apple M2 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
+  docstring: seed=42, GPT-2 small, Apple M1 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
   This resolves the discrepancy between Taylor approx (~80%) and exact (~100%) sufficiency.
 
 - **Custom SAE upload** (`glassbox/sae_attribution.py`): `SAEFeatureAttributor` now accepts

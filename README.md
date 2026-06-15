@@ -27,7 +27,7 @@
 
 **For compliance teams:** Regulation (EU) 2024/1689 (AI Act) requires Annex IV technical documentation for every high-risk AI system (Article 11). Under current law these obligations apply from 2 August 2026; the Digital Omnibus agreement of 7 May 2026 (pending formal adoption) defers Annex III high-risk obligations to 2 December 2027 — verify the current date with counsel. Glassbox automates generation of the full 9-section Annex IV draft — from open-source models (white-box) or any proprietary API like GPT-4 and Claude (black-box). Outputs are structured documentation aids; they do not constitute legal advice, a declaration of conformity, or a guarantee of regulatory compliance. See [Legal Notices](#legal-notices--regulatory-disclaimer).
 
-**For researchers:** one function call discovers the minimum faithful circuit in a transformer — the smallest subgraph of attention heads causally responsible for a prediction. Preliminary benchmarks show 15–37× faster than ACDC on GPT-2 (single-run, Apple M2 Pro — see [Benchmarks](#benchmarks)). Every approximation is disclosed.
+**For researchers:** one function call discovers the minimum faithful circuit in a transformer — the smallest subgraph of attention heads causally responsible for a prediction. Preliminary benchmarks show 15–37× faster than ACDC on GPT-2 (single-run, Apple M1 Pro — see [Benchmarks](#benchmarks)). Every approximation is disclosed.
 
 ---
 
@@ -1084,7 +1084,7 @@ result = gb.bootstrap_metrics(prompts, seed=42)
 result = gb.bootstrap_metrics(prompts, exact_suff=False)
 ```
 
-The paper benchmark: `seed=42`, GPT-2 small (12L/12H/768d), Apple M2 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
+The paper benchmark: `seed=42`, GPT-2 small (12L/12H/768d), Apple M1 Pro, PyTorch 2.2.0, TransformerLens 1.19.0.
 
 ---
 

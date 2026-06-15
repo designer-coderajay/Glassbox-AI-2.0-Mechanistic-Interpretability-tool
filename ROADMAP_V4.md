@@ -299,7 +299,7 @@ gb.batch_analyze(
 
 | Hardware | Time (n=100) | Cost estimate |
 |----------|--------------|---------------|
-| CPU (M2 Pro) | ~10 min | $0 |
+| CPU (M1 Pro) | ~10 min | $0 |
 | T4 GPU (Colab) | ~45 sec | ~$0.10 |
 | A100 GPU | ~12 sec | ~$0.05 |
 
