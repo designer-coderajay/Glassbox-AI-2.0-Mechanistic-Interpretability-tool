@@ -130,7 +130,8 @@ explanation is real.
 - **Verified scope today** (see `VALIDATION_LOG.md`): conformance gate PASS across
   **6 architecture families** (GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, Qwen2-GQA,
   Mistral-GQA) **up to 12B**; and **faithfulness (suff + comp, both rigor-controlled)
-  validated 82M → 12B across 9 model families** including every major GQA family
+  validated 82M → 12B across 9 architecture families** (ten model series; Yi uses
+  the Llama architecture) including every major GQA family
   (Llama-3, Mistral, Gemma-2, Qwen2/2.5, Yi, Phi-3), via scale-aware circuit
   selection — comprehensiveness is specificity-checked against a random same-size
   circuit at every scale (comp ~1.0 vs random 0.0–0.29).

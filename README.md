@@ -957,9 +957,10 @@ Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon �
 
 > **Validation status (empirical; see [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)).**
 > Conformance gate + **faithfulness** (sufficiency + comprehensiveness, both
-> rigor-controlled) are validated **82M → 12B** across **9 model families — GPT-2,
+> rigor-controlled) are validated **82M → 12B** across **nine architecture
+> families** (ten model series; Yi uses the Llama architecture) — GPT-2,
 > Pythia/GPT-NeoX, GPT-Neo, OPT, and every major GQA family: Llama-3, Mistral,
-> Gemma-2, Qwen2/2.5, Yi, Phi-3** — via scale-aware circuit selection
+> Gemma-2, Qwen2/2.5, Yi, Phi-3 — via scale-aware circuit selection
 > (`exact_circuit=True`). The discovered circuit's comprehensiveness is
 > **specificity-checked against a random same-size circuit at every scale** (comp
 > ~1.0 vs random 0.0–0.29), with circuit size confirmed stable below the budget cap

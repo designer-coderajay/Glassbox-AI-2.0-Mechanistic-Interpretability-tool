@@ -288,8 +288,9 @@ ceiling**, reached cleanly.
 ## Validated summary (as of 2026-06-14)
 
 - **Conformance gate + faithfulness (both controls passed):** validated **82M →
-  12B** across **9 model families — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, and every
-  major GQA family: Llama-3, Mistral, Gemma-2, Qwen2/2.5, Yi, Phi-3** — via
+  12B** across **nine architecture families** (ten model series; Yi uses the
+  Llama architecture) — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, and every
+  major GQA family: Llama-3, Mistral, Gemma-2, Qwen2/2.5, Yi, Phi-3 — via
   scale-aware circuit selection (`--exact-circuit`). Circuit sizes (~11–47 heads)
   match the literature; comprehensiveness is specificity-checked against a random
   baseline (comp ~1.0 vs random **0.0–0.29**) at every scale.

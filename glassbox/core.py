@@ -16,7 +16,7 @@ Nanda et al. 2023 — "Attribution Patching: Activation Patching at Industrial S
 Conmy et al. 2023 — "Towards Automated Circuit Discovery for Mechanistic Interpretability"
     (ACDC)  https://arxiv.org/abs/2304.14997
     Graph-based edge-level automated circuit discovery. Glassbox operates at
-    head granularity and is 37x faster wall-clock on GPT-2 small (1.2s vs 43.2s).
+    head granularity and is ~37x faster wall-clock on GPT-2 small (1.8s vs ~65s).
 
 Elhage et al. 2021 — "A Mathematical Framework for Transformer Circuits"
     https://transformer-circuits.pub/2021/framework/index.html

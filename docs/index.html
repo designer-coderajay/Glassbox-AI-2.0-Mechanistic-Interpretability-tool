@@ -598,7 +598,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
       <thead><tr><th>Approach</th><th>Faithfulness measured?</th><th>Needs open weights?</th><th>Speed (GPT-2)</th></tr></thead>
       <tbody>
         <tr class="me"><td>Glassbox <span class="tag">attribution patching</span></td><td><span class="yes">Yes (suff / comp / F1)</span></td><td>Yes</td><td><b>1.8s</b></td></tr>
-        <tr><td>ACDC <span style="color:var(--ink-3);font-size:12.5px">(Conmy 2023)</span></td><td><span class="yes">Yes</span></td><td>Yes</td><td>43.2s <span class="no">· ~24× slower</span></td></tr>
+        <tr><td>ACDC <span style="color:var(--ink-3);font-size:12.5px">(Conmy 2023)</span></td><td><span class="yes">Yes</span></td><td>Yes</td><td>~65s <span class="no">· ~37× slower</span></td></tr>
         <tr><td>SHAP / LIME <span style="color:var(--ink-3);font-size:12.5px">(black-box)</span></td><td><span class="no">No guarantee</span></td><td>No (works on APIs)</td><td>varies</td></tr>
         <tr><td>Confidence scores</td><td><span class="no">No (r = 0.009)</span></td><td>No</td><td>instant</td></tr>
       </tbody>
@@ -611,7 +611,7 @@ vault = <span class="f">build_annex_iv_vault</span>(result)</pre>
   <div class="section-head reveal">
     <span class="eyebrow">Model coverage</span>
     <h2 class="h">Validated GPT-2 → 12B.<br>Architected for more.</h2>
-    <p class="lead">Nine architecture families validated end-to-end (82M → 12B), with grouped-query attention and RMSNorm handled correctly — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, Llama-3, Mistral, Gemma-2, Qwen2/2.5, Yi and Phi-3. Beyond ~13B, gradient-based attribution needs multi-GPU memory; that path is implemented but not yet validated live.</p>
+    <p class="lead">Nine architecture families validated end-to-end (82M → 12B), with grouped-query attention and RMSNorm handled correctly — GPT-2, Pythia/GPT-NeoX, GPT-Neo, OPT, Llama-3, Mistral, Gemma-2, Qwen2/2.5, Yi (Llama-architecture) and Phi-3 — ten model series across nine distinct architectures. Beyond ~13B, gradient-based attribution needs multi-GPU memory; that path is implemented but not yet validated live.</p>
   </div>
   <table class="mdl reveal">
     <thead><tr><th>Class</th><th>Parameter range</th><th>Strategy</th><th>Status</th></tr></thead>
