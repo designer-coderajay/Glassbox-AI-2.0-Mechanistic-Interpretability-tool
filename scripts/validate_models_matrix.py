@@ -156,11 +156,14 @@ def _audit_one(name: str, device: str, max_units: int, dtype: str = "float32",
     comp_random = None
     if circuit:
         import random as _random
+        # Use the EXACT same clean/corrupted tokens and clean_ld that analyze()
+        # used for the discovered circuit's comp, so the baseline is apples-to-
+        # apples (and no redundant attribution_patching recompute).
         tc = model.to_tokens(PROMPT)
-        corr = model.to_tokens(gb._name_swap(PROMPT, "Mary", "John"))
+        corr = model.to_tokens(result["corr_prompt"])
         tt = _rep_token(model, CORRECT)
         dt = _rep_token(model, INCORRECT)
-        _, clean_ld = gb.attribution_patching(tc, corr, tt, dt)
+        clean_ld = float(result["clean_ld"])
         all_heads = [(layer, head)
                      for layer in range(model.cfg.n_layers)
                      for head in range(model.cfg.n_heads)]
@@ -240,8 +243,8 @@ def main() -> int:
                   f"{r['circuit_size']:<6}{r['sufficiency']:<7}{r['comprehensiveness']:<7}"
                   f"{str(r.get('comp_random')):<8}{r['f1']:<7}{r['grade']:<4}{r['seconds']:<6}")
         else:
-            print(f"{r['model']:<28}{'ERROR — ' + r['error'][:40]}")
-    print("=" * 78)
+            print(f"{r['model']:<26}{'ERROR — ' + r['error'][:52]}")
+    print("=" * 92)
     n_ok = sum(1 for r in rows if r.get("ok"))
     n_conf = sum(1 for r in rows if r.get("conformance") == "PASS")
     print(f"loaded+audited: {n_ok}/{len(rows)}   conformance PASS: {n_conf}/{len(rows)}")

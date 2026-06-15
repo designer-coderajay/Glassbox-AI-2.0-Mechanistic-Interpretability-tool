@@ -1700,12 +1700,16 @@ class GlassboxV2:
         Algorithm
         ---------
         Phase 1 — Greedy forward selection:
-            Sort heads by attribution score (descending).
-            Add heads one-at-a-time until cumulative Taylor-sufficiency ≥ target_suff.
-
-            NOTE: Forward selection uses the APPROXIMATE Taylor sufficiency
-            (Σ attr / clean_ld). This is fast (no extra passes) but may over- or
-            under-shoot actual causal sufficiency.
+            Sort heads by attribution score (descending). Two modes:
+            * Default (exact_forward=False): add heads until cumulative
+              Taylor-sufficiency (Σ attr / clean_ld) ≥ target_suff. Fast (no extra
+              passes) but the Taylor ratio over-shoots single-head sufficiency in
+              large models, so it can under-size the circuit at scale.
+            * exact_forward=True: add heads until the MEASURED (ablation) exact
+              sufficiency ≥ target_suff, or max_heads is reached. Costs 2 passes
+              per head added; required for trustworthy circuits on >~1.4B models
+              (see docs/VALIDATION_LOG.md). Backward pruning then also refuses to
+              drop any head below the sufficiency target.
 
         Phase 2 — Backward pruning:
             For each head (last-added first), try removing it.
@@ -1725,6 +1729,12 @@ class GlassboxV2:
             Raise → more conservative pruning, larger final circuit.
             Lower → aggressive pruning; may collapse to 1-2 heads when backup
                      mechanisms absorb the causal signal.
+        exact_forward : If True, select by measured exact sufficiency instead of
+            the Taylor approximation, and preserve sufficiency during pruning
+            (default False — preserves legacy behavior and the test suite).
+        max_heads : Cap on circuit size when exact_forward=True (default 30). A
+            circuit that hits this cap is logged as budget-limited (possibly not
+            minimal); raise it to bound the true size.
 
         Returns
         -------
@@ -1762,6 +1772,7 @@ class GlassboxV2:
             # over-shoots single-head sufficiency in large models, so the cheap
             # path can stop at 1 head that is not exactly sufficient (see
             # docs/VALIDATION_LOG.md, Run 5).
+            exact_suff = 0.0
             for head, _attr in ranked:
                 candidate.append(head)
                 exact_suff = self._suff_exact(
@@ -1770,6 +1781,20 @@ class GlassboxV2:
                 )
                 if exact_suff >= target_suff or len(candidate) >= max_heads:
                     break
+            # Honesty: distinguish "converged on sufficiency" from "hit the budget
+            # cap" — a capped circuit may be under-sufficient, not minimal.
+            if exact_suff < target_suff and len(candidate) >= max_heads:
+                logger.warning(
+                    "MFC exact_forward: hit max_heads=%d cap at exact suff=%.3f "
+                    "(< target %.3f) — circuit is budget-limited, not confirmed "
+                    "minimal; raise max_heads to bound the true size.",
+                    max_heads, exact_suff, target_suff,
+                )
+            else:
+                logger.info(
+                    "MFC exact_forward: reached exact suff=%.3f with %d heads.",
+                    exact_suff, len(candidate),
+                )
         else:
             cumulative_attr = 0.0
             for head, attr in ranked:

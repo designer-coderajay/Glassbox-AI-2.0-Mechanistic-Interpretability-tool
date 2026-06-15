@@ -107,11 +107,11 @@ jobs:
           python -c "import importlib.metadata as m; print('transformer_lens', m.version('transformer-lens'))" || echo "version lookup skipped (non-fatal)"
 
       - name: Run full suite with coverage (gate at measured floor)
-        # Measured real coverage: 62% locally, 710 passed (2026-06-09) after the
-        # Core ML engine push (acdc 95%, das 83%, cross_model 66%, steering 70%,
-        # core 98%; explain/notify/bias/telemetry 100%). Gate set to 58% — a
-        # buffer below current. Target is 80%; raise as the remaining modules
-        # (audit, sae_attribution, hf/mlflow integration) gain tests.
+        # Measured real coverage: 71% locally, 932 passed + 2 xfail (2026-06-14)
+        # (acdc 95%, das 83%, cross_model 66%, steering 70%, core 98%;
+        # explain/notify/bias/telemetry 100%). Gate set to 58% — a buffer below
+        # current. Target is 80%; raise as the remaining modules (audit,
+        # sae_attribution, hf/mlflow integration) gain tests.
         run: |
           pytest \
             --cov=glassbox \
