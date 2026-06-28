@@ -2,7 +2,7 @@
 
 <img src="docs/assets/og-image.png" alt="Glassbox AI — see inside the black box" width="820" style="max-width:100%;margin-bottom:8px;border-radius:12px"/>
 
-# Glassbox 4.5.0
+# Glassbox 4.5.1
 
 **Open-source EU AI Act Annex IV compliance documentation toolkit. Works on any LLM.**
 **21 mathematical frameworks. ACDC + GQA/RMSNorm multi-arch + cross-model comparison. Production-ready.**
@@ -80,7 +80,7 @@
 |---------|-----|-------------|
 | **Website** | [repo-ashen-psi.vercel.app](https://repo-ashen-psi.vercel.app) | Marketing site — features, pricing, code examples. Always up. |
 | **Live Demo** | [HuggingFace Space](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool) | Interactive circuit analysis on open-source models. No install needed. |
-| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.5.0 |
+| **PyPI Package** | [glassbox-mech-interp](https://pypi.org/project/glassbox-mech-interp/) | `pip install glassbox-mech-interp` — v4.5.1 |
 | **Self-Hosted API** | [See Docker guide](#self-hosting-docker--air-gapped-vpc) | Deploy the REST API on your own infra or Railway. |
 
 ---

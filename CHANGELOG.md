@@ -6,7 +6,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [Unreleased]
+## [4.5.1] — 2026-06-27
 
 ### Fixed — benchmark-number reconciliation (single canonical set, measured on current build)
 
@@ -31,9 +31,19 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `validate_models_matrix.py` (apples-to-apples random-comp baseline); CI
   coverage note refreshed to 932 tests / 71%.
 
+### Added / Fixed — engine
+
+- **`analyze(exact_circuit=True, max_circuit_heads=N)` now published** — scale-aware
+  circuit selection that grows the circuit by *measured* exact sufficiency, fixing
+  the Taylor-path under-sizing that collapses faithfulness on larger / distributed
+  circuits (see `docs/VALIDATION_LOG.md`).
+- **Fixed the large-model parameter estimate** used for the VRAM warning. Was
+  `n_layers · n_heads · d² · 4` (over-counted by ~n_heads/3× — e.g. it reported
+  pythia-1.4b as 6.4B); now the standard `12 · n_layers · d²` (Kaplan et al. 2020),
+  accurate to within ~15% across the GPT-2 / Pythia family.
+
 > Note: the 4.5.0 entry below stated the (then-believed) numbers as canonical;
-> this section is the correction of record. Re-run the benchmarks before a tagged
-> release so a single measured set flows to all surfaces.
+> this 4.5.1 section is the correction of record, now released.
 
 ## [4.5.0] — 2026-06-13
 

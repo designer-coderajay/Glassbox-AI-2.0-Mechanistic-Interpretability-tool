@@ -375,9 +375,11 @@ class GlassboxV2:
         # the warning rather than crashing the constructor.
         try:
             d_model         = int(getattr(cfg, "d_model", None) or 768)
-            n_params_approx = (
-                int(self.n_layers) * int(self.n_heads) * d_model * d_model * 4
-            )
+            # Standard transformer parameter estimate: ~12 · n_layers · d_model²
+            # (4·d² attention + 8·d² MLP per layer; Kaplan et al. 2020). The earlier
+            # formula multiplied by n_heads, over-counting ~n_heads/3× (e.g. it
+            # reported pythia-1.4b as 6.4B). Embeddings are omitted (small at scale).
+            n_params_approx = 12 * int(self.n_layers) * d_model * d_model
             if n_params_approx > self._LARGE_MODEL_THRESHOLD_PARAMS:  # pragma: no cover
                 logger.warning(
                     "GlassboxV2: large model detected (~%s parameters). "
