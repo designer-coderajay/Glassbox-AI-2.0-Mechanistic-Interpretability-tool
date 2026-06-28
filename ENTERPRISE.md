@@ -1,4 +1,4 @@
-# Enterprise Onboarding — Glassbox AI v4.5.0
+# Enterprise Onboarding — Glassbox AI v4.5.1
 
 This guide is for engineering and compliance teams at EU-regulated organisations
 deploying AI in finance, healthcare, employment, or critical infrastructure.

@@ -78,3 +78,4 @@ push_regulatory_update.sh
 # Local torch venv (large binaries; never commit) + generated reports
 .venv*/
 reports/
+external/

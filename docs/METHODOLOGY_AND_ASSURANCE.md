@@ -4,7 +4,7 @@
 only a hypothesis, and how it maps to the EU AI Act. Written to be handed to a
 technical buyer, an auditor, or a regulator.*
 
-Version aligned with `glassbox-mech-interp` 4.5.0. Paper: arXiv 2603.09988 (Mahale, 2026).
+Version aligned with `glassbox-mech-interp` 4.5.1. Paper: arXiv 2603.09988 (Mahale, 2026).
 
 ---
 
@@ -182,7 +182,7 @@ decision model for a meaningful audit.
 ---
 
 *All figures are from the reconciled benchmark set (`BENCHMARKS.md`) and the test
-suite (932 passing, 71% coverage as of 4.5.0). Regulatory statements reflect a
+suite (932 passing, 71% coverage as of 4.5.1). Regulatory statements reflect a
 reading of the EU AI Act and the pending Digital Omnibus as of June 2026 and
 should be confirmed with qualified counsel. Citations name the established methods
 this tool builds on; verify them against the primary sources before relying on
