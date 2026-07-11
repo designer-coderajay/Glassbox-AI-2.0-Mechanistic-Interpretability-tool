@@ -1,0 +1,90 @@
+{
+  "seed": 42,
+  "natural_approved_rate": 0.312,
+  "train": {
+    "n": 2000,
+    "approved": 997,
+    "denied": 1003,
+    "approved_rate": 0.498,
+    "features": {
+      "credit_score": {
+        "min": 406.0,
+        "max": 850.0,
+        "mean": 691.22
+      },
+      "dti": {
+        "min": 0.0,
+        "max": 0.8,
+        "mean": 0.32
+      },
+      "num_defaults": {
+        "min": 0.0,
+        "max": 3.0,
+        "mean": 0.29
+      },
+      "annual_income": {
+        "min": 15000.0,
+        "max": 165005.0,
+        "mean": 71437.76
+      },
+      "employment_years": {
+        "min": 0.0,
+        "max": 40.0,
+        "mean": 6.83
+      },
+      "age": {
+        "min": 18.0,
+        "max": 75.0,
+        "mean": 46.27
+      },
+      "loan_amount": {
+        "min": 1000.0,
+        "max": 56427.0,
+        "mean": 18549.81
+      }
+    }
+  },
+  "test": {
+    "n": 500,
+    "approved": 253,
+    "denied": 247,
+    "approved_rate": 0.506,
+    "features": {
+      "credit_score": {
+        "min": 398.0,
+        "max": 850.0,
+        "mean": 686.8
+      },
+      "dti": {
+        "min": 0.0,
+        "max": 0.759,
+        "mean": 0.33
+      },
+      "num_defaults": {
+        "min": 0.0,
+        "max": 3.0,
+        "mean": 0.28
+      },
+      "annual_income": {
+        "min": 15000.0,
+        "max": 173077.0,
+        "mean": 70002.28
+      },
+      "employment_years": {
+        "min": 0.0,
+        "max": 37.4,
+        "mean": 6.88
+      },
+      "age": {
+        "min": 18.0,
+        "max": 75.0,
+        "mean": 47.31
+      },
+      "loan_amount": {
+        "min": 1000.0,
+        "max": 53889.0,
+        "mean": 17875.63
+      }
+    }
+  }
+}
