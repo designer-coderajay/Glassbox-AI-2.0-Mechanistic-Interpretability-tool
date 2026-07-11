@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/og-image.png" alt="Glassbox AI — see inside the black box" width="820" style="max-width:100%;margin-bottom:8px;border-radius:12px"/>
+<img src="assets/og-image.png" alt="Glassbox AI — see inside the black box" width="820" style="max-width:100%;margin-bottom:8px;border-radius:12px"/>
 
 # Glassbox 4.5.1
 
@@ -12,7 +12,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/designer-coderajay/glassbox-mech?color=green)](https://github.com/designer-coderajay/glassbox-mech/commits/main)
 [![GitHub issues](https://img.shields.io/github/issues/designer-coderajay/glassbox-mech)](https://github.com/designer-coderajay/glassbox-mech/issues)
 [![Live Analytics](https://img.shields.io/badge/Live%20Analytics-ClickHouse-FFCC01?logo=clickhouse&logoColor=black)](https://clickpy.clickhouse.com/dashboard/glassbox-mech-interp)
-[![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](LICENSE-COMMERCIAL)
+[![License: MIT](https://img.shields.io/badge/Core-MIT-green.svg)](../LICENSE) [![License: BSL 1.1](https://img.shields.io/badge/Compliance%20Engine-BSL%201.1-orange.svg)](../LICENSE-COMMERCIAL)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![HuggingFace Space](https://img.shields.io/badge/🤗%20HuggingFace-Live%20Demo-yellow)](https://huggingface.co/spaces/designer-coderajay/Glassbox-AI-2.0-Mechanistic-Interpretability-tool)
 [![Website](https://img.shields.io/badge/Website-glassbox--ai-blue)](https://repo-ashen-psi.vercel.app)
@@ -406,7 +406,7 @@ causal-abstraction testing (`CausalScrubbing` / `DistributedAlignmentSearch`).
 `DecisionFunctional` / `VerbalizerSet` (glassbox.decision),
 `CounterfactualGate` (glassbox.cf_gate),
 `TierEngine` / `TierSignals` (glassbox.evidence_tier) — all dependency-free,
-all documented in [ROADMAP_V5_FOUNDATIONS.md](ROADMAP_V5_FOUNDATIONS.md).
+all documented in [ROADMAP_V5_FOUNDATIONS.md](../ROADMAP_V5_FOUNDATIONS.md).
 
 ---
 
@@ -954,7 +954,7 @@ print(meta["grade"])   # "B"
 
 Supports GPT-2, GPT-Neo, Pythia, OPT, Llama-2/3, Mistral, Phi-3, Gemma, Falcon — 29 architecture aliases.
 
-> **Validation status (empirical; see [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md)).**
+> **Validation status (empirical; see [`docs/VALIDATION_LOG.md`](VALIDATION_LOG.md)).**
 > Conformance gate + **faithfulness** (sufficiency + comprehensiveness, both
 > rigor-controlled) are validated **82M → 12B** across **nine architecture
 > families** (ten model series; Yi uses the Llama architecture) — GPT-2,
@@ -1447,7 +1447,7 @@ curl -X POST https://YOUR_API_URL/v1/audit/black-box \
   }'
 ```
 
-> **Key security:** The API key is passed as a header (`X-Provider-Api-Key`), never in the request body. It is never logged, never stored, and never included in the compliance report. See [SECURITY.md](SECURITY.md) for full details. For production, [self-host](#self-hosting).
+> **Key security:** The API key is passed as a header (`X-Provider-Api-Key`), never in the request body. It is never logged, never stored, and never included in the compliance report. See [SECURITY.md](../SECURITY.md) for full details. For production, [self-host](#self-hosting).
 
 **White-box analysis (open-source models):**
 
@@ -1535,7 +1535,7 @@ QK Composition (Elhage et al. 2021):
 
 ## Benchmarks
 
-> **Reproducible results.** All timings are wall-clock from `gb.analyze()` call to returned result dict. Model weights pre-loaded; load time excluded. Every approximation is disclosed via `suff_is_approx` flag. Full methodology and raw data in [`BENCHMARKS.md`](BENCHMARKS.md). Reproduce with `scripts/benchmark_v340.py`.
+> **Reproducible results.** All timings are wall-clock from `gb.analyze()` call to returned result dict. Model weights pre-loaded; load time excluded. Every approximation is disclosed via `suff_is_approx` flag. Full methodology and raw data in [`BENCHMARKS.md`](../BENCHMARKS.md). Reproduce with `scripts/benchmark_v340.py`.
 
 ### Core engine speed — GPT-2 vs ACDC
 
@@ -1602,7 +1602,7 @@ python scripts/benchmark_v340.py --model gpt2 --task credit --seed 42
 python scripts/benchmark_v340.py --suite standard --output results/bench_v340.json
 ```
 
-See [`BENCHMARKS.md`](BENCHMARKS.md) for full methodology and hardware specs, and [`docs/VALIDATION_LOG.md`](docs/VALIDATION_LOG.md) for the cross-family validation (82M–12B across 9 families, incl. Llama-3 / Mistral / Gemma-2 / Qwen2 / Yi / Phi-3, with minimality + specificity controls).
+See [`BENCHMARKS.md`](../BENCHMARKS.md) for full methodology and hardware specs, and [`docs/VALIDATION_LOG.md`](VALIDATION_LOG.md) for the cross-family validation (82M–12B across 9 families, incl. Llama-3 / Mistral / Gemma-2 / Qwen2 / Yi / Phi-3, with minimality + specificity controls).
 
 ---
 
@@ -2126,7 +2126,7 @@ All other metrics (Comprehensiveness, EAP scores, Composition scores, Bootstrap 
 
 Every formula used in Glassbox — attribution patching, faithfulness metrics, Fisher Z
 transformations, Bonferroni correction, power analysis, and EU AI Act regulatory mapping
-— is formally derived and cited in **[`MATH_FOUNDATIONS.md`](MATH_FOUNDATIONS.md)**.
+— is formally derived and cited in **[`MATH_FOUNDATIONS.md`](../MATH_FOUNDATIONS.md)**.
 
 This 16-section document is the single source of truth for all mathematical operations
 in the library. Key equations include:
@@ -2149,7 +2149,7 @@ z = atanh(r),   SE = 1/√(n−3),   Z = z/SE  ~  N(0,1)  under H₀: ρ = 0
 Reference values from Mahale (2026) / arXiv:2603.09988:
 `r = 0.009`, `S = 1.00`, `Comp = 0.47`, `F1 = 0.64` (full 26-head Wang et al. IOI circuit; the 6-head minimal circuit scores Comp 0.22 / F1 0.36, and the current build's default 1-head circuit scores Comp 0.543 / F1 0.704 / Grade B).
 Circuit coverage: **61.4%** of logit difference explained by 6 identified heads.
-Full results documented in [`BENCHMARKS.md § 8`](./BENCHMARKS.md#8-peer-reviewed-results--arxiv26039988).
+Full results documented in [`BENCHMARKS.md § 8`](../BENCHMARKS.md#8-peer-reviewed-results--arxiv26039988).
 
 ---
 
@@ -2189,8 +2189,8 @@ python experiments/cross_model_study.py --models gpt2-small --n-prompts 100 --dr
 | Pythia-1.4B | −0.054 | 0.596 | 0.593 | not rejected |
 | Llama-2-7B | 0.096 | 0.342 | 0.718 | not rejected |
 
-Paper outline: [`experiments/PAPER_OUTLINE.md`](experiments/PAPER_OUTLINE.md)
-Full mathematical details: [`MATH_FOUNDATIONS.md`](MATH_FOUNDATIONS.md)
+Paper outline: [`experiments/PAPER_OUTLINE.md`](../experiments/PAPER_OUTLINE.md)
+Full mathematical details: [`MATH_FOUNDATIONS.md`](../MATH_FOUNDATIONS.md)
 
 ---
 
@@ -2244,7 +2244,7 @@ If you use Glassbox 2.0 in your research, please cite:
 
 ## Security & Privacy
 
-See [SECURITY.md](SECURITY.md) for full details on API key handling, self-hosting recommendation, and GDPR/German law compliance notes.
+See [SECURITY.md](../SECURITY.md) for full details on API key handling, self-hosting recommendation, and GDPR/German law compliance notes.
 
 **TL;DR:** API keys go in the `X-Provider-Api-Key` header — never in the request body. A logging filter scrubs any accidental key leakage. Keys are never stored. For production compliance audits, run Glassbox locally or on your own infrastructure.
 
@@ -2327,7 +2327,7 @@ This project is developed under the laws of the Federal Republic of Germany. The
 
 For questions regarding the legal scope of Glassbox, please contact: [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com)
 
-For security vulnerabilities, see [SECURITY.md](SECURITY.md).
+For security vulnerabilities, see [SECURITY.md](../SECURITY.md).
 
 ---
 
@@ -2356,11 +2356,11 @@ Glassbox AI uses a **dual-license model** to protect commercial IP while keeping
 | Core attribution engine | `core.py`, `composition.py`, `sae_attribution.py`, `utils.py`, `types.py`, `cli.py`, `widget.py` | **MIT** — free forever |
 | Compliance engine | `compliance.py`, `circuit_diff.py`, `risk_register.py`, `bias.py`, `audit_log.py` | **BSL 1.1** — free for non-commercial & internal use |
 
-**MIT License** (core): Free for any use, no restrictions. See [LICENSE](LICENSE).
+**MIT License** (core): Free for any use, no restrictions. See [LICENSE](../LICENSE).
 
-**Business Source License 1.1** (compliance engine): Free for non-commercial use, research, and internal production use (documenting your own AI systems). Commercial redistribution or SaaS use (offering compliance documentation as a service to third parties) requires a separate commercial license. Converts to Apache 2.0 in 2030. See [LICENSE-COMMERCIAL](LICENSE-COMMERCIAL).
+**Business Source License 1.1** (compliance engine): Free for non-commercial use, research, and internal production use (documenting your own AI systems). Commercial redistribution or SaaS use (offering compliance documentation as a service to third parties) requires a separate commercial license. Converts to Apache 2.0 in 2030. See [LICENSE-COMMERCIAL](../LICENSE-COMMERCIAL).
 
-**IP notice**: CircuitDiff and the attribution-to-Annex-IV pipeline are publicly disclosed prior art (defensive publication). No patent applications have been filed. See [PATENTS.md](PATENTS.md).
+**IP notice**: CircuitDiff and the attribution-to-Annex-IV pipeline are publicly disclosed prior art (defensive publication). No patent applications have been filed. See [PATENTS.md](../PATENTS.md).
 
 For commercial licensing inquiries: [mahale.ajay01@gmail.com](mailto:mahale.ajay01@gmail.com)
 
