@@ -1,5 +1,5 @@
-mcp>=1.0.0
-fastmcp>=0.1.0
+mcp>=1.28.1
+fastmcp>=3.4.4
 pydantic>=2.0.0
 transformer-lens>=2.0.0
 torch>=2.0.0

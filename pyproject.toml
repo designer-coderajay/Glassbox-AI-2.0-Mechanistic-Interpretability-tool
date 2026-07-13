@@ -1,5 +1,5 @@
 [build-system]
-requires      = ["setuptools>=61,<74", "wheel"]  # <74 keeps Metadata-Version 2.3 (PyPI-safe)
+requires      = ["setuptools>=61,<84", "wheel"]  # <74 keeps Metadata-Version 2.3 (PyPI-safe)
 build-backend = "setuptools.build_meta"
 
 [project]
